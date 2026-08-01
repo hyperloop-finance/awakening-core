@@ -3,7 +3,7 @@
 pragma solidity 0.8.34;
 
 import {ISetterRatifier} from "./interfaces/ISetterRatifier.sol";
-import {IMidnight, Offer} from "../interfaces/IMidnight.sol";
+import {IAwakening, Offer} from "../interfaces/IAwakening.sol";
 import {CALLBACK_SUCCESS} from "../libraries/ConstantsLib.sol";
 import {HashLib} from "./libraries/HashLib.sol";
 
@@ -12,18 +12,18 @@ import {HashLib} from "./libraries/HashLib.sol";
 /// and the proof of the offer in the tree.
 /// @dev The root should correspond to the root of the offer tree, which is a Merkle tree of offers.
 /// @dev The leaf index determines each hash order during merkle proof verification.
-/// @dev This ratifier must only be used with the Midnight instance at MIDNIGHT.
+/// @dev This ratifier must only be used with the Awakening instance at AWAKENING.
 contract SetterRatifier is ISetterRatifier {
-    address public immutable MIDNIGHT;
+    address public immutable AWAKENING;
 
     mapping(address maker => mapping(bytes32 root => bool)) public isRootRatified;
 
-    constructor(address _midnight) {
-        MIDNIGHT = _midnight;
+    constructor(address _awakening) {
+        AWAKENING = _awakening;
     }
 
     function setIsRootRatified(address maker, bytes32 root, bool newIsRootRatified) public {
-        require(maker == msg.sender || IMidnight(MIDNIGHT).isAuthorized(maker, msg.sender), Unauthorized());
+        require(maker == msg.sender || IAwakening(AWAKENING).isAuthorized(maker, msg.sender), Unauthorized());
         isRootRatified[maker][root] = newIsRootRatified;
         emit SetIsRootRatified(msg.sender, maker, root, newIsRootRatified);
     }

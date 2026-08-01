@@ -2,7 +2,7 @@
 // Copyright (c) 2025 Morpho Association
 pragma solidity ^0.8.0;
 
-import {Market, Offer, CollateralParams} from "../src/interfaces/IMidnight.sol";
+import {Market, Offer, CollateralParams} from "../src/interfaces/IAwakening.sol";
 import {ORACLE_PRICE_SCALE} from "../src/libraries/ConstantsLib.sol";
 import {UtilsLib} from "../src/libraries/UtilsLib.sol";
 import {MAX_TICK} from "../src/libraries/TickLib.sol";
@@ -36,7 +36,7 @@ contract MaxAmountsTest is BaseTest {
 
         vm.prank(borrower);
 
-        midnight.setIsAuthorized(address(this), true, borrower);
+        awakening.setIsAuthorized(address(this), true, borrower);
     }
 
     function testMaxAmountIsUint128Max() public pure {
@@ -50,7 +50,7 @@ contract MaxAmountsTest is BaseTest {
 
         vm.prank(borrower);
 
-        midnight.setIsAuthorized(address(this), true, borrower);
+        awakening.setIsAuthorized(address(this), true, borrower);
 
         // Set a very high oracle price so a small collateral amount is sufficient.
         // With price = ORACLE_PRICE_SCALE * 1e36, 1 collateral token = 1e36 loan tokens.
@@ -59,7 +59,7 @@ contract MaxAmountsTest is BaseTest {
         uint256 collateralAmount = 1000;
         deal(address(collateralToken1), address(this), collateralAmount);
 
-        midnight.supplyCollateral(market, 0, collateralAmount, borrower);
+        awakening.supplyCollateral(market, 0, collateralAmount, borrower);
 
         Offer memory borrowerOffer;
         borrowerOffer.market = market;
@@ -73,8 +73,8 @@ contract MaxAmountsTest is BaseTest {
 
         take(amount, lender, borrowerOffer);
 
-        assertEq(midnight.totalUnits(id), amount, "total units at max");
-        assertEq(midnight.debtOf(id, borrower), amount, "debt at max");
+        assertEq(awakening.totalUnits(id), amount, "total units at max");
+        assertEq(awakening.debtOf(id, borrower), amount, "debt at max");
     }
 
     function testTakeAboveMaxAmountReverts() public {
@@ -86,7 +86,7 @@ contract MaxAmountsTest is BaseTest {
         uint256 collateralAmount = 1000;
         deal(address(collateralToken1), address(this), collateralAmount);
 
-        midnight.supplyCollateral(market, 0, collateralAmount, borrower);
+        awakening.supplyCollateral(market, 0, collateralAmount, borrower);
 
         Offer memory borrowerOffer;
         borrowerOffer.market = market;
@@ -109,11 +109,11 @@ contract MaxAmountsTest is BaseTest {
 
         vm.prank(borrower);
 
-        midnight.setIsAuthorized(address(this), true, borrower);
+        awakening.setIsAuthorized(address(this), true, borrower);
 
-        midnight.supplyCollateral(market, 0, amount, borrower);
+        awakening.supplyCollateral(market, 0, amount, borrower);
 
-        assertEq(midnight.collateral(id, borrower, 0), amount, "collateral at max");
+        assertEq(awakening.collateral(id, borrower, 0), amount, "collateral at max");
     }
 
     function testSupplyCollateralAboveMaxAmountReverts() public {
@@ -123,9 +123,9 @@ contract MaxAmountsTest is BaseTest {
 
         vm.prank(borrower);
 
-        midnight.setIsAuthorized(address(this), true, borrower);
+        awakening.setIsAuthorized(address(this), true, borrower);
 
         vm.expectRevert(UtilsLib.CastOverflow.selector);
-        midnight.supplyCollateral(market, 0, amount, borrower);
+        awakening.supplyCollateral(market, 0, amount, borrower);
     }
 }

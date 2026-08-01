@@ -2,7 +2,7 @@
 // Copyright (c) 2025 Morpho Association
 pragma solidity >=0.5.0;
 
-import {Market} from "./IMidnight.sol";
+import {Market} from "./IAwakening.sol";
 
 // forgefmt: disable-start
 interface IBuyCallback {

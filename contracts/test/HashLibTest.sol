@@ -8,7 +8,7 @@ import {
     MARKET_TYPEHASH,
     OFFER_TYPEHASH
 } from "../src/ratifiers/libraries/HashLib.sol";
-import {Market} from "../src/interfaces/IMidnight.sol";
+import {Market} from "../src/interfaces/IAwakening.sol";
 
 bytes constant COLLATERAL_PARAMS_TYPE = "CollateralParams(address token,uint256 lltv,uint256 maxLif,address oracle)";
 bytes constant MARKET_TYPE =

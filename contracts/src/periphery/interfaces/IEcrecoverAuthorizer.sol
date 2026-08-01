@@ -36,7 +36,7 @@ interface IEcrecoverAuthorizer {
     );
 
     /// STORAGE GETTERS ///
-    function MIDNIGHT() external view returns (address);
+    function AWAKENING() external view returns (address);
     function nonce(address authorizer) external view returns (uint256);
 
     /// FUNCTIONS ///

@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 import {WAD, DEFAULT_TICK_SPACING} from "../src/libraries/ConstantsLib.sol";
 import {UtilsLib} from "../src/libraries/UtilsLib.sol";
 import {TickLib, MAX_TICK} from "../src/libraries/TickLib.sol";
-import {IMidnight, Market, Offer, CollateralParams} from "../src/interfaces/IMidnight.sol";
+import {IAwakening, Market, Offer, CollateralParams} from "../src/interfaces/IAwakening.sol";
 import {EventsLib} from "../src/libraries/EventsLib.sol";
 
 import {BaseTest, MAX_TEST_AMOUNT} from "./BaseTest.sol";
@@ -79,7 +79,7 @@ contract SettlementFeeTest is BaseTest {
 
         deal(address(loanToken), address(lender), MAX_TEST_AMOUNT * 10000);
 
-        midnight.setFeeClaimer(feeClaimer);
+        awakening.setFeeClaimer(feeClaimer);
     }
 
     function testBuyUnits(uint256 settlementFee, uint256 sellerTick, uint256 units) public {
@@ -88,9 +88,9 @@ contract SettlementFeeTest is BaseTest {
         uint256 sellerPrice = TickLib.tickToPrice(sellerTick);
         vm.assume(sellerPrice >= MIN_SELLER_PRICE);
         settlementFee = bound(settlementFee, 0, maxSettlementFee(1)) / 1e12 * 1e12;
-        midnight.setDefaultSettlementFee(address(loanToken), 1, settlementFee);
-        midnight.touchMarket(market);
-        midnight.setMarketTickSpacing(id, 1);
+        awakening.setDefaultSettlementFee(address(loanToken), 1, settlementFee);
+        awakening.touchMarket(market);
+        awakening.setMarketTickSpacing(id, 1);
         borrowerOffer.tick = sellerTick;
 
         uint256 buyerPrice = sellerPrice + settlementFee;
@@ -99,12 +99,12 @@ contract SettlementFeeTest is BaseTest {
         uint256 expectedSellerAssets = units.mulDivUp(sellerPrice, WAD);
         uint256 expectedFee = expectedBuyerAssets - expectedSellerAssets;
 
-        uint256 balanceBefore = loanToken.balanceOf(address(midnight));
+        uint256 balanceBefore = loanToken.balanceOf(address(awakening));
         collateralize(market, borrower, MAX_DEBT);
         take(units, lender, borrowerOffer);
 
-        assertEq(midnight.claimableSettlementFee(address(loanToken)), expectedFee, "claimable settlement fee");
-        assertEq(loanToken.balanceOf(address(midnight)) - balanceBefore, expectedFee, "contract balance increase");
+        assertEq(awakening.claimableSettlementFee(address(loanToken)), expectedFee, "claimable settlement fee");
+        assertEq(loanToken.balanceOf(address(awakening)) - balanceBefore, expectedFee, "contract balance increase");
     }
 
     function testSellUnits(uint256 settlementFee, uint256 buyerTick, uint256 units) public {
@@ -113,7 +113,7 @@ contract SettlementFeeTest is BaseTest {
         uint256 buyerPrice = TickLib.tickToPrice(buyerTick);
         vm.assume(buyerPrice >= MIN_SELLER_PRICE);
         settlementFee = bound(settlementFee, 0, maxSettlementFee(1)) / 1e12 * 1e12;
-        midnight.setDefaultSettlementFee(address(loanToken), 1, settlementFee);
+        awakening.setDefaultSettlementFee(address(loanToken), 1, settlementFee);
         lenderOffer.tick = buyerTick;
 
         uint256 sellerPrice = buyerPrice - settlementFee;
@@ -121,12 +121,12 @@ contract SettlementFeeTest is BaseTest {
         uint256 expectedSellerAssets = units.mulDivDown(sellerPrice, WAD);
         uint256 expectedFee = expectedBuyerAssets - expectedSellerAssets;
 
-        uint256 balanceBefore = loanToken.balanceOf(address(midnight));
+        uint256 balanceBefore = loanToken.balanceOf(address(awakening));
         collateralize(market, borrower, MAX_DEBT);
         take(units, borrower, lenderOffer);
 
-        assertEq(midnight.claimableSettlementFee(address(loanToken)), expectedFee, "claimable settlement fee");
-        assertEq(loanToken.balanceOf(address(midnight)) - balanceBefore, expectedFee, "contract balance increase");
+        assertEq(awakening.claimableSettlementFee(address(loanToken)), expectedFee, "claimable settlement fee");
+        assertEq(loanToken.balanceOf(address(awakening)) - balanceBefore, expectedFee, "contract balance increase");
     }
 
     function testDefaultSettlementFee(uint256 units, uint256 sellerTick, uint256 settlementFee) public {
@@ -135,7 +135,7 @@ contract SettlementFeeTest is BaseTest {
         uint256 sellerPrice = TickLib.tickToPrice(sellerTick);
         vm.assume(sellerPrice >= MIN_SELLER_PRICE);
         settlementFee = bound(settlementFee, 0, maxSettlementFee(1)) / 1e12 * 1e12;
-        midnight.setDefaultSettlementFee(address(loanToken), 1, settlementFee);
+        awakening.setDefaultSettlementFee(address(loanToken), 1, settlementFee);
         borrowerOffer.tick = sellerTick;
 
         uint256 buyerPrice = sellerPrice + settlementFee;
@@ -144,12 +144,12 @@ contract SettlementFeeTest is BaseTest {
         uint256 expectedSellerAssets = units.mulDivUp(sellerPrice, WAD);
         uint256 expectedFee = expectedBuyerAssets - expectedSellerAssets;
 
-        uint256 balanceBefore = loanToken.balanceOf(address(midnight));
+        uint256 balanceBefore = loanToken.balanceOf(address(awakening));
         collateralize(market, borrower, MAX_DEBT);
         take(units, lender, borrowerOffer);
 
-        assertEq(midnight.claimableSettlementFee(address(loanToken)), expectedFee, "claimable settlement fee");
-        assertEq(loanToken.balanceOf(address(midnight)) - balanceBefore, expectedFee, "contract balance increase");
+        assertEq(awakening.claimableSettlementFee(address(loanToken)), expectedFee, "claimable settlement fee");
+        assertEq(loanToken.balanceOf(address(awakening)) - balanceBefore, expectedFee, "contract balance increase");
     }
 
     function testSevenDayTtmSettlementFee(
@@ -169,15 +169,15 @@ contract SettlementFeeTest is BaseTest {
 
         // Set fees at breakpoints for linear interpolation (3 days is between 1 and 7 days)
         // Must be set before touchMarket, which snapshots defaultFees at creation time.
-        midnight.setDefaultSettlementFee(address(loanToken), 1, settlementFee1Day);
-        midnight.setDefaultSettlementFee(address(loanToken), 2, settlementFee7Days);
+        awakening.setDefaultSettlementFee(address(loanToken), 1, settlementFee1Day);
+        awakening.setDefaultSettlementFee(address(loanToken), 2, settlementFee7Days);
 
-        id = midnight.touchMarket(market);
+        id = awakening.touchMarket(market);
         lenderOffer.market = market;
         borrowerOffer.market = market;
         borrowerOffer.tick = sellerTick;
 
-        uint256 settlementFee = midnight.settlementFee(id, market.maturity - vm.getBlockTimestamp());
+        uint256 settlementFee = awakening.settlementFee(id, market.maturity - vm.getBlockTimestamp());
 
         uint256 buyerPrice = sellerPrice + settlementFee;
         vm.assume(buyerPrice <= WAD);
@@ -185,12 +185,12 @@ contract SettlementFeeTest is BaseTest {
         uint256 expectedSellerAssets = units.mulDivUp(sellerPrice, WAD);
         uint256 expectedFee = expectedBuyerAssets - expectedSellerAssets;
 
-        uint256 balanceBefore = loanToken.balanceOf(address(midnight));
+        uint256 balanceBefore = loanToken.balanceOf(address(awakening));
         collateralize(market, borrower, MAX_DEBT);
         take(units, lender, borrowerOffer);
 
-        assertEq(midnight.claimableSettlementFee(address(loanToken)), expectedFee, "claimable settlement fee");
-        assertEq(loanToken.balanceOf(address(midnight)) - balanceBefore, expectedFee, "contract balance increase");
+        assertEq(awakening.claimableSettlementFee(address(loanToken)), expectedFee, "claimable settlement fee");
+        assertEq(loanToken.balanceOf(address(awakening)) - balanceBefore, expectedFee, "contract balance increase");
     }
 
     function testPostMaturitySettlementFee(
@@ -210,12 +210,12 @@ contract SettlementFeeTest is BaseTest {
         lenderOffer.market = market;
         borrowerOffer.market = market;
 
-        midnight.setDefaultSettlementFee(address(loanToken), 0, settlementFee0Day);
+        awakening.setDefaultSettlementFee(address(loanToken), 0, settlementFee0Day);
         borrowerOffer.tick = sellerTick;
 
         collateralize(market, borrower, MAX_DEBT);
 
-        vm.expectRevert(IMidnight.CannotIncreaseDebtPostMaturity.selector);
+        vm.expectRevert(IAwakening.CannotIncreaseDebtPostMaturity.selector);
         take(units, lender, borrowerOffer);
     }
 
@@ -234,7 +234,7 @@ contract SettlementFeeTest is BaseTest {
         lenderOffer.market = market;
         borrowerOffer.market = market;
 
-        midnight.setDefaultSettlementFee(address(loanToken), 6, settlementFee360Days);
+        awakening.setDefaultSettlementFee(address(loanToken), 6, settlementFee360Days);
         borrowerOffer.tick = sellerTick;
 
         uint256 settlementFee = settlementFee360Days;
@@ -245,23 +245,23 @@ contract SettlementFeeTest is BaseTest {
         uint256 expectedSellerAssets = units.mulDivUp(sellerPrice, WAD);
         uint256 expectedFee = expectedBuyerAssets - expectedSellerAssets;
 
-        uint256 balanceBefore = loanToken.balanceOf(address(midnight));
+        uint256 balanceBefore = loanToken.balanceOf(address(awakening));
         collateralize(market, borrower, MAX_DEBT);
         take(units, lender, borrowerOffer);
 
-        assertEq(midnight.claimableSettlementFee(address(loanToken)), expectedFee, "claimable settlement fee");
-        assertEq(loanToken.balanceOf(address(midnight)) - balanceBefore, expectedFee, "contract balance increase");
+        assertEq(awakening.claimableSettlementFee(address(loanToken)), expectedFee, "claimable settlement fee");
+        assertEq(loanToken.balanceOf(address(awakening)) - balanceBefore, expectedFee, "contract balance increase");
     }
 
     function testClaimSettlementFee(uint256 settlementFee, uint256 units, uint256 withdrawAmount) public {
         units = bound(units, 1, MAX_DEBT);
         settlementFee = bound(settlementFee, 1e12, maxSettlementFee(1)) / 1e12 * 1e12;
-        midnight.setDefaultSettlementFee(address(loanToken), 1, settlementFee);
+        awakening.setDefaultSettlementFee(address(loanToken), 1, settlementFee);
 
         collateralize(market, borrower, MAX_DEBT);
         take(units, lender, borrowerOffer);
 
-        uint256 fee = midnight.claimableSettlementFee(address(loanToken));
+        uint256 fee = awakening.claimableSettlementFee(address(loanToken));
         vm.assume(fee > 0);
         withdrawAmount = bound(withdrawAmount, 1, fee);
         address receiver = makeAddr("receiver");
@@ -270,50 +270,50 @@ contract SettlementFeeTest is BaseTest {
         emit EventsLib.ClaimSettlementFee(feeClaimer, address(loanToken), withdrawAmount, receiver);
 
         vm.prank(feeClaimer);
-        midnight.claimSettlementFee(address(loanToken), withdrawAmount, receiver);
+        awakening.claimSettlementFee(address(loanToken), withdrawAmount, receiver);
 
         assertEq(loanToken.balanceOf(receiver), withdrawAmount, "receiver balance");
-        assertEq(midnight.claimableSettlementFee(address(loanToken)), fee - withdrawAmount, "remaining fee");
+        assertEq(awakening.claimableSettlementFee(address(loanToken)), fee - withdrawAmount, "remaining fee");
     }
 
     function testClaimSettlementFeeOnlyFeeClaimer(address caller) public {
         vm.assume(caller != feeClaimer);
         vm.prank(caller);
-        vm.expectRevert(IMidnight.OnlyFeeClaimer.selector);
-        midnight.claimSettlementFee(address(loanToken), 0, caller);
+        vm.expectRevert(IAwakening.OnlyFeeClaimer.selector);
+        awakening.claimSettlementFee(address(loanToken), 0, caller);
     }
 
     function testClaimSettlementFeeExcessReverts() public {
         uint256 settlementFee = maxSettlementFee(1) / 1e12 * 1e12;
-        midnight.setDefaultSettlementFee(address(loanToken), 1, settlementFee);
+        awakening.setDefaultSettlementFee(address(loanToken), 1, settlementFee);
         borrowerOffer.tick = 0;
 
         collateralize(market, borrower, MAX_DEBT);
         take(1000, lender, borrowerOffer);
 
-        uint256 fee = midnight.claimableSettlementFee(address(loanToken));
+        uint256 fee = awakening.claimableSettlementFee(address(loanToken));
 
         vm.prank(feeClaimer);
         vm.expectRevert();
-        midnight.claimSettlementFee(address(loanToken), fee + 1, feeClaimer);
+        awakening.claimSettlementFee(address(loanToken), fee + 1, feeClaimer);
     }
 
     function testSettlementFeesAccumulate() public {
         uint256 settlementFee = maxSettlementFee(1) / 1e12 * 1e12;
-        midnight.setDefaultSettlementFee(address(loanToken), 1, settlementFee);
+        awakening.setDefaultSettlementFee(address(loanToken), 1, settlementFee);
         borrowerOffer.tick = 0;
         borrowerOffer.group = keccak256("g1");
 
-        uint256 balanceBefore = loanToken.balanceOf(address(midnight));
+        uint256 balanceBefore = loanToken.balanceOf(address(awakening));
         collateralize(market, borrower, MAX_DEBT);
         take(1000, lender, borrowerOffer);
-        uint256 feeAfterFirst = midnight.claimableSettlementFee(address(loanToken));
+        uint256 feeAfterFirst = awakening.claimableSettlementFee(address(loanToken));
 
         borrowerOffer.group = keccak256("g2");
         take(1000, lender, borrowerOffer);
-        uint256 feeAfterSecond = midnight.claimableSettlementFee(address(loanToken));
+        uint256 feeAfterSecond = awakening.claimableSettlementFee(address(loanToken));
 
         assertEq(feeAfterSecond, feeAfterFirst * 2, "fees accumulated");
-        assertEq(loanToken.balanceOf(address(midnight)) - balanceBefore, feeAfterSecond, "contract balance increase");
+        assertEq(loanToken.balanceOf(address(awakening)) - balanceBefore, feeAfterSecond, "contract balance increase");
     }
 }

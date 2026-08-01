@@ -12,7 +12,7 @@ import "./interfaces/ICallbacks.sol"; // forge-lint: disable-line(unaliased-plai
 import {IOracle} from "./interfaces/IOracle.sol";
 import {IRatifier} from "./interfaces/IRatifier.sol";
 import {IEnterGate, ILiquidatorGate} from "./interfaces/IGate.sol";
-import {IMidnight, Market, Offer, CollateralParams, MarketState, Position} from "./interfaces/IMidnight.sol";
+import {IAwakening, Market, Offer, CollateralParams, MarketState, Position} from "./interfaces/IAwakening.sol";
 
 /// MARKETS
 /// @dev The maximum time to maturity is 100 years.
@@ -90,7 +90,7 @@ import {IMidnight, Market, Offer, CollateralParams, MarketState, Position} from 
 /// @dev Exactly one of maxAssets or maxUnits must be nonzero per offer (take reverts otherwise).
 /// @dev maxAssets caps max buyer assets if offer.buy is true, and caps max seller assets otherwise.
 /// @dev If maxAssets > 0, assets are capped to maxAssets, otherwise units are capped to maxUnits.
-/// @dev Midnight can call the callback of offers through a no-op take, even if those offers have consumed==max.
+/// @dev Awakening can call the callback of offers through a no-op take, even if those offers have consumed==max.
 /// @dev It is possible to give units to a fully consumed assets-based buy offer with price < 1.
 /// @dev consumed can be increased manually by the maker or authorized accounts.
 ///
@@ -104,8 +104,8 @@ import {IMidnight, Market, Offer, CollateralParams, MarketState, Position} from 
 /// any account that has been authorized. Thus, to scope authorizations one should authorize a smart-contract with
 /// scoped behavior.
 /// @dev When authorizing a smart-contract, one should consider:
-/// - The targets/functions that the account can call. At least Midnight's functions should be considered, but other
-/// contracts might re-use Midnight's authorization mapping too (e.g ratifiers and authorizers). In particular,
+/// - The targets/functions that the account can call. At least Awakening's functions should be considered, but other
+/// contracts might re-use Awakening's authorization mapping too (e.g ratifiers and authorizers). In particular,
 /// authorized accounts can authorize other accounts on behalf of the user.
 /// - Under which conditions the account can return CALLBACK_SUCCESS when its isRatified function is called.
 /// @dev updatePosition and liquidate (for liquidatable users) also impact the position and are permissionless.
@@ -133,12 +133,12 @@ import {IMidnight, Market, Offer, CollateralParams, MarketState, Position} from 
 /// @dev The liquidator gate can prevent the user from liquidating borrowers in the market (and realizing bad debt).
 ///
 /// TOKEN SAFETY REQUIREMENTS
-/// @dev List of assumptions on tokens that guarantee that Midnight behaves as expected:
+/// @dev List of assumptions on tokens that guarantee that Awakening behaves as expected:
 /// - It should be ERC-20 compliant, except that it can omit return values on transfer and transferFrom. In particular,
 /// it should not revert because a transfer is no-op.
-/// - Midnight's balance of the token should only decrease on transfer and transferFrom.
-/// - It should not re-enter Midnight on transfer nor transferFrom.
-/// - Midnight must send/receive exactly the requested amount on transfers.
+/// - Awakening's balance of the token should only decrease on transfer and transferFrom.
+/// - It should not re-enter Awakening on transfer nor transferFrom.
+/// - Awakening must send/receive exactly the requested amount on transfers.
 /// @dev See LIVENESS for liveness guarantees.
 ///
 /// LIVENESS
@@ -152,9 +152,9 @@ import {IMidnight, Market, Offer, CollateralParams, MarketState, Position} from 
 /// @dev If enterGate.canIncreaseCredit reverts or returns false, take reverts if the buyer's credit increases.
 /// @dev If enterGate.canIncreaseDebt reverts or returns false, take reverts if the seller's debt increases.
 /// @dev If liquidatorGate.canLiquidate reverts or returns false, liquidate reverts.
-/// @dev If a token pulled by Midnight reverts or returns false on transferFrom, take, repay, supplyCollateral,
+/// @dev If a token pulled by Awakening reverts or returns false on transferFrom, take, repay, supplyCollateral,
 /// liquidate, and flashLoan repayment revert when they need to pull that token.
-/// @dev If a token sent by Midnight reverts or returns false on transfer, withdraw, withdrawCollateral, fee claims,
+/// @dev If a token sent by Awakening reverts or returns false on transfer, withdraw, withdrawCollateral, fee claims,
 /// liquidate, and flashLoan revert when they need to send that token.
 /// @dev If a callback reverts or returns something other than CALLBACK_SUCCESS, take, repay, liquidate, and flashLoan
 /// revert.
@@ -180,7 +180,7 @@ import {IMidnight, Market, Offer, CollateralParams, MarketState, Position} from 
 /// @dev Relies on the clz opcode (Osaka), on the mcopy, tload, and tstore opcodes (Cancun), and on the push0 opcode
 /// (Shanghai).
 ///
-contract Midnight is IMidnight {
+contract Awakening is IAwakening {
     using UtilsLib for uint256;
     using UtilsLib for uint128;
 

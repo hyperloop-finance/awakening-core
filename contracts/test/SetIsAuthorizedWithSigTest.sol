@@ -53,7 +53,7 @@ contract EcrecoverAuthorizerTest is BaseTest {
 
     function testEcrecoverAuthorizer() public {
         vm.prank(borrower);
-        midnight.setIsAuthorized(address(ecrecoverAuthorizer), true, borrower);
+        awakening.setIsAuthorized(address(ecrecoverAuthorizer), true, borrower);
         Authorization memory auth = makeAuthorization(borrower, lender, true);
         Signature memory sig = signAuthorization(auth, borrower);
 
@@ -62,7 +62,7 @@ contract EcrecoverAuthorizerTest is BaseTest {
 
         ecrecoverAuthorizer.setIsAuthorized(auth, sig);
 
-        assertEq(midnight.isAuthorized(borrower, lender), true);
+        assertEq(awakening.isAuthorized(borrower, lender), true);
         assertEq(ecrecoverAuthorizer.nonce(borrower), 1);
 
         auth = makeAuthorization(borrower, lender, false);
@@ -73,13 +73,13 @@ contract EcrecoverAuthorizerTest is BaseTest {
 
         ecrecoverAuthorizer.setIsAuthorized(auth, sig);
 
-        assertEq(midnight.isAuthorized(borrower, lender), false);
+        assertEq(awakening.isAuthorized(borrower, lender), false);
         assertEq(ecrecoverAuthorizer.nonce(borrower), 2);
     }
 
     function testEcrecoverAuthorizerPermissionless() public {
         vm.prank(borrower);
-        midnight.setIsAuthorized(address(ecrecoverAuthorizer), true, borrower);
+        awakening.setIsAuthorized(address(ecrecoverAuthorizer), true, borrower);
         Authorization memory auth = makeAuthorization(borrower, lender, true);
         Signature memory sig = signAuthorization(auth, borrower);
 
@@ -87,7 +87,7 @@ contract EcrecoverAuthorizerTest is BaseTest {
         vm.prank(otherLender);
         ecrecoverAuthorizer.setIsAuthorized(auth, sig);
 
-        assertEq(midnight.isAuthorized(borrower, lender), true);
+        assertEq(awakening.isAuthorized(borrower, lender), true);
         assertEq(ecrecoverAuthorizer.nonce(borrower), 1);
     }
 
@@ -98,7 +98,7 @@ contract EcrecoverAuthorizerTest is BaseTest {
         vm.expectRevert(IEcrecoverAuthorizer.Unauthorized.selector);
         ecrecoverAuthorizer.setIsAuthorized(auth, sig);
 
-        assertEq(midnight.isAuthorized(borrower, lender), false);
+        assertEq(awakening.isAuthorized(borrower, lender), false);
         assertEq(ecrecoverAuthorizer.nonce(borrower), 0);
     }
 
@@ -122,7 +122,7 @@ contract EcrecoverAuthorizerTest is BaseTest {
 
     function testEcrecoverAuthorizerNonce(uint8 n) public {
         vm.prank(borrower);
-        midnight.setIsAuthorized(address(ecrecoverAuthorizer), true, borrower);
+        awakening.setIsAuthorized(address(ecrecoverAuthorizer), true, borrower);
         n = uint8(bound(n, 1, 32));
 
         for (uint8 i = 0; i < n; i++) {
@@ -133,7 +133,7 @@ contract EcrecoverAuthorizerTest is BaseTest {
             ecrecoverAuthorizer.setIsAuthorized(auth, sig);
 
             assertEq(ecrecoverAuthorizer.nonce(borrower), i + 1);
-            assertEq(midnight.isAuthorized(borrower, lender), isAuth);
+            assertEq(awakening.isAuthorized(borrower, lender), isAuth);
         }
     }
 }

@@ -37,8 +37,8 @@ import {
     maxSettlementFee as _maxSettlementFee,
     maxLif as _maxLif
 } from "../src/libraries/ConstantsLib.sol";
-import {Market, Offer, CollateralParams} from "../src/interfaces/IMidnight.sol";
-import {Midnight} from "../src/Midnight.sol";
+import {Market, Offer, CollateralParams} from "../src/interfaces/IAwakening.sol";
+import {Awakening} from "../src/Awakening.sol";
 import {EcrecoverRatifier} from "../src/ratifiers/EcrecoverRatifier.sol";
 import {EcrecoverAuthorizer} from "../src/periphery/EcrecoverAuthorizer.sol";
 uint256 constant MAX_TEST_AMOUNT = type(uint128).max;
@@ -48,7 +48,7 @@ abstract contract BaseTest is Test {
 
     mapping(address => uint256) internal privateKey;
 
-    Midnight internal midnight;
+    Awakening internal awakening;
     ERC20 internal loanToken;
     ERC20 internal collateralToken1;
     ERC20 internal collateralToken2;
@@ -66,13 +66,13 @@ abstract contract BaseTest is Test {
     bytes internal emptySig;
 
     function setUp() public virtual {
-        midnight = new Midnight();
-        ecrecoverRatifier = new EcrecoverRatifier(address(midnight));
-        ecrecoverAuthorizer = new EcrecoverAuthorizer(address(midnight));
+        awakening = new Awakening();
+        ecrecoverRatifier = new EcrecoverRatifier(address(awakening));
+        ecrecoverAuthorizer = new EcrecoverAuthorizer(address(awakening));
         dummyRatifier = new DummyRatifier();
 
-        midnight.setFeeSetter(address(this));
-        midnight.setTickSpacingSetter(address(this));
+        awakening.setFeeSetter(address(this));
+        awakening.setTickSpacingSetter(address(this));
 
         uint256 _privateKey;
         (borrower, _privateKey) = makeAddrAndKey("borrower");
@@ -84,25 +84,25 @@ abstract contract BaseTest is Test {
         (otherLender, _privateKey) = makeAddrAndKey("otherLender");
         privateKey[otherLender] = _privateKey;
 
-        // Authorize the dummy ratifier (used by default in Midnight integration tests).
+        // Authorize the dummy ratifier (used by default in Awakening integration tests).
         vm.prank(borrower);
-        midnight.setIsAuthorized(address(dummyRatifier), true, borrower);
+        awakening.setIsAuthorized(address(dummyRatifier), true, borrower);
         vm.prank(lender);
-        midnight.setIsAuthorized(address(dummyRatifier), true, lender);
+        awakening.setIsAuthorized(address(dummyRatifier), true, lender);
         vm.prank(otherBorrower);
-        midnight.setIsAuthorized(address(dummyRatifier), true, otherBorrower);
+        awakening.setIsAuthorized(address(dummyRatifier), true, otherBorrower);
         vm.prank(otherLender);
-        midnight.setIsAuthorized(address(dummyRatifier), true, otherLender);
+        awakening.setIsAuthorized(address(dummyRatifier), true, otherLender);
 
         // Authorize the ecrecover ratifier (used by ratifier-specific tests).
         vm.prank(borrower);
-        midnight.setIsAuthorized(address(ecrecoverRatifier), true, borrower);
+        awakening.setIsAuthorized(address(ecrecoverRatifier), true, borrower);
         vm.prank(lender);
-        midnight.setIsAuthorized(address(ecrecoverRatifier), true, lender);
+        awakening.setIsAuthorized(address(ecrecoverRatifier), true, lender);
         vm.prank(otherBorrower);
-        midnight.setIsAuthorized(address(ecrecoverRatifier), true, otherBorrower);
+        awakening.setIsAuthorized(address(ecrecoverRatifier), true, otherBorrower);
         vm.prank(otherLender);
-        midnight.setIsAuthorized(address(ecrecoverRatifier), true, otherLender);
+        awakening.setIsAuthorized(address(ecrecoverRatifier), true, otherLender);
 
         uint256 tokenType = vm.envOr("TOKEN_TYPE", uint256(0));
         if (tokenType == 1) {
@@ -131,19 +131,19 @@ abstract contract BaseTest is Test {
         oracle2 = new Oracle();
 
         vm.prank(lender);
-        loanToken.approve(address(midnight), type(uint256).max);
+        loanToken.approve(address(awakening), type(uint256).max);
         vm.prank(otherLender);
-        loanToken.approve(address(midnight), type(uint256).max);
+        loanToken.approve(address(awakening), type(uint256).max);
         vm.prank(borrower);
-        loanToken.approve(address(midnight), type(uint256).max);
+        loanToken.approve(address(awakening), type(uint256).max);
         vm.prank(otherBorrower);
-        loanToken.approve(address(midnight), type(uint256).max);
+        loanToken.approve(address(awakening), type(uint256).max);
         vm.prank(liquidator);
-        loanToken.approve(address(midnight), type(uint256).max);
+        loanToken.approve(address(awakening), type(uint256).max);
 
-        loanToken.approve(address(midnight), type(uint256).max);
-        collateralToken1.approve(address(midnight), type(uint256).max);
-        collateralToken2.approve(address(midnight), type(uint256).max);
+        loanToken.approve(address(awakening), type(uint256).max);
+        collateralToken1.approve(address(awakening), type(uint256).max);
+        collateralToken2.approve(address(awakening), type(uint256).max);
     }
 
     // helpers.
@@ -159,9 +159,9 @@ abstract contract BaseTest is Test {
         deal(address(market.collateralParams[collateralIndex].token), _borrower, collateral);
 
         vm.startPrank(_borrower);
-        ERC20(market.collateralParams[collateralIndex].token).approve(address(midnight), 0);
-        ERC20(market.collateralParams[collateralIndex].token).approve(address(midnight), collateral);
-        midnight.supplyCollateral(market, collateralIndex, collateral, _borrower);
+        ERC20(market.collateralParams[collateralIndex].token).approve(address(awakening), 0);
+        ERC20(market.collateralParams[collateralIndex].token).approve(address(awakening), collateral);
+        awakening.supplyCollateral(market, collateralIndex, collateral, _borrower);
         vm.stopPrank();
     }
 
@@ -170,7 +170,7 @@ abstract contract BaseTest is Test {
         // receiverIfTakerIsSeller param is for taker (when offer.buy == true), and must be zero otherwise.
         // offer.receiverIfMakerIsSeller is for maker (when offer.buy == false).
         vm.prank(taker);
-        return midnight.take(offer, hex"", units, taker, offer.buy ? taker : address(0), address(0), hex"");
+        return awakening.take(offer, hex"", units, taker, offer.buy ? taker : address(0), address(0), hex"");
     }
 
     function setupOtherUsers(Market memory market, uint256 units) internal {
@@ -197,7 +197,7 @@ abstract contract BaseTest is Test {
         privateKey[badBorrower] = badBorrowerPrivateKey;
         address unluckyLender = makeAddr("unluckyLender");
         vm.prank(unluckyLender);
-        loanToken.approve(address(midnight), type(uint256).max);
+        loanToken.approve(address(awakening), type(uint256).max);
         Offer memory badBorrowerOffer;
         badBorrowerOffer.market = market;
         badBorrowerOffer.buy = false;
@@ -211,36 +211,36 @@ abstract contract BaseTest is Test {
 
         vm.prank(badBorrower);
 
-        midnight.setIsAuthorized(address(dummyRatifier), true, badBorrower);
+        awakening.setIsAuthorized(address(dummyRatifier), true, badBorrower);
         vm.prank(badBorrower);
-        midnight.setIsAuthorized(address(this), true, badBorrower);
+        awakening.setIsAuthorized(address(this), true, badBorrower);
 
         deal(market.collateralParams[0].token, address(this), 135);
-        midnight.supplyCollateral(market, 0, 135, badBorrower);
+        awakening.supplyCollateral(market, 0, 135, badBorrower);
 
         vm.prank(badBorrower);
-        midnight.setIsAuthorized(address(this), false, badBorrower);
+        awakening.setIsAuthorized(address(this), false, badBorrower);
 
         deal(address(loanToken), unluckyLender, 100);
 
         take(100, unluckyLender, badBorrowerOffer);
 
         Oracle(market.collateralParams[0].oracle).setPrice(ORACLE_PRICE_SCALE / 4);
-        midnight.liquidate(market, 0, 0, 0, badBorrower, false, address(this), address(0), "");
+        awakening.liquidate(market, 0, 0, 0, badBorrower, false, address(this), address(0), "");
 
         // then empty the market (borrow side only).
         vm.prank(badBorrower);
-        midnight.setIsAuthorized(address(this), true, badBorrower);
-        deal(address(loanToken), address(this), midnight.debtOf(toId(market), badBorrower));
-        midnight.repay(market, midnight.debtOf(toId(market), badBorrower), badBorrower, address(0), hex"");
-        assertEq(midnight.debtOf(toId(market), badBorrower), 0, "debt");
+        awakening.setIsAuthorized(address(this), true, badBorrower);
+        deal(address(loanToken), address(this), awakening.debtOf(toId(market), badBorrower));
+        awakening.repay(market, awakening.debtOf(toId(market), badBorrower), badBorrower, address(0), hex"");
+        assertEq(awakening.debtOf(toId(market), badBorrower), 0, "debt");
 
         // reset the price.
         Oracle(market.collateralParams[0].oracle).setPrice(ORACLE_PRICE_SCALE);
     }
 
     function toId(Market memory market) internal view returns (bytes32) {
-        return IdLib.toId(market, block.chainid, address(midnight));
+        return IdLib.toId(market, block.chainid, address(awakening));
     }
 
     function domainSeparator(address verifyingContract) internal view returns (bytes32) {
@@ -303,7 +303,7 @@ abstract contract BaseTest is Test {
         Offer memory borrowerOffer = _setupMarketOffer(market);
 
         vm.prank(lender);
-        midnight.take(borrowerOffer, hex"", units, lender, address(0), address(0), hex"");
+        awakening.take(borrowerOffer, hex"", units, lender, address(0), address(0), hex"");
     }
 
     function _setupMarketOffer(Market memory market) internal view returns (Offer memory borrowerOffer) {

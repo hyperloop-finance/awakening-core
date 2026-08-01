@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {Test} from "../lib/forge-std/src/Test.sol";
 import {IdLib} from "../src/libraries/IdLib.sol";
-import {Market} from "../src/interfaces/IMidnight.sol";
+import {Market} from "../src/interfaces/IAwakening.sol";
 
 // toMarket is tested in OtherFunctionsTest.sol, to test actual implementation (avoid introducing mocks).
 contract IdLibTest is Test {
@@ -11,7 +11,7 @@ contract IdLibTest is Test {
         Market memory market1,
         Market memory market2,
         uint256 chainid,
-        address midnight
+        address awakening
     ) public pure {
         bool sameLoanToken = market1.loanToken == market2.loanToken;
         bool sameMaturity = market1.maturity == market2.maturity;
@@ -36,30 +36,30 @@ contract IdLibTest is Test {
 
         vm.assume(!(sameLoanToken && sameMaturity && sameCollaterals && sameRcfThreshold));
 
-        bytes32 id1 = IdLib.toId(market1, chainid, midnight);
-        bytes32 id2 = IdLib.toId(market2, chainid, midnight);
+        bytes32 id1 = IdLib.toId(market1, chainid, awakening);
+        bytes32 id2 = IdLib.toId(market2, chainid, awakening);
         assertNotEq(id1, id2);
     }
 
-    function testToIdIsInjectiveInChainId(Market memory market, uint256 chainid1, uint256 chainid2, address midnight)
+    function testToIdIsInjectiveInChainId(Market memory market, uint256 chainid1, uint256 chainid2, address awakening)
         public
         pure
     {
         vm.assume(chainid1 != chainid2);
-        bytes32 id1 = IdLib.toId(market, chainid1, midnight);
-        bytes32 id2 = IdLib.toId(market, chainid2, midnight);
+        bytes32 id1 = IdLib.toId(market, chainid1, awakening);
+        bytes32 id2 = IdLib.toId(market, chainid2, awakening);
         assertNotEq(id1, id2);
     }
 
-    function testToIdIsInjectiveInMidnight(
+    function testToIdIsInjectiveInAwakening(
         Market memory market,
         uint256 chainid,
-        address midnightOne,
-        address midnightTwo
+        address awakeningOne,
+        address awakeningTwo
     ) public pure {
-        vm.assume(midnightOne != midnightTwo);
-        bytes32 id1 = IdLib.toId(market, chainid, midnightOne);
-        bytes32 id2 = IdLib.toId(market, chainid, midnightTwo);
+        vm.assume(awakeningOne != awakeningTwo);
+        bytes32 id1 = IdLib.toId(market, chainid, awakeningOne);
+        bytes32 id2 = IdLib.toId(market, chainid, awakeningTwo);
         assertNotEq(id1, id2);
     }
 }

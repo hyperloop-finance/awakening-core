@@ -2,7 +2,7 @@
 // Copyright (c) 2025 Morpho Association
 pragma solidity ^0.8.0;
 
-import {CollateralParams, Market, Offer} from "../src/interfaces/IMidnight.sol";
+import {CollateralParams, Market, Offer} from "../src/interfaces/IAwakening.sol";
 import {SetterRatifier} from "../src/ratifiers/SetterRatifier.sol";
 import {ISetterRatifier} from "../src/ratifiers/interfaces/ISetterRatifier.sol";
 import {CALLBACK_SUCCESS} from "../src/libraries/ConstantsLib.sol";
@@ -15,7 +15,7 @@ contract SetterRatifierTest is BaseTest {
 
     function setUp() public override {
         super.setUp();
-        setterRatifier = new SetterRatifier(address(midnight));
+        setterRatifier = new SetterRatifier(address(awakening));
     }
 
     function makeOffer(address maker) internal view returns (Offer memory offer) {
@@ -53,12 +53,12 @@ contract SetterRatifierTest is BaseTest {
         bytes32 _root = HashLib.hashOffer(offer);
 
         vm.prank(lender);
-        midnight.setIsAuthorized(borrower, true, lender);
+        awakening.setIsAuthorized(borrower, true, lender);
 
         vm.prank(borrower);
         setterRatifier.setIsRootRatified(lender, _root, true);
 
-        vm.prank(address(midnight));
+        vm.prank(address(awakening));
         bytes32 result = setterRatifier.isRatified(offer, abi.encode(_root, 0, new bytes32[](0)));
         assertEq(result, CALLBACK_SUCCESS);
     }
@@ -68,15 +68,15 @@ contract SetterRatifierTest is BaseTest {
         bytes32 _root = HashLib.hashOffer(offer);
 
         vm.prank(lender);
-        midnight.setIsAuthorized(address(setterRatifier), true, lender);
+        awakening.setIsAuthorized(address(setterRatifier), true, lender);
         vm.prank(lender);
-        midnight.setIsAuthorized(borrower, true, lender);
+        awakening.setIsAuthorized(borrower, true, lender);
 
         vm.prank(borrower);
         setterRatifier.setIsRootRatified(lender, _root, true);
 
         vm.prank(borrower);
-        midnight.take(offer, abi.encode(_root, 0, new bytes32[](0)), 0, borrower, borrower, address(0), hex"");
+        awakening.take(offer, abi.encode(_root, 0, new bytes32[](0)), 0, borrower, borrower, address(0), hex"");
     }
 
     function testIsRatifiedUsesLeafIndex() public {
@@ -91,11 +91,11 @@ contract SetterRatifierTest is BaseTest {
         vm.prank(lender);
         setterRatifier.setIsRootRatified(lender, _root, true);
 
-        vm.prank(address(midnight));
+        vm.prank(address(awakening));
         vm.expectRevert(ISetterRatifier.InvalidProof.selector);
         setterRatifier.isRatified(rightOffer, abi.encode(_root, 0, proof));
 
-        vm.prank(address(midnight));
+        vm.prank(address(awakening));
         bytes32 result = setterRatifier.isRatified(rightOffer, abi.encode(_root, 1, proof));
         assertEq(result, CALLBACK_SUCCESS);
     }

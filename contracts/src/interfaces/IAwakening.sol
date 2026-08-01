@@ -63,7 +63,7 @@ struct Position {
     uint128[128] collateral;
 }
 
-interface IMidnight {
+interface IAwakening {
     /// ERRORS ///
     error AlreadyConsumed();
     error BuyerGatedFromIncreasingCredit();

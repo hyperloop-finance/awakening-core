@@ -2,7 +2,7 @@
 // Copyright (c) 2025 Morpho Association
 pragma solidity ^0.8.0;
 
-import {Market, Offer, CollateralParams} from "../src/interfaces/IMidnight.sol";
+import {Market, Offer, CollateralParams} from "../src/interfaces/IAwakening.sol";
 import {WAD, DEFAULT_TICK_SPACING} from "../src/libraries/ConstantsLib.sol";
 import {UtilsLib} from "../src/libraries/UtilsLib.sol";
 import {TickLib, MAX_TICK} from "../src/libraries/TickLib.sol";
@@ -60,10 +60,10 @@ contract TakeAmountsTest is BaseTest {
     {
         settlementFee0 = bound(settlementFee0, 0, maxSettlementFee(0)) / 1e12 * 1e12;
         settlementFee1 = bound(settlementFee1, 0, maxSettlementFee(1)) / 1e12 * 1e12;
-        midnight.touchMarket(market);
-        midnight.setMarketSettlementFee(id, 0, settlementFee0);
-        midnight.setMarketSettlementFee(id, 1, settlementFee1);
-        settlementFee = midnight.settlementFee(id, market.maturity - vm.getBlockTimestamp());
+        awakening.touchMarket(market);
+        awakening.setMarketSettlementFee(id, 0, settlementFee0);
+        awakening.setMarketSettlementFee(id, 1, settlementFee1);
+        settlementFee = awakening.settlementFee(id, market.maturity - vm.getBlockTimestamp());
     }
 
     /// @dev Returns the highest tick such that tickToPrice(tick) + settlementFee <= WAD.
@@ -99,7 +99,7 @@ contract TakeAmountsTest is BaseTest {
         tick = bound(tick, 4, _maxTick(settlementFee) / DEFAULT_TICK_SPACING) * DEFAULT_TICK_SPACING;
 
         offer.tick = tick;
-        uint256 units = TakeAmountsLib.buyerAssetsToUnits(address(midnight), id, offer, targetBuyerAssets);
+        uint256 units = TakeAmountsLib.buyerAssetsToUnits(address(awakening), id, offer, targetBuyerAssets);
         deal(address(loanToken), lender, type(uint256).max);
         collateralize(market, borrower, units);
         offer.maker = borrower;
@@ -121,7 +121,7 @@ contract TakeAmountsTest is BaseTest {
         tick = bound(tick, 4, _maxTick(settlementFee) / DEFAULT_TICK_SPACING) * DEFAULT_TICK_SPACING;
 
         offer.tick = tick;
-        uint256 units = TakeAmountsLib.sellerAssetsToUnits(address(midnight), id, offer, targetSellerAssets);
+        uint256 units = TakeAmountsLib.sellerAssetsToUnits(address(awakening), id, offer, targetSellerAssets);
         deal(address(loanToken), lender, type(uint256).max);
         collateralize(market, borrower, units);
         offer.maker = borrower;
@@ -149,7 +149,7 @@ contract TakeAmountsTest is BaseTest {
         offer.maker = lender;
         offer.receiverIfMakerIsSeller = lender;
         offer.tick = tick;
-        uint256 units = TakeAmountsLib.buyerAssetsToUnits(address(midnight), id, offer, targetBuyerAssets);
+        uint256 units = TakeAmountsLib.buyerAssetsToUnits(address(awakening), id, offer, targetBuyerAssets);
         deal(address(loanToken), borrower, type(uint256).max);
 
         (uint256 buyerAssets,) = take(units, borrower, offer);
@@ -172,7 +172,7 @@ contract TakeAmountsTest is BaseTest {
         offer.maker = lender;
         offer.receiverIfMakerIsSeller = lender;
         offer.tick = tick;
-        uint256 units = TakeAmountsLib.sellerAssetsToUnits(address(midnight), id, offer, targetSellerAssets);
+        uint256 units = TakeAmountsLib.sellerAssetsToUnits(address(awakening), id, offer, targetSellerAssets);
         deal(address(loanToken), borrower, type(uint256).max);
 
         (, uint256 sellerAssets) = take(units, borrower, offer);

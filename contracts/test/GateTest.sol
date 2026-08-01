@@ -2,7 +2,7 @@
 // Copyright (c) 2025 Morpho Association
 pragma solidity ^0.8.0;
 
-import {IMidnight, Market, Offer, CollateralParams} from "../src/interfaces/IMidnight.sol";
+import {IAwakening, Market, Offer, CollateralParams} from "../src/interfaces/IAwakening.sol";
 import {IEnterGate, ILiquidatorGate} from "../src/interfaces/IGate.sol";
 import {LIQUIDATION_CURSOR_LOW, ORACLE_PRICE_SCALE} from "../src/libraries/ConstantsLib.sol";
 import {MAX_TICK} from "../src/libraries/TickLib.sol";
@@ -100,7 +100,7 @@ contract GateTest is BaseTest {
 
         gate.setWhitelisted(borrower, true);
 
-        vm.expectRevert(IMidnight.BuyerGatedFromIncreasingCredit.selector);
+        vm.expectRevert(IAwakening.BuyerGatedFromIncreasingCredit.selector);
         take(units, lender, borrowerOffer);
     }
 
@@ -110,7 +110,7 @@ contract GateTest is BaseTest {
 
         gate.setWhitelisted(lender, true);
 
-        vm.expectRevert(IMidnight.SellerGatedFromIncreasingDebt.selector);
+        vm.expectRevert(IAwakening.SellerGatedFromIncreasingDebt.selector);
         take(units, borrower, lenderOffer);
     }
 
@@ -123,8 +123,8 @@ contract GateTest is BaseTest {
 
         take(units, lender, borrowerOffer);
 
-        assertGt(midnight.creditOf(gatedId, lender), 0, "lender should have credit");
-        assertGt(midnight.debtOf(gatedId, borrower), 0, "borrower should have debt");
+        assertGt(awakening.creditOf(gatedId, lender), 0, "lender should have credit");
+        assertGt(awakening.debtOf(gatedId, borrower), 0, "borrower should have debt");
     }
 
     function testEnterGateAllowsTakeWhenLenderHadCreditBefore(uint256 units) public {
@@ -134,7 +134,7 @@ contract GateTest is BaseTest {
         collateralize(gatedMarket, borrower, units);
         take(units, lender, borrowerOffer);
 
-        assertGt(midnight.creditOf(gatedId, lender), 0, "lender should already have credit");
+        assertGt(awakening.creditOf(gatedId, lender), 0, "lender should already have credit");
 
         gate.setWhitelisted(lender, false);
         gate.setWhitelisted(borrower, false);
@@ -149,7 +149,7 @@ contract GateTest is BaseTest {
         collateralize(gatedMarket, borrower, units);
         take(units, lender, borrowerOffer);
 
-        assertGt(midnight.debtOf(gatedId, borrower), 0, "borrower should already have debt");
+        assertGt(awakening.debtOf(gatedId, borrower), 0, "borrower should already have debt");
 
         gate.setWhitelisted(lender, false);
         gate.setWhitelisted(borrower, false);
@@ -184,7 +184,7 @@ contract GateTest is BaseTest {
 
         take(units, borrower, otherBorrowerOffer);
 
-        assertEq(midnight.debtOf(gatedId, borrower), 0, "borrower should have exited debt");
+        assertEq(awakening.debtOf(gatedId, borrower), 0, "borrower should have exited debt");
     }
 
     function testNoGateCheckWhenBothExit(uint256 units) public {
@@ -224,7 +224,7 @@ contract GateTest is BaseTest {
         deal(address(loanToken), otherBorrower, units);
         take(units, otherBorrower, exitOffer);
 
-        assertEq(midnight.debtOf(gatedId, otherBorrower), 0, "otherBorrower should have exited");
+        assertEq(awakening.debtOf(gatedId, otherBorrower), 0, "otherBorrower should have exited");
     }
 
     function testNoGateCheckOnRepay(uint256 units) public {
@@ -239,9 +239,9 @@ contract GateTest is BaseTest {
 
         deal(address(loanToken), borrower, units);
         vm.prank(borrower);
-        midnight.repay(gatedMarket, units, borrower, address(0), hex"");
+        awakening.repay(gatedMarket, units, borrower, address(0), hex"");
 
-        assertEq(midnight.debtOf(gatedId, borrower), 0, "borrower should have repaid");
+        assertEq(awakening.debtOf(gatedId, borrower), 0, "borrower should have repaid");
     }
 
     function testNoGateCheckOnWithdraw(uint256 units) public {
@@ -254,14 +254,14 @@ contract GateTest is BaseTest {
 
         deal(address(loanToken), borrower, units);
         vm.prank(borrower);
-        midnight.repay(gatedMarket, units, borrower, address(0), hex"");
+        awakening.repay(gatedMarket, units, borrower, address(0), hex"");
 
         gate.setWhitelisted(lender, false);
 
         vm.prank(lender);
-        midnight.withdraw(gatedMarket, units, lender, lender);
+        awakening.withdraw(gatedMarket, units, lender, lender);
 
-        assertEq(midnight.creditOf(gatedId, lender), 0, "lender should have withdrawn");
+        assertEq(awakening.creditOf(gatedId, lender), 0, "lender should have withdrawn");
     }
 
     // --- Liquidator gate tests ---
@@ -279,8 +279,8 @@ contract GateTest is BaseTest {
 
         deal(address(loanToken), liquidator, units);
         vm.prank(liquidator);
-        if (!isWhitelisted) vm.expectRevert(IMidnight.LiquidatorGatedFromLiquidating.selector);
-        midnight.liquidate(gatedMarket, 0, 1, 0, borrower, false, address(this), address(0), "");
+        if (!isWhitelisted) vm.expectRevert(IAwakening.LiquidatorGatedFromLiquidating.selector);
+        awakening.liquidate(gatedMarket, 0, 1, 0, borrower, false, address(this), address(0), "");
     }
 
     function testLiquidatorGateOnBadDebt(uint256 units, bool isWhitelisted) public {
@@ -295,8 +295,8 @@ contract GateTest is BaseTest {
         Oracle(gatedMarket.collateralParams[0].oracle).setPrice(0);
 
         vm.prank(liquidator);
-        if (!isWhitelisted) vm.expectRevert(IMidnight.LiquidatorGatedFromLiquidating.selector);
-        midnight.liquidate(gatedMarket, 0, 0, 0, borrower, false, address(this), address(0), "");
+        if (!isWhitelisted) vm.expectRevert(IAwakening.LiquidatorGatedFromLiquidating.selector);
+        awakening.liquidate(gatedMarket, 0, 0, 0, borrower, false, address(this), address(0), "");
     }
 
     // --- Default (no gate) tests ---
@@ -317,7 +317,7 @@ contract GateTest is BaseTest {
         take(units, borrower, ungatedLenderOffer);
 
         bytes32 ungatedId = toId(market);
-        assertGt(midnight.debtOf(ungatedId, borrower), 0);
+        assertGt(awakening.debtOf(ungatedId, borrower), 0);
     }
 
     // --- Market identity tests ---

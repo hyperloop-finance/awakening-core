@@ -2,8 +2,8 @@
 // Copyright (c) 2025 Morpho Association
 pragma solidity ^0.8.0;
 
-import {IMidnight, Market, Offer, CollateralParams} from "../src/interfaces/IMidnight.sol";
-import {Midnight} from "../src/Midnight.sol";
+import {IAwakening, Market, Offer, CollateralParams} from "../src/interfaces/IAwakening.sol";
+import {Awakening} from "../src/Awakening.sol";
 import {WAD, CALLBACK_SUCCESS, MAX_CONTINUOUS_FEE, MAX_SETTLEMENT_FEE_0_DAYS} from "../src/libraries/ConstantsLib.sol";
 import {UtilsLib} from "../src/libraries/UtilsLib.sol";
 import {TickLib, MAX_TICK} from "../src/libraries/TickLib.sol";
@@ -57,8 +57,8 @@ contract TakeTest is BaseTest {
         market.collateralParams = sortCollateralParams(market.collateralParams);
         market.rcfThreshold = 0;
 
-        id = midnight.touchMarket(market);
-        midnight.setMarketTickSpacing(id, 1);
+        id = awakening.touchMarket(market);
+        awakening.setMarketTickSpacing(id, 1);
 
         lenderOffer.buy = true;
         lenderOffer.maker = lender;
@@ -110,9 +110,9 @@ contract TakeTest is BaseTest {
         address receiver = makeAddr("receiver");
         LendCallback payerCallback = new LendCallback();
 
-        midnight.setMarketSettlementFee(id, 0, MAX_SETTLEMENT_FEE_0_DAYS);
-        midnight.setMarketSettlementFee(id, 1, MAX_SETTLEMENT_FEE_0_DAYS); // flat settlement fee
-        midnight.setMarketContinuousFee(id, MAX_CONTINUOUS_FEE);
+        awakening.setMarketSettlementFee(id, 0, MAX_SETTLEMENT_FEE_0_DAYS);
+        awakening.setMarketSettlementFee(id, 1, MAX_SETTLEMENT_FEE_0_DAYS); // flat settlement fee
+        awakening.setMarketContinuousFee(id, MAX_CONTINUOUS_FEE);
 
         units = bound(units, 1e10, maxAssets / 8);
         tick = bound(tick, 0, MAX_TICK);
@@ -166,12 +166,12 @@ contract TakeTest is BaseTest {
         offer.group = group;
         offer.tick = tick;
 
-        stdstoreFinder.target(address(midnight)).sig("consumed(address,bytes32)").with_key(maker).with_key(group)
+        stdstoreFinder.target(address(awakening)).sig("consumed(address,bytes32)").with_key(maker).with_key(group)
             .checked_write(existingConsumed);
 
         deal(address(loanToken), address(payerCallback), buyerAssets);
         vm.prank(taker);
-        midnight.setIsAuthorized(caller, true, taker);
+        awakening.setIsAuthorized(caller, true, taker);
 
         uint256 ttm = market.maturity - block.timestamp;
         uint256 buyerPendingFeeIncrease = (units - existingDebt).mulDivDown(uint256(MAX_CONTINUOUS_FEE) * ttm, WAD);
@@ -199,9 +199,9 @@ contract TakeTest is BaseTest {
 
         vm.prank(caller);
         if (offerIsBuy) {
-            midnight.take(offer, hex"", units, taker, receiver, address(0), hex"");
+            awakening.take(offer, hex"", units, taker, receiver, address(0), hex"");
         } else {
-            midnight.take(offer, hex"", units, taker, address(0), address(payerCallback), hex"");
+            awakening.take(offer, hex"", units, taker, address(0), address(payerCallback), hex"");
         }
     }
 
@@ -219,12 +219,12 @@ contract TakeTest is BaseTest {
 
         take(units, lender, borrowerOffer);
 
-        assertEq(midnight.creditOf(id, lender), units, "lender units");
-        assertEq(midnight.debtOf(id, borrower), units, "borrower debt");
-        assertEq(midnight.totalUnits(id), units, "total units");
+        assertEq(awakening.creditOf(id, lender), units, "lender units");
+        assertEq(awakening.debtOf(id, borrower), units, "borrower debt");
+        assertEq(awakening.totalUnits(id), units, "total units");
         assertEq(loanToken.balanceOf(borrower), expectedAssets, "borrower balance");
         assertEq(loanToken.balanceOf(lender), 0, "lender balance");
-        assertEq(midnight.consumed(borrower, borrowerOffer.group), units, "consumed");
+        assertEq(awakening.consumed(borrower, borrowerOffer.group), units, "consumed");
     }
 
     function testSell1(uint256 units, uint256 tick) public {
@@ -239,12 +239,12 @@ contract TakeTest is BaseTest {
 
         take(units, borrower, lenderOffer);
 
-        assertEq(midnight.creditOf(id, lender), units, "lender units");
-        assertEq(midnight.debtOf(id, borrower), units, "borrower debt");
-        assertEq(midnight.totalUnits(id), units, "total units");
+        assertEq(awakening.creditOf(id, lender), units, "lender units");
+        assertEq(awakening.debtOf(id, borrower), units, "borrower debt");
+        assertEq(awakening.totalUnits(id), units, "total units");
         assertEq(loanToken.balanceOf(borrower), expectedAssets, "borrower balance");
         assertEq(loanToken.balanceOf(lender), 0, "lender balance");
-        assertEq(midnight.consumed(lender, lenderOffer.group), units, "consumed");
+        assertEq(awakening.consumed(lender, lenderOffer.group), units, "consumed");
     }
 
     // path 2: Lender enters + lender exits.
@@ -257,20 +257,20 @@ contract TakeTest is BaseTest {
         uint256 buyerAssets = units.mulDivDown(price, WAD);
         otherLenderUnits = bound(otherLenderUnits, units, max(units, maxAssets));
         setupOtherUsers(market, otherLenderUnits);
-        uint256 actualOtherLenderCredit = midnight.creditOf(id, otherLender);
+        uint256 actualOtherLenderCredit = awakening.creditOf(id, otherLender);
         deal(address(loanToken), lender, buyerAssets + 1);
         otherLenderOffer.buy = false;
         otherLenderOffer.maxUnits = type(uint256).max;
         otherLenderOffer.tick = tick;
-        uint256 totalUnitsBefore = midnight.totalUnits(id);
+        uint256 totalUnitsBefore = awakening.totalUnits(id);
 
         take(units, lender, otherLenderOffer);
 
-        assertEq(midnight.creditOf(id, lender), units, "lender units");
-        assertEq(midnight.debtOf(id, lender), 0, "lender debt");
-        assertEq(midnight.creditOf(id, otherLender), actualOtherLenderCredit - units, "other lender units");
-        assertEq(midnight.debtOf(id, otherLender), 0, "other lender debt");
-        assertEq(midnight.totalUnits(id), totalUnitsBefore, "total units");
+        assertEq(awakening.creditOf(id, lender), units, "lender units");
+        assertEq(awakening.debtOf(id, lender), 0, "lender debt");
+        assertEq(awakening.creditOf(id, otherLender), actualOtherLenderCredit - units, "other lender units");
+        assertEq(awakening.debtOf(id, otherLender), 0, "other lender debt");
+        assertEq(awakening.totalUnits(id), totalUnitsBefore, "total units");
     }
 
     function testSell2(uint256 units, uint256 tick, uint256 otherLenderUnits) public {
@@ -281,19 +281,19 @@ contract TakeTest is BaseTest {
         uint256 buyerAssets = units.mulDivDown(price, WAD);
         otherLenderUnits = bound(otherLenderUnits, units, max(units, maxAssets));
         setupOtherUsers(market, otherLenderUnits);
-        uint256 actualOtherLenderCredit = midnight.creditOf(id, otherLender);
+        uint256 actualOtherLenderCredit = awakening.creditOf(id, otherLender);
         deal(address(loanToken), lender, buyerAssets + 1);
         lenderOffer.maxUnits = type(uint256).max;
         lenderOffer.tick = tick;
-        uint256 totalUnitsBefore = midnight.totalUnits(id);
+        uint256 totalUnitsBefore = awakening.totalUnits(id);
 
         take(units, otherLender, lenderOffer);
 
-        assertEq(midnight.creditOf(id, lender), units, "lender units");
-        assertEq(midnight.debtOf(id, lender), 0, "lender debt");
-        assertEq(midnight.creditOf(id, otherLender), actualOtherLenderCredit - units, "other lender units");
-        assertEq(midnight.debtOf(id, otherLender), 0, "other lender debt");
-        assertEq(midnight.totalUnits(id), totalUnitsBefore, "total units");
+        assertEq(awakening.creditOf(id, lender), units, "lender units");
+        assertEq(awakening.debtOf(id, lender), 0, "lender debt");
+        assertEq(awakening.creditOf(id, otherLender), actualOtherLenderCredit - units, "other lender units");
+        assertEq(awakening.debtOf(id, otherLender), 0, "other lender debt");
+        assertEq(awakening.totalUnits(id), totalUnitsBefore, "total units");
     }
 
     // Lender sells more than their balance, crossing to borrower.
@@ -301,20 +301,20 @@ contract TakeTest is BaseTest {
         otherLenderUnits = bound(otherLenderUnits, 1, maxAssets - 1);
         units = bound(units, otherLenderUnits + 1, maxAssets);
         setupOtherUsers(market, otherLenderUnits);
-        uint256 otherLenderCredit = midnight.creditOf(id, otherLender);
+        uint256 otherLenderCredit = awakening.creditOf(id, otherLender);
         uint256 price = TickLib.tickToPrice(MAX_TICK);
         deal(address(loanToken), lender, units.mulDivUp(price, WAD));
         collateralize(market, otherLender, units);
         otherLenderOffer.tick = MAX_TICK;
-        uint256 totalUnitsBefore = midnight.totalUnits(id);
+        uint256 totalUnitsBefore = awakening.totalUnits(id);
 
         take(units, lender, otherLenderOffer);
 
         // otherLender crossed from lender to borrower.
-        assertEq(midnight.creditOf(id, otherLender), 0, "otherLender credit");
-        assertEq(midnight.debtOf(id, otherLender), units - otherLenderCredit, "otherLender debt");
-        assertEq(midnight.creditOf(id, lender), units, "lender credit");
-        assertEq(midnight.totalUnits(id), totalUnitsBefore + units - otherLenderCredit, "total units");
+        assertEq(awakening.creditOf(id, otherLender), 0, "otherLender credit");
+        assertEq(awakening.debtOf(id, otherLender), units - otherLenderCredit, "otherLender debt");
+        assertEq(awakening.creditOf(id, lender), units, "lender credit");
+        assertEq(awakening.totalUnits(id), totalUnitsBefore + units - otherLenderCredit, "total units");
     }
 
     // path 3: Borrower exits + borrower enters.
@@ -324,19 +324,19 @@ contract TakeTest is BaseTest {
         tick = bound(tick, 0, MAX_TICK);
         existingUnits = bound(existingUnits, units, max(units, maxAssets));
         setupOtherUsers(market, existingUnits);
-        uint256 otherBorrowerDebt = midnight.debtOf(id, otherBorrower);
+        uint256 otherBorrowerDebt = awakening.debtOf(id, otherBorrower);
         collateralize(market, borrower, units);
         borrowerOffer.maxUnits = type(uint256).max;
         borrowerOffer.tick = tick;
         uint256 price = TickLib.tickToPrice(tick);
         deal(address(loanToken), otherBorrower, units.mulDivUp(price, WAD));
-        uint256 totalUnitsBefore = midnight.totalUnits(id);
+        uint256 totalUnitsBefore = awakening.totalUnits(id);
 
         take(units, otherBorrower, borrowerOffer);
 
-        assertEq(midnight.debtOf(id, borrower), units, "borrower debt");
-        assertEq(midnight.debtOf(id, otherBorrower), otherBorrowerDebt - units, "otherBorrower debt");
-        assertEq(midnight.totalUnits(id), totalUnitsBefore, "total units");
+        assertEq(awakening.debtOf(id, borrower), units, "borrower debt");
+        assertEq(awakening.debtOf(id, otherBorrower), otherBorrowerDebt - units, "otherBorrower debt");
+        assertEq(awakening.totalUnits(id), totalUnitsBefore, "total units");
     }
 
     function testSell3(uint256 units, uint256 tick, uint256 existingUnits) public {
@@ -344,17 +344,17 @@ contract TakeTest is BaseTest {
         tick = bound(tick, 0, MAX_TICK);
         existingUnits = bound(existingUnits, units, max(units, maxAssets));
         setupOtherUsers(market, existingUnits);
-        uint256 otherBorrowerDebt = midnight.debtOf(id, otherBorrower);
+        uint256 otherBorrowerDebt = awakening.debtOf(id, otherBorrower);
         collateralize(market, borrower, units);
         otherBorrowerOffer.maxUnits = type(uint256).max;
         otherBorrowerOffer.tick = tick;
-        uint256 totalUnitsBefore = midnight.totalUnits(id);
+        uint256 totalUnitsBefore = awakening.totalUnits(id);
 
         take(units, borrower, otherBorrowerOffer);
 
-        assertEq(midnight.debtOf(id, borrower), units, "borrower debt");
-        assertEq(midnight.debtOf(id, otherBorrower), otherBorrowerDebt - units, "otherBorrower debt");
-        assertEq(midnight.totalUnits(id), totalUnitsBefore, "total units");
+        assertEq(awakening.debtOf(id, borrower), units, "borrower debt");
+        assertEq(awakening.debtOf(id, otherBorrower), otherBorrowerDebt - units, "otherBorrower debt");
+        assertEq(awakening.totalUnits(id), totalUnitsBefore, "total units");
     }
 
     // Borrower buys more than their debt, crossing to lender.
@@ -362,20 +362,20 @@ contract TakeTest is BaseTest {
         otherUnits = bound(otherUnits, 1, maxAssets - 1);
         units = bound(units, otherUnits + 1, maxAssets);
         setupOtherUsers(market, otherUnits);
-        uint256 otherBorrowerDebt = midnight.debtOf(id, otherBorrower);
+        uint256 otherBorrowerDebt = awakening.debtOf(id, otherBorrower);
         uint256 price = TickLib.tickToPrice(MAX_TICK);
         deal(address(loanToken), otherBorrower, units.mulDivUp(price, WAD));
         collateralize(market, borrower, units);
         borrowerOffer.tick = MAX_TICK;
-        uint256 totalUnitsBefore = midnight.totalUnits(id);
+        uint256 totalUnitsBefore = awakening.totalUnits(id);
 
         take(units, otherBorrower, borrowerOffer);
 
         // otherBorrower crossed from borrower to lender.
-        assertEq(midnight.debtOf(id, otherBorrower), 0, "otherBorrower debt");
-        assertEq(midnight.creditOf(id, otherBorrower), units - otherBorrowerDebt, "otherBorrower credit");
-        assertEq(midnight.debtOf(id, borrower), units, "borrower debt");
-        assertEq(midnight.totalUnits(id), totalUnitsBefore + units - otherBorrowerDebt, "total units");
+        assertEq(awakening.debtOf(id, otherBorrower), 0, "otherBorrower debt");
+        assertEq(awakening.creditOf(id, otherBorrower), units - otherBorrowerDebt, "otherBorrower credit");
+        assertEq(awakening.debtOf(id, borrower), units, "borrower debt");
+        assertEq(awakening.totalUnits(id), totalUnitsBefore + units - otherBorrowerDebt, "total units");
     }
 
     // path 4: Borrower exits + lender exits.
@@ -388,8 +388,8 @@ contract TakeTest is BaseTest {
         uint256 buyerAssets = units.mulDivUp(price, WAD);
         existingUnits = bound(existingUnits, units, max(units, maxAssets));
         setupOtherUsers(market, existingUnits);
-        uint256 otherLenderCredit = midnight.creditOf(id, otherLender);
-        uint256 otherBorrowerDebt = midnight.debtOf(id, otherBorrower);
+        uint256 otherLenderCredit = awakening.creditOf(id, otherLender);
+        uint256 otherBorrowerDebt = awakening.debtOf(id, otherBorrower);
 
         otherLenderOffer.maxUnits = type(uint256).max;
         otherLenderOffer.tick = tick;
@@ -397,9 +397,9 @@ contract TakeTest is BaseTest {
 
         take(units, otherBorrower, otherLenderOffer);
 
-        assertEq(midnight.creditOf(id, otherLender), otherLenderCredit - units, "otherLender units");
-        assertEq(midnight.debtOf(id, otherBorrower), otherBorrowerDebt - units, "otherBorrower debt");
-        assertEq(midnight.totalUnits(id), otherBorrowerDebt - units, "total units");
+        assertEq(awakening.creditOf(id, otherLender), otherLenderCredit - units, "otherLender units");
+        assertEq(awakening.debtOf(id, otherBorrower), otherBorrowerDebt - units, "otherBorrower debt");
+        assertEq(awakening.totalUnits(id), otherBorrowerDebt - units, "total units");
         assertEq(loanToken.balanceOf(otherLender), buyerAssets, "otherLender balance");
     }
 
@@ -411,17 +411,17 @@ contract TakeTest is BaseTest {
         uint256 buyerAssets = units.mulDivDown(price, WAD);
         existingUnits = bound(existingUnits, units, max(units, maxAssets));
         setupOtherUsers(market, existingUnits);
-        uint256 otherLenderCredit = midnight.creditOf(id, otherLender);
-        uint256 otherBorrowerDebt = midnight.debtOf(id, otherBorrower);
+        uint256 otherLenderCredit = awakening.creditOf(id, otherLender);
+        uint256 otherBorrowerDebt = awakening.debtOf(id, otherBorrower);
 
         otherBorrowerOffer.maxUnits = type(uint256).max;
         otherBorrowerOffer.tick = tick;
 
         take(units, otherLender, otherBorrowerOffer);
 
-        assertEq(midnight.creditOf(id, otherLender), otherLenderCredit - units, "otherLender units");
-        assertEq(midnight.debtOf(id, otherBorrower), otherBorrowerDebt - units, "otherBorrower debt");
-        assertEq(midnight.totalUnits(id), otherBorrowerDebt - units, "total units");
+        assertEq(awakening.creditOf(id, otherLender), otherLenderCredit - units, "otherLender units");
+        assertEq(awakening.debtOf(id, otherBorrower), otherBorrowerDebt - units, "otherBorrower debt");
+        assertEq(awakening.totalUnits(id), otherBorrowerDebt - units, "total units");
         assertEq(loanToken.balanceOf(otherLender), buyerAssets, "otherLender balance");
     }
 
@@ -434,7 +434,7 @@ contract TakeTest is BaseTest {
         deal(address(loanToken), lender, units);
         collateralize(market, borrower, units);
 
-        vm.expectRevert(IMidnight.CannotIncreaseDebtPostMaturity.selector);
+        vm.expectRevert(IAwakening.CannotIncreaseDebtPostMaturity.selector);
         take(units, lender, borrowerOffer);
     }
 
@@ -447,17 +447,17 @@ contract TakeTest is BaseTest {
         deal(address(loanToken), lender, units);
         collateralize(market, borrower, units);
 
-        vm.expectRevert(IMidnight.CannotIncreaseDebtPostMaturity.selector);
+        vm.expectRevert(IAwakening.CannotIncreaseDebtPostMaturity.selector);
         take(units, borrower, lenderOffer);
     }
 
     function testBuy2PostMaturity() public {
         uint256 units = 100;
         setupOtherUsers(market, units);
-        assertEq(midnight.creditOf(id, otherLender), units, "other lender credit");
-        assertEq(midnight.debtOf(id, otherLender), 0, "other lender debt");
-        assertTrue(midnight.isHealthy(market, id, otherLender), "other lender healthy");
-        uint256 totalUnitsBefore = midnight.totalUnits(id);
+        assertEq(awakening.creditOf(id, otherLender), units, "other lender credit");
+        assertEq(awakening.debtOf(id, otherLender), 0, "other lender debt");
+        assertTrue(awakening.isHealthy(market, id, otherLender), "other lender healthy");
+        uint256 totalUnitsBefore = awakening.totalUnits(id);
 
         uint256 timestamp = market.maturity + 1;
         vm.warp(timestamp);
@@ -467,20 +467,20 @@ contract TakeTest is BaseTest {
 
         take(units, lender, otherLenderOffer);
 
-        assertEq(midnight.creditOf(id, lender), units, "lender units");
-        assertEq(midnight.debtOf(id, lender), 0, "lender debt");
-        assertEq(midnight.creditOf(id, otherLender), 0, "other lender units");
-        assertEq(midnight.debtOf(id, otherLender), 0, "other lender debt");
-        assertEq(midnight.totalUnits(id), totalUnitsBefore, "total units");
+        assertEq(awakening.creditOf(id, lender), units, "lender units");
+        assertEq(awakening.debtOf(id, lender), 0, "lender debt");
+        assertEq(awakening.creditOf(id, otherLender), 0, "other lender units");
+        assertEq(awakening.debtOf(id, otherLender), 0, "other lender debt");
+        assertEq(awakening.totalUnits(id), totalUnitsBefore, "total units");
     }
 
     function testSell2PostMaturity() public {
         uint256 units = 100;
         setupOtherUsers(market, units);
-        assertEq(midnight.creditOf(id, otherLender), units, "other lender credit");
-        assertEq(midnight.debtOf(id, otherLender), 0, "other lender debt");
-        assertTrue(midnight.isHealthy(market, id, otherLender), "other lender healthy");
-        uint256 totalUnitsBefore = midnight.totalUnits(id);
+        assertEq(awakening.creditOf(id, otherLender), units, "other lender credit");
+        assertEq(awakening.debtOf(id, otherLender), 0, "other lender debt");
+        assertTrue(awakening.isHealthy(market, id, otherLender), "other lender healthy");
+        uint256 totalUnitsBefore = awakening.totalUnits(id);
 
         uint256 timestamp = market.maturity + 1;
         vm.warp(timestamp);
@@ -490,11 +490,11 @@ contract TakeTest is BaseTest {
 
         take(units, otherLender, lenderOffer);
 
-        assertEq(midnight.creditOf(id, lender), units, "lender units");
-        assertEq(midnight.debtOf(id, lender), 0, "lender debt");
-        assertEq(midnight.creditOf(id, otherLender), 0, "other lender units");
-        assertEq(midnight.debtOf(id, otherLender), 0, "other lender debt");
-        assertEq(midnight.totalUnits(id), totalUnitsBefore, "total units");
+        assertEq(awakening.creditOf(id, lender), units, "lender units");
+        assertEq(awakening.debtOf(id, lender), 0, "lender debt");
+        assertEq(awakening.creditOf(id, otherLender), 0, "other lender units");
+        assertEq(awakening.debtOf(id, otherLender), 0, "other lender debt");
+        assertEq(awakening.totalUnits(id), totalUnitsBefore, "total units");
     }
 
     function testBuy3PostMaturity() public {
@@ -508,7 +508,7 @@ contract TakeTest is BaseTest {
         deal(address(loanToken), otherBorrower, units);
         collateralize(market, borrower, units);
 
-        vm.expectRevert(IMidnight.CannotIncreaseDebtPostMaturity.selector);
+        vm.expectRevert(IAwakening.CannotIncreaseDebtPostMaturity.selector);
         take(units, otherBorrower, borrowerOffer);
     }
 
@@ -523,17 +523,17 @@ contract TakeTest is BaseTest {
         deal(address(loanToken), otherBorrower, units);
         collateralize(market, borrower, units);
 
-        vm.expectRevert(IMidnight.CannotIncreaseDebtPostMaturity.selector);
+        vm.expectRevert(IAwakening.CannotIncreaseDebtPostMaturity.selector);
         take(units, borrower, otherBorrowerOffer);
     }
 
     function testBuy4PostMaturity() public {
         uint256 units = 100;
         setupOtherUsers(market, units);
-        assertEq(midnight.creditOf(id, otherLender), units, "other lender credit");
-        assertEq(midnight.debtOf(id, otherLender), 0, "other lender debt");
-        assertTrue(midnight.isHealthy(market, id, otherLender), "other lender healthy");
-        uint256 otherBorrowerDebt = midnight.debtOf(id, otherBorrower);
+        assertEq(awakening.creditOf(id, otherLender), units, "other lender credit");
+        assertEq(awakening.debtOf(id, otherLender), 0, "other lender debt");
+        assertTrue(awakening.isHealthy(market, id, otherLender), "other lender healthy");
+        uint256 otherBorrowerDebt = awakening.debtOf(id, otherBorrower);
 
         uint256 timestamp = market.maturity + 1;
         vm.warp(timestamp);
@@ -543,18 +543,18 @@ contract TakeTest is BaseTest {
 
         take(units, otherBorrower, otherLenderOffer);
 
-        assertEq(midnight.creditOf(id, otherLender), 0, "otherLender units");
-        assertEq(midnight.debtOf(id, otherBorrower), otherBorrowerDebt - units, "otherBorrower debt");
-        assertEq(midnight.totalUnits(id), otherBorrowerDebt - units, "total units");
+        assertEq(awakening.creditOf(id, otherLender), 0, "otherLender units");
+        assertEq(awakening.debtOf(id, otherBorrower), otherBorrowerDebt - units, "otherBorrower debt");
+        assertEq(awakening.totalUnits(id), otherBorrowerDebt - units, "total units");
     }
 
     function testSell4PostMaturity() public {
         uint256 units = 100;
         setupOtherUsers(market, units);
-        assertEq(midnight.creditOf(id, otherLender), units, "other lender credit");
-        assertEq(midnight.debtOf(id, otherLender), 0, "other lender debt");
-        assertTrue(midnight.isHealthy(market, id, otherLender), "other lender healthy");
-        uint256 otherBorrowerDebt = midnight.debtOf(id, otherBorrower);
+        assertEq(awakening.creditOf(id, otherLender), units, "other lender credit");
+        assertEq(awakening.debtOf(id, otherLender), 0, "other lender debt");
+        assertTrue(awakening.isHealthy(market, id, otherLender), "other lender healthy");
+        uint256 otherBorrowerDebt = awakening.debtOf(id, otherBorrower);
 
         uint256 timestamp = market.maturity + 1;
         vm.warp(timestamp);
@@ -564,9 +564,9 @@ contract TakeTest is BaseTest {
 
         take(units, otherLender, otherBorrowerOffer);
 
-        assertEq(midnight.creditOf(id, otherLender), 0, "otherLender units");
-        assertEq(midnight.debtOf(id, otherBorrower), otherBorrowerDebt - units, "otherBorrower debt");
-        assertEq(midnight.totalUnits(id), otherBorrowerDebt - units, "total units");
+        assertEq(awakening.creditOf(id, otherLender), 0, "otherLender units");
+        assertEq(awakening.debtOf(id, otherBorrower), otherBorrowerDebt - units, "otherBorrower debt");
+        assertEq(awakening.totalUnits(id), otherBorrowerDebt - units, "total units");
     }
 
     // reduceOnly tests.
@@ -583,15 +583,15 @@ contract TakeTest is BaseTest {
         deal(address(loanToken), otherBorrower, exitUnits.mulDivUp(price, WAD));
         collateralize(market, borrower, exitUnits);
 
-        uint256 debtBefore = midnight.debtOf(id, otherBorrower);
-        uint256 totalUnitsBefore = midnight.totalUnits(id);
+        uint256 debtBefore = awakening.debtOf(id, otherBorrower);
+        uint256 totalUnitsBefore = awakening.totalUnits(id);
 
         take(exitUnits, borrower, otherBorrowerOffer);
 
-        assertEq(midnight.debtOf(id, borrower), exitUnits, "borrower debt");
-        assertEq(midnight.creditOf(id, otherBorrower), 0, "otherBorrower units");
-        assertEq(midnight.debtOf(id, otherBorrower), debtBefore - exitUnits, "otherBorrower debt");
-        assertEq(midnight.totalUnits(id), totalUnitsBefore, "total units");
+        assertEq(awakening.debtOf(id, borrower), exitUnits, "borrower debt");
+        assertEq(awakening.creditOf(id, otherBorrower), 0, "otherBorrower units");
+        assertEq(awakening.debtOf(id, otherBorrower), debtBefore - exitUnits, "otherBorrower debt");
+        assertEq(awakening.totalUnits(id), totalUnitsBefore, "total units");
     }
 
     function testReduceOnlyBuyRevert(uint256 existingUnits, uint256 exitUnits) public {
@@ -602,7 +602,7 @@ contract TakeTest is BaseTest {
         otherBorrowerOffer.maxUnits = exitUnits;
         otherBorrowerOffer.reduceOnly = true;
 
-        vm.expectRevert(IMidnight.MakerCreditOrDebtIncreased.selector);
+        vm.expectRevert(IAwakening.MakerCreditOrDebtIncreased.selector);
         take(exitUnits, borrower, otherBorrowerOffer);
     }
 
@@ -617,16 +617,16 @@ contract TakeTest is BaseTest {
         uint256 price = TickLib.tickToPrice(MAX_TICK);
         deal(address(loanToken), lender, exitUnits.mulDivUp(price, WAD));
 
-        uint256 creditBefore = midnight.creditOf(id, otherLender);
-        uint256 totalUnitsBefore = midnight.totalUnits(id);
+        uint256 creditBefore = awakening.creditOf(id, otherLender);
+        uint256 totalUnitsBefore = awakening.totalUnits(id);
 
         take(exitUnits, lender, otherLenderOffer);
 
-        assertEq(midnight.creditOf(id, lender), exitUnits, "lender units");
-        assertEq(midnight.debtOf(id, lender), 0, "lender debt");
-        assertEq(midnight.creditOf(id, otherLender), creditBefore - exitUnits, "other lender units");
-        assertEq(midnight.debtOf(id, otherLender), 0, "other lender debt");
-        assertEq(midnight.totalUnits(id), totalUnitsBefore, "total units");
+        assertEq(awakening.creditOf(id, lender), exitUnits, "lender units");
+        assertEq(awakening.debtOf(id, lender), 0, "lender debt");
+        assertEq(awakening.creditOf(id, otherLender), creditBefore - exitUnits, "other lender units");
+        assertEq(awakening.debtOf(id, otherLender), 0, "other lender debt");
+        assertEq(awakening.totalUnits(id), totalUnitsBefore, "total units");
     }
 
     function testReduceOnlySellRevert(uint256 existingUnits, uint256 exitUnits) public {
@@ -637,7 +637,7 @@ contract TakeTest is BaseTest {
         otherLenderOffer.maxUnits = exitUnits;
         otherLenderOffer.reduceOnly = true;
 
-        vm.expectRevert(IMidnight.MakerCreditOrDebtIncreased.selector);
+        vm.expectRevert(IAwakening.MakerCreditOrDebtIncreased.selector);
         take(exitUnits, lender, otherLenderOffer);
     }
 
@@ -657,7 +657,7 @@ contract TakeTest is BaseTest {
 
         take(units, lender, borrowerOffer);
 
-        vm.expectRevert(IMidnight.ConsumedUnits.selector);
+        vm.expectRevert(IAwakening.ConsumedUnits.selector);
         take(secondRevertingTake, lender, borrowerOffer);
 
         take(secondPassingTake, lender, borrowerOffer);
@@ -677,7 +677,7 @@ contract TakeTest is BaseTest {
 
         take(units, borrower, lenderOffer);
 
-        vm.expectRevert(IMidnight.ConsumedUnits.selector);
+        vm.expectRevert(IAwakening.ConsumedUnits.selector);
         take(secondRevertingTake, borrower, lenderOffer);
 
         take(secondPassingTake, borrower, lenderOffer);
@@ -697,7 +697,7 @@ contract TakeTest is BaseTest {
 
         take(firstFill, lender, borrowerOffer);
 
-        vm.expectRevert(IMidnight.ConsumedUnits.selector);
+        vm.expectRevert(IAwakening.ConsumedUnits.selector);
         take(secondFill + 1, lender, borrowerOffer2);
 
         take(secondFill, lender, borrowerOffer2);
@@ -717,7 +717,7 @@ contract TakeTest is BaseTest {
 
         take(firstFill, borrower, lenderOffer);
 
-        vm.expectRevert(IMidnight.ConsumedUnits.selector);
+        vm.expectRevert(IAwakening.ConsumedUnits.selector);
         take(secondFill + 1, borrower, lenderOffer2);
 
         take(secondFill, borrower, lenderOffer2);
@@ -747,8 +747,8 @@ contract TakeTest is BaseTest {
         take(units, address(this), borrowerOffer);
         take(units, address(this), lenderOffer);
 
-        assertEq(midnight.creditOf(id, address(this)), 0, "credit");
-        assertEq(midnight.debtOf(id, address(this)), 0, "debt");
+        assertEq(awakening.creditOf(id, address(this)), 0, "credit");
+        assertEq(awakening.debtOf(id, address(this)), 0, "debt");
     }
 
     // address(this) makes an arbitrage for 2 crossed offers.
@@ -774,8 +774,8 @@ contract TakeTest is BaseTest {
         take(units, address(this), lenderOffer);
         take(units, address(this), borrowerOffer);
 
-        assertEq(midnight.creditOf(id, address(this)), 0, "credit");
-        assertEq(midnight.debtOf(id, address(this)), 0, "debt");
+        assertEq(awakening.creditOf(id, address(this)), 0, "credit");
+        assertEq(awakening.debtOf(id, address(this)), 0, "debt");
     }
 
     function testBuyPastMaturity(uint256 timestamp) public {
@@ -787,7 +787,7 @@ contract TakeTest is BaseTest {
         deal(address(loanToken), lender, 100);
         collateralize(market, borrower, 100);
 
-        vm.expectRevert(IMidnight.CannotIncreaseDebtPostMaturity.selector);
+        vm.expectRevert(IAwakening.CannotIncreaseDebtPostMaturity.selector);
         take(100, lender, borrowerOffer);
     }
 
@@ -800,7 +800,7 @@ contract TakeTest is BaseTest {
         deal(address(loanToken), lender, 100);
         collateralize(market, borrower, 100);
 
-        vm.expectRevert(IMidnight.CannotIncreaseDebtPostMaturity.selector);
+        vm.expectRevert(IAwakening.CannotIncreaseDebtPostMaturity.selector);
         take(100, borrower, lenderOffer);
     }
 
@@ -814,7 +814,7 @@ contract TakeTest is BaseTest {
         deal(address(loanToken), lender, units.mulDivUp(price, WAD));
         collateralize(market, borrower, collateralized);
 
-        vm.expectRevert(IMidnight.SellerIsLiquidatable.selector);
+        vm.expectRevert(IAwakening.SellerIsLiquidatable.selector);
         take(units, lender, borrowerOffer);
     }
 
@@ -828,7 +828,7 @@ contract TakeTest is BaseTest {
         deal(address(loanToken), lender, units.mulDivDown(price, WAD));
         collateralize(market, borrower, collateralized);
 
-        vm.expectRevert(IMidnight.SellerIsLiquidatable.selector);
+        vm.expectRevert(IAwakening.SellerIsLiquidatable.selector);
         take(units, borrower, lenderOffer);
     }
 
@@ -836,14 +836,14 @@ contract TakeTest is BaseTest {
         start = bound(start, vm.getBlockTimestamp() + 1, type(uint256).max);
         Offer memory badOffer = lenderOffer;
         badOffer.start = start;
-        vm.expectRevert(IMidnight.OfferNotStarted.selector);
+        vm.expectRevert(IAwakening.OfferNotStarted.selector);
         take(0, borrower, badOffer);
     }
 
     function testTakeOfferExpired(uint256 elapsed) public {
         elapsed = bound(elapsed, 1, type(uint64).max);
         vm.warp(lenderOffer.expiry + elapsed);
-        vm.expectRevert(IMidnight.OfferExpired.selector);
+        vm.expectRevert(IAwakening.OfferExpired.selector);
         take(0, borrower, lenderOffer);
     }
 
@@ -853,7 +853,7 @@ contract TakeTest is BaseTest {
         privateKey[taker] = pkey;
         lenderOffer.maker = taker;
 
-        vm.expectRevert(IMidnight.SelfTake.selector);
+        vm.expectRevert(IAwakening.SelfTake.selector);
         take(0, taker, lenderOffer);
     }
 
@@ -867,7 +867,7 @@ contract TakeTest is BaseTest {
         borrowerOffer.maxUnits = 0;
         borrowerOffer.maxAssets = 1;
 
-        vm.expectRevert(IMidnight.ConsumedAssets.selector);
+        vm.expectRevert(IAwakening.ConsumedAssets.selector);
         take(units, lender, borrowerOffer);
     }
 
@@ -892,7 +892,7 @@ contract TakeTest is BaseTest {
         lenderOffer.maxUnits = 0;
         lenderOffer.maxAssets = 1;
 
-        vm.expectRevert(IMidnight.ConsumedAssets.selector);
+        vm.expectRevert(IAwakening.ConsumedAssets.selector);
         take(units, borrower, lenderOffer);
     }
 
@@ -965,7 +965,7 @@ contract TakeTest is BaseTest {
         lenderOffer.maxAssets = 1e18;
         lenderOffer.maxUnits = 1e18;
 
-        vm.expectRevert(IMidnight.InvalidOfferCaps.selector);
+        vm.expectRevert(IAwakening.InvalidOfferCaps.selector);
         take(units, borrower, lenderOffer);
     }
 
@@ -980,11 +980,11 @@ contract TakeTest is BaseTest {
 
         // Fully consume the offer before the take.
         vm.prank(lender);
-        midnight.setConsumed(lenderOffer.group, lenderOffer.maxAssets, lender);
+        awakening.setConsumed(lenderOffer.group, lenderOffer.maxAssets, lender);
 
-        uint256 lenderCreditBefore = midnight.creditOf(id, lender);
-        uint256 borrowerDebtBefore = midnight.debtOf(id, borrower);
-        uint256 totalUnitsBefore = midnight.totalUnits(id);
+        uint256 lenderCreditBefore = awakening.creditOf(id, lender);
+        uint256 borrowerDebtBefore = awakening.debtOf(id, borrower);
+        uint256 totalUnitsBefore = awakening.totalUnits(id);
         uint256 lenderBalBefore = loanToken.balanceOf(lender);
         uint256 borrowerBalBefore = loanToken.balanceOf(borrower);
 
@@ -994,13 +994,13 @@ contract TakeTest is BaseTest {
         assertEq(sellerAssets, 0);
 
         // Nothing observable to the cap or token balances changed:
-        assertEq(midnight.consumed(lender, lenderOffer.group), lenderOffer.maxAssets);
+        assertEq(awakening.consumed(lender, lenderOffer.group), lenderOffer.maxAssets);
         assertEq(loanToken.balanceOf(lender), lenderBalBefore);
         assertEq(loanToken.balanceOf(borrower), borrowerBalBefore);
         // But position state strictly changed:
-        assertGt(midnight.creditOf(id, lender), lenderCreditBefore);
-        assertGt(midnight.debtOf(id, borrower), borrowerDebtBefore);
-        assertGt(midnight.totalUnits(id), totalUnitsBefore);
+        assertGt(awakening.creditOf(id, lender), lenderCreditBefore);
+        assertGt(awakening.debtOf(id, borrower), borrowerDebtBefore);
+        assertGt(awakening.totalUnits(id), totalUnitsBefore);
     }
 
     // test ratifier dispatch.
@@ -1013,11 +1013,11 @@ contract TakeTest is BaseTest {
 
         vm.prank(address(ratifier));
 
-        midnight.setIsAuthorized(address(ratifier), true, address(ratifier));
+        awakening.setIsAuthorized(address(ratifier), true, address(ratifier));
         bytes memory _ratifierData = abi.encode(otherPrivateKey);
         vm.expectCall(address(ratifier), abi.encodeCall(IRatifier.isRatified, (lenderOffer, _ratifierData)));
         vm.prank(sender);
-        midnight.take(lenderOffer, _ratifierData, 0, sender, sender, address(0), hex"");
+        awakening.take(lenderOffer, _ratifierData, 0, sender, sender, address(0), hex"");
     }
 
     function testTakeByRatificationDifferentFromMaker(address maker, address sender, uint256 otherPrivateKey) public {
@@ -1031,11 +1031,11 @@ contract TakeTest is BaseTest {
         lenderOffer.ratifier = address(ratifier);
 
         vm.prank(maker);
-        midnight.setIsAuthorized(address(ratifier), true, maker);
+        awakening.setIsAuthorized(address(ratifier), true, maker);
         bytes memory _ratifierData = abi.encode(otherPrivateKey);
         vm.expectCall(address(ratifier), abi.encodeCall(IRatifier.isRatified, (lenderOffer, _ratifierData)));
         vm.prank(sender);
-        midnight.take(lenderOffer, _ratifierData, 0, sender, sender, address(0), hex"");
+        awakening.take(lenderOffer, _ratifierData, 0, sender, sender, address(0), hex"");
     }
 
     function testTakeOfferRatified(address maker, address sender) public {
@@ -1046,9 +1046,9 @@ contract TakeTest is BaseTest {
         lenderOffer.maker = maker;
         lenderOffer.ratifier = address(ratifier);
         vm.prank(maker);
-        midnight.setIsAuthorized(address(ratifier), true, maker);
+        awakening.setIsAuthorized(address(ratifier), true, maker);
         vm.prank(sender);
-        midnight.take(lenderOffer, emptySig, 0, sender, sender, address(0), hex"");
+        awakening.take(lenderOffer, emptySig, 0, sender, sender, address(0), hex"");
     }
 
     function testTakeRatificationFailed(address maker, address sender, uint256 signerPrivateKey) public {
@@ -1062,27 +1062,27 @@ contract TakeTest is BaseTest {
         lenderOffer.ratifier = address(ratifier);
 
         vm.prank(maker);
-        midnight.setIsAuthorized(address(ratifier), true, maker);
-        vm.expectRevert(IMidnight.RatifierFail.selector);
+        awakening.setIsAuthorized(address(ratifier), true, maker);
+        vm.expectRevert(IAwakening.RatifierFail.selector);
         vm.prank(sender);
-        midnight.take(lenderOffer, hex"", 0, sender, sender, address(0), hex"");
+        awakening.take(lenderOffer, hex"", 0, sender, sender, address(0), hex"");
     }
 
     function testOrderNotAuthorized(address taker, address sender) public {
         vm.assume(sender != address(this));
         vm.assume(taker != sender);
-        vm.assume(!midnight.isAuthorized(taker, sender));
+        vm.assume(!awakening.isAuthorized(taker, sender));
 
-        vm.expectRevert(IMidnight.TakerUnauthorized.selector);
+        vm.expectRevert(IAwakening.TakerUnauthorized.selector);
         vm.prank(sender);
-        midnight.take(lenderOffer, hex"", 100, taker, taker, address(0), hex"");
+        awakening.take(lenderOffer, hex"", 100, taker, taker, address(0), hex"");
     }
 
     function testOrderByTaker(address taker) public {
         vm.assume(taker != address(0));
         vm.assume(taker != lenderOffer.maker);
         vm.prank(taker);
-        midnight.take(lenderOffer, hex"", 0, taker, taker, address(0), hex"");
+        awakening.take(lenderOffer, hex"", 0, taker, taker, address(0), hex"");
     }
 
     function testOrderByAuthorized(address taker, address sender) public {
@@ -1091,35 +1091,35 @@ contract TakeTest is BaseTest {
         vm.assume(taker != sender);
         vm.assume(taker != lenderOffer.maker);
         vm.prank(taker);
-        midnight.setIsAuthorized(sender, true, taker);
+        awakening.setIsAuthorized(sender, true, taker);
         vm.prank(sender);
-        midnight.take(lenderOffer, hex"", 0, taker, taker, address(0), hex"");
+        awakening.take(lenderOffer, hex"", 0, taker, taker, address(0), hex"");
     }
 
     function testTakeUnusedReceiverMustBeZeroBuy(address receiver) public {
         vm.assume(receiver != address(0));
         // lenderOffer is a buy offer, so receiverIfMakerIsSeller is unused and must be zero.
         lenderOffer.receiverIfMakerIsSeller = receiver;
-        vm.expectRevert(IMidnight.UnusedReceiverMustBeZero.selector);
+        vm.expectRevert(IAwakening.UnusedReceiverMustBeZero.selector);
         vm.prank(borrower);
-        midnight.take(lenderOffer, hex"", 0, borrower, address(0), address(0), hex"");
+        awakening.take(lenderOffer, hex"", 0, borrower, address(0), address(0), hex"");
     }
 
     function testTakeUnusedReceiverMustBeZeroSell(address receiver) public {
         vm.assume(receiver != address(0));
         // borrowerOffer is a sell offer, so the receiverIfTakerIsSeller input is unused and must be zero.
-        vm.expectRevert(IMidnight.UnusedReceiverMustBeZero.selector);
+        vm.expectRevert(IAwakening.UnusedReceiverMustBeZero.selector);
         vm.prank(lender);
-        midnight.take(borrowerOffer, hex"", 0, lender, receiver, address(0), hex"");
+        awakening.take(borrowerOffer, hex"", 0, lender, receiver, address(0), hex"");
     }
 
     function testTakeInvalidOfferCapsBothZero(uint256 units) public {
         // Both caps are zero: the offer cannot trade anything, so take always reverts.
         lenderOffer.maxUnits = 0;
         lenderOffer.maxAssets = 0;
-        vm.expectRevert(IMidnight.InvalidOfferCaps.selector);
+        vm.expectRevert(IAwakening.InvalidOfferCaps.selector);
         vm.prank(borrower);
-        midnight.take(lenderOffer, hex"", units, borrower, address(0), address(0), hex"");
+        awakening.take(lenderOffer, hex"", units, borrower, address(0), address(0), hex"");
     }
 
     // test callbacks.
@@ -1138,7 +1138,7 @@ contract TakeTest is BaseTest {
     function testBuySellerCallback(uint256 units, uint32 continuousFee, bytes memory data) public {
         units = bound(units, 0, maxAssets);
         continuousFee = uint32(bound(continuousFee, 0, MAX_CONTINUOUS_FEE));
-        midnight.setMarketContinuousFee(id, continuousFee);
+        awakening.setMarketContinuousFee(id, continuousFee);
         addCredit(borrower, units);
 
         uint256 collateral = units.mulDivUp(WAD, market.collateralParams[0].lltv);
@@ -1149,15 +1149,15 @@ contract TakeTest is BaseTest {
         uint256 price = TickLib.tickToPrice(MAX_TICK);
         deal(address(loanToken), lender, units.mulDivUp(price, WAD));
         deal(market.collateralParams[0].token, borrowerOffer.callback, collateral);
-        assertEq(midnight.collateral(id, borrower, 0), 0);
+        assertEq(awakening.collateral(id, borrower, 0), 0);
 
         vm.prank(borrower);
 
-        midnight.setIsAuthorized(borrowerOffer.callback, true, borrower);
+        awakening.setIsAuthorized(borrowerOffer.callback, true, borrower);
 
         take(units, lender, borrowerOffer);
 
-        assertEq(midnight.collateral(id, borrower, 0), collateral);
+        assertEq(awakening.collateral(id, borrower, 0), collateral);
         assertEq(BorrowCallback(borrowerOffer.callback).recordedId(), id, "id");
         assertEq(toId(BorrowCallback(borrowerOffer.callback).recordedMarket()), id, "market");
         assertEq(BorrowCallback(borrowerOffer.callback).recordedSeller(), borrower, "seller");
@@ -1177,7 +1177,7 @@ contract TakeTest is BaseTest {
     function testSellSellerCallback(uint256 units, uint32 continuousFee, bytes memory data) public {
         units = bound(units, 0, maxAssets);
         continuousFee = uint32(bound(continuousFee, 0, MAX_CONTINUOUS_FEE));
-        midnight.setMarketContinuousFee(id, continuousFee);
+        awakening.setMarketContinuousFee(id, continuousFee);
         uint256 collateral = units.mulDivUp(WAD, market.collateralParams[0].lltv);
         addCredit(borrower, units);
 
@@ -1190,11 +1190,11 @@ contract TakeTest is BaseTest {
 
         vm.prank(borrower);
 
-        midnight.setIsAuthorized(callback, true, borrower);
+        awakening.setIsAuthorized(callback, true, borrower);
 
         vm.prank(borrower);
-        midnight.take(lenderOffer, hex"", units, borrower, borrower, callback, abi.encode(0, collateral, data));
-        assertEq(midnight.collateral(id, borrower, 0), collateral);
+        awakening.take(lenderOffer, hex"", units, borrower, borrower, callback, abi.encode(0, collateral, data));
+        assertEq(awakening.collateral(id, borrower, 0), collateral);
         assertEq(BorrowCallback(callback).recordedId(), id, "id");
         assertEq(toId(BorrowCallback(callback).recordedMarket()), id, "market");
         assertEq(BorrowCallback(callback).recordedSeller(), borrower, "seller");
@@ -1223,17 +1223,17 @@ contract TakeTest is BaseTest {
 
         vm.prank(borrower);
 
-        midnight.setIsAuthorized(address(callback), true, borrower);
+        awakening.setIsAuthorized(address(callback), true, borrower);
 
         vm.prank(borrower);
-        midnight.take(
+        awakening.take(
             lenderOffer, hex"", units, borrower, borrower, address(callback), abi.encode(0, collateral, repaidUnits)
         );
 
         assertFalse(callback.liquidateSucceeded());
-        assertEq(callback.liquidateErrorSelector(), IMidnight.NotLiquidatable.selector);
-        assertEq(midnight.debtOf(id, borrower), units);
-        assertEq(midnight.collateral(id, borrower, 0), collateral);
+        assertEq(callback.liquidateErrorSelector(), IAwakening.NotLiquidatable.selector);
+        assertEq(awakening.debtOf(id, borrower), units);
+        assertEq(awakening.collateral(id, borrower, 0), collateral);
     }
 
     // Show the effect of the wasLocked variable in take.
@@ -1254,19 +1254,19 @@ contract TakeTest is BaseTest {
 
         vm.prank(borrower);
 
-        midnight.setIsAuthorized(address(callback), true, borrower);
+        awakening.setIsAuthorized(address(callback), true, borrower);
 
         callback.prepare(lenderOffer, hex"", units, 0, 2 * collateral, repaidUnits);
 
         vm.prank(borrower);
-        midnight.take(lenderOffer, hex"", units, borrower, borrower, address(callback), "");
+        awakening.take(lenderOffer, hex"", units, borrower, borrower, address(callback), "");
 
         assertTrue(callback.reentered());
         assertFalse(callback.liquidateSucceeded());
-        assertEq(callback.liquidateErrorSelector(), IMidnight.NotLiquidatable.selector);
-        assertTrue(midnight.liquidationLocked(id, borrower) == false);
-        assertEq(midnight.debtOf(id, borrower), 2 * units);
-        assertEq(midnight.collateral(id, borrower, 0), 2 * collateral);
+        assertEq(callback.liquidateErrorSelector(), IAwakening.NotLiquidatable.selector);
+        assertTrue(awakening.liquidationLocked(id, borrower) == false);
+        assertEq(awakening.debtOf(id, borrower), 2 * units);
+        assertEq(awakening.collateral(id, borrower, 0), 2 * collateral);
     }
 
     function testSellSellerCallbackRevertsOnInvalidReturn(uint256 units) public {
@@ -1278,15 +1278,15 @@ contract TakeTest is BaseTest {
         collateralize(market, borrower, units);
         address callback = address(new InvalidSellCallback());
 
-        vm.expectRevert(IMidnight.WrongSellCallbackReturnValue.selector);
+        vm.expectRevert(IAwakening.WrongSellCallbackReturnValue.selector);
         vm.prank(borrower);
-        midnight.take(lenderOffer, hex"", units, borrower, borrower, callback, hex"");
+        awakening.take(lenderOffer, hex"", units, borrower, borrower, callback, hex"");
     }
 
     function testSellBuyerCallback(uint256 units, uint32 continuousFee, bytes memory data) public {
         units = bound(units, 0, maxAssets);
         continuousFee = uint32(bound(continuousFee, 0, MAX_CONTINUOUS_FEE));
-        midnight.setMarketContinuousFee(id, continuousFee);
+        awakening.setMarketContinuousFee(id, continuousFee);
         uint256 price = TickLib.tickToPrice(MAX_TICK);
         uint256 assets = units.mulDivDown(price, WAD);
         lenderOffer.callback = address(new LendCallback());
@@ -1315,7 +1315,7 @@ contract TakeTest is BaseTest {
     function testBuyBuyerCallback(uint256 units, uint32 continuousFee, bytes memory data) public {
         units = bound(units, 0, maxAssets);
         continuousFee = uint32(bound(continuousFee, 0, MAX_CONTINUOUS_FEE));
-        midnight.setMarketContinuousFee(id, continuousFee);
+        awakening.setMarketContinuousFee(id, continuousFee);
         uint256 price = TickLib.tickToPrice(MAX_TICK);
         uint256 assets = units.mulDivUp(price, WAD);
         address callback = address(new LendCallback());
@@ -1325,7 +1325,7 @@ contract TakeTest is BaseTest {
         collateralize(market, borrower, units);
 
         vm.prank(lender);
-        midnight.take(borrowerOffer, hex"", units, lender, address(0), callback, data);
+        awakening.take(borrowerOffer, hex"", units, lender, address(0), callback, data);
         assertEq(LendCallback(callback).recordedId(), id, "id");
         assertEq(toId(LendCallback(callback).recordedMarket()), id, "market");
         assertEq(LendCallback(callback).recordedBuyer(), lender, "buyer");
@@ -1357,14 +1357,14 @@ contract TakeTest is BaseTest {
         (uint256 buyerAssets, uint256 sellerAssets) = take(units, lender, borrowerOffer);
         assertEq(buyerAssets, 0, "buyerAssets");
         assertEq(sellerAssets, 0, "sellerAssets");
-        assertEq(midnight.creditOf(id, lender), units, "creditOf");
-        assertEq(midnight.debtOf(id, borrower), units, "debtOf");
+        assertEq(awakening.creditOf(id, lender), units, "creditOf");
+        assertEq(awakening.debtOf(id, borrower), units, "debtOf");
     }
 
     // fee>0, buy, units
     function testPriceZeroWithSettlementFeeBuy() public {
-        midnight.touchMarket(market);
-        midnight.setMarketSettlementFee(id, 1, 1e12);
+        awakening.touchMarket(market);
+        awakening.setMarketSettlementFee(id, 1, 1e12);
         uint256 units = 1e18;
         lenderOffer.tick = 0;
         lenderOffer.maxUnits = units;
@@ -1375,9 +1375,9 @@ contract TakeTest is BaseTest {
 
     // fee>0, sell, units
     function testPriceZeroWithSettlementFeeSell() public {
-        midnight.touchMarket(market);
-        midnight.setMarketSettlementFee(id, 1, 1e12);
-        uint256 fee = midnight.settlementFee(id, market.maturity - vm.getBlockTimestamp());
+        awakening.touchMarket(market);
+        awakening.setMarketSettlementFee(id, 1, 1e12);
+        uint256 fee = awakening.settlementFee(id, market.maturity - vm.getBlockTimestamp());
         uint256 units = 1e18;
         borrowerOffer.tick = 0;
         borrowerOffer.maxUnits = units;
@@ -1387,8 +1387,8 @@ contract TakeTest is BaseTest {
         (uint256 buyerAssets, uint256 sellerAssets) = take(units, lender, borrowerOffer);
         assertEq(buyerAssets, expectedBuyerAssets, "buyerAssets");
         assertEq(sellerAssets, 0, "sellerAssets");
-        assertEq(midnight.creditOf(id, lender), units, "creditOf");
-        assertEq(midnight.debtOf(id, borrower), units, "debtOf");
+        assertEq(awakening.creditOf(id, lender), units, "creditOf");
+        assertEq(awakening.debtOf(id, borrower), units, "debtOf");
     }
 
     function testTakeWithAddressZero(uint256 units) public {
@@ -1407,9 +1407,9 @@ contract TakeTest is BaseTest {
         // taker = borrower, needs collateral
         collateralize(market, borrower, units);
 
-        vm.expectRevert(IMidnight.RatifierUnauthorized.selector);
+        vm.expectRevert(IAwakening.RatifierUnauthorized.selector);
         vm.prank(borrower);
-        midnight.take(zeroOffer, hex"", units, borrower, borrower, address(0), hex"");
+        awakening.take(zeroOffer, hex"", units, borrower, borrower, address(0), hex"");
     }
 
     function testBuyBuyerCallbackRevertsOnInvalidReturn(uint256 units) public {
@@ -1422,9 +1422,9 @@ contract TakeTest is BaseTest {
         deal(address(loanToken), callback, assets);
         collateralize(market, borrower, units);
 
-        vm.expectRevert(IMidnight.WrongBuyCallbackReturnValue.selector);
+        vm.expectRevert(IAwakening.WrongBuyCallbackReturnValue.selector);
         vm.prank(lender);
-        midnight.take(borrowerOffer, hex"", units, lender, address(0), callback, hex"");
+        awakening.take(borrowerOffer, hex"", units, lender, address(0), callback, hex"");
     }
 }
 
@@ -1470,7 +1470,7 @@ contract BorrowCallback is ISellCallback {
         (uint256 collateralIndex, uint256 amount,) = abi.decode(data, (uint256, uint256, bytes));
         address collateralToken = market.collateralParams[collateralIndex].token;
         ERC20(collateralToken).approve(msg.sender, amount);
-        Midnight(msg.sender).supplyCollateral(market, collateralIndex, amount, seller);
+        Awakening(msg.sender).supplyCollateral(market, collateralIndex, amount, seller);
         return CALLBACK_SUCCESS;
     }
 
@@ -1498,13 +1498,13 @@ contract ReentrantLiquidateBorrowCallback is ISellCallback {
             abi.decode(data, (uint256, uint256, uint256));
         address collateralToken = market.collateralParams[collateralIndex].token;
         ERC20(collateralToken).approve(msg.sender, collateralAmount);
-        Midnight(msg.sender).supplyCollateral(market, collateralIndex, collateralAmount, seller);
+        Awakening(msg.sender).supplyCollateral(market, collateralIndex, collateralAmount, seller);
 
         Oracle oracle = Oracle(market.collateralParams[collateralIndex].oracle);
         uint256 healthyPrice = oracle.price();
         oracle.setPrice(healthyPrice / 2);
         ERC20(market.loanToken).approve(msg.sender, repaidUnits);
-        try Midnight(msg.sender)
+        try Awakening(msg.sender)
             .liquidate(market, collateralIndex, 0, repaidUnits, seller, false, address(this), address(0), "") returns (
             uint256, uint256
         ) {
@@ -1555,17 +1555,17 @@ contract NestedTakeReentrantLiquidateCallback is ISellCallback {
             uint256 idx = storedCollateralIndex;
             address collateralToken = market.collateralParams[idx].token;
             ERC20(collateralToken).approve(msg.sender, storedCollateralAmount);
-            Midnight(msg.sender).supplyCollateral(market, idx, storedCollateralAmount, seller);
+            Awakening(msg.sender).supplyCollateral(market, idx, storedCollateralAmount, seller);
 
             reentered = true;
             Offer memory nestedOffer = storedOffer;
-            Midnight(msg.sender).take(nestedOffer, storedSig, innerUnits, seller, seller, address(this), hex"");
+            Awakening(msg.sender).take(nestedOffer, storedSig, innerUnits, seller, seller, address(this), hex"");
 
             Oracle oracle = Oracle(market.collateralParams[idx].oracle);
             uint256 healthyPrice = oracle.price();
             oracle.setPrice(healthyPrice / 2);
             ERC20(market.loanToken).approve(msg.sender, storedRepaidUnits);
-            try Midnight(msg.sender)
+            try Awakening(msg.sender)
                 .liquidate(market, idx, 0, storedRepaidUnits, seller, false, address(this), address(0), "") returns (
                 uint256, uint256
             ) {

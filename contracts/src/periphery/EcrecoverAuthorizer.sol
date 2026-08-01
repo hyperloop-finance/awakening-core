@@ -2,7 +2,7 @@
 // Copyright (c) 2025 Morpho Association
 pragma solidity 0.8.34;
 
-import {IMidnight} from "../interfaces/IMidnight.sol";
+import {IAwakening} from "../interfaces/IAwakening.sol";
 import {
     IEcrecoverAuthorizer,
     Authorization,
@@ -14,11 +14,11 @@ import {
 /// @dev If block.chainid changes (hard fork), the EIP-712 domain separator changes and previously signed authorizations
 /// are no longer valid.
 contract EcrecoverAuthorizer is IEcrecoverAuthorizer {
-    address public immutable MIDNIGHT;
+    address public immutable AWAKENING;
     mapping(address => uint256) public nonce;
 
-    constructor(address _midnight) {
-        MIDNIGHT = _midnight;
+    constructor(address _awakening) {
+        AWAKENING = _awakening;
     }
 
     function setIsAuthorized(Authorization memory authorization, Signature calldata signature) external {
@@ -31,7 +31,7 @@ contract EcrecoverAuthorizer is IEcrecoverAuthorizer {
         address signer = ecrecover(digest, signature.v, signature.r, signature.s);
         require(signer != address(0), InvalidSignature());
         require(
-            signer == authorization.authorizer || IMidnight(MIDNIGHT).isAuthorized(authorization.authorizer, signer),
+            signer == authorization.authorizer || IAwakening(AWAKENING).isAuthorized(authorization.authorizer, signer),
             Unauthorized()
         );
 
@@ -43,7 +43,7 @@ contract EcrecoverAuthorizer is IEcrecoverAuthorizer {
             authorization.nonce
         );
 
-        IMidnight(MIDNIGHT)
+        IAwakening(AWAKENING)
             .setIsAuthorized(authorization.authorized, authorization.isAuthorized, authorization.authorizer);
     }
 }

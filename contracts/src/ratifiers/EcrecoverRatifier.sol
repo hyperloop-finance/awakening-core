@@ -3,7 +3,7 @@
 pragma solidity 0.8.34;
 
 import {IEcrecoverRatifier, Signature, EIP712_DOMAIN_TYPEHASH} from "./interfaces/IEcrecoverRatifier.sol";
-import {IMidnight, Offer} from "../interfaces/IMidnight.sol";
+import {IAwakening, Offer} from "../interfaces/IAwakening.sol";
 import {CALLBACK_SUCCESS} from "../libraries/ConstantsLib.sol";
 import {HashLib} from "./libraries/HashLib.sol";
 
@@ -15,18 +15,18 @@ import {HashLib} from "./libraries/HashLib.sol";
 /// @dev The root should correspond to the root of the offer tree, which is a Merkle tree of offers.
 /// @dev The leaf index determines each sibling's left/right position.
 /// @dev Hashing offers as in EIP-712, which allows clear signing of the tree, credits to Seaport for this mechanism.
-/// @dev This ratifier must only be used with the Midnight instance at MIDNIGHT.
+/// @dev This ratifier must only be used with the Awakening instance at AWAKENING.
 contract EcrecoverRatifier is IEcrecoverRatifier {
-    address public immutable MIDNIGHT;
+    address public immutable AWAKENING;
 
     mapping(address maker => mapping(bytes32 root => bool)) public isRootCanceled;
 
-    constructor(address _midnight) {
-        MIDNIGHT = _midnight;
+    constructor(address _awakening) {
+        AWAKENING = _awakening;
     }
 
     function cancelRoot(address maker, bytes32 root) external {
-        require(maker == msg.sender || IMidnight(MIDNIGHT).isAuthorized(maker, msg.sender), Unauthorized());
+        require(maker == msg.sender || IAwakening(AWAKENING).isAuthorized(maker, msg.sender), Unauthorized());
         isRootCanceled[maker][root] = true;
         emit CancelRoot(msg.sender, maker, root);
     }
@@ -41,7 +41,7 @@ contract EcrecoverRatifier is IEcrecoverRatifier {
         bytes32 digest = keccak256(bytes.concat("\x19\x01", domainSeparator, structHash));
         address _signer = ecrecover(digest, sig.v, sig.r, sig.s);
         require(_signer != address(0), InvalidSignature());
-        require(_signer == offer.maker || IMidnight(MIDNIGHT).isAuthorized(offer.maker, _signer), Unauthorized());
+        require(_signer == offer.maker || IAwakening(AWAKENING).isAuthorized(offer.maker, _signer), Unauthorized());
         return CALLBACK_SUCCESS;
     }
 }

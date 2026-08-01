@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.0;
 
-import {IMidnight, Market, Offer, CollateralParams} from "../src/interfaces/IMidnight.sol";
+import {IAwakening, Market, Offer, CollateralParams} from "../src/interfaces/IAwakening.sol";
 import {WAD, DEFAULT_TICK_SPACING} from "../src/libraries/ConstantsLib.sol";
 import {UtilsLib} from "../src/libraries/UtilsLib.sol";
 import {TickLib, MAX_TICK} from "../src/libraries/TickLib.sol";
@@ -42,7 +42,7 @@ contract TickGatingTest is BaseTest {
         market.collateralParams = sortCollateralParams(market.collateralParams);
 
         // Create the market so it picks up spacing 4.
-        id = midnight.touchMarket(market);
+        id = awakening.touchMarket(market);
     }
 
     function _makeOffer(uint256 tick) internal view returns (Offer memory offer) {
@@ -58,7 +58,7 @@ contract TickGatingTest is BaseTest {
     // --- Default spacing applied at creation ---
 
     function testDefaultSpacingApplied() public view {
-        assertEq(midnight.tickSpacing(id), 4, "market should inherit default spacing 4");
+        assertEq(awakening.tickSpacing(id), 4, "market should inherit default spacing 4");
     }
 
     // --- Tick gating in take() ---
@@ -71,7 +71,7 @@ contract TickGatingTest is BaseTest {
         deal(address(loanToken), lender, units.mulDivUp(price, WAD));
         collateralize(market, borrower, units);
         take(units, borrower, offer);
-        assertEq(midnight.creditOf(id, lender), units);
+        assertEq(awakening.creditOf(id, lender), units);
     }
 
     function testTakeRevertsAtInaccessibleTick() public {
@@ -82,13 +82,13 @@ contract TickGatingTest is BaseTest {
         collateralize(market, borrower, units);
 
         vm.prank(borrower);
-        vm.expectRevert(IMidnight.TickNotAccessible.selector);
-        midnight.take(offer, hex"", units, borrower, borrower, address(0), hex"");
+        vm.expectRevert(IAwakening.TickNotAccessible.selector);
+        awakening.take(offer, hex"", units, borrower, borrower, address(0), hex"");
     }
 
     function testTakeRevertsAtSpacing2InaccessibleTick() public {
         // Refine to spacing 2.
-        midnight.setMarketTickSpacing(id, 2);
+        awakening.setMarketTickSpacing(id, 2);
 
         // Tick 2921 is not divisible by 2 → inaccessible at spacing 2.
         Offer memory offer = _makeOffer(2921);
@@ -97,8 +97,8 @@ contract TickGatingTest is BaseTest {
         collateralize(market, borrower, units);
 
         vm.prank(borrower);
-        vm.expectRevert(IMidnight.TickNotAccessible.selector);
-        midnight.take(offer, hex"", units, borrower, borrower, address(0), hex"");
+        vm.expectRevert(IAwakening.TickNotAccessible.selector);
+        awakening.take(offer, hex"", units, borrower, borrower, address(0), hex"");
     }
 
     // --- Spacing refinement enables previously inaccessible ticks ---
@@ -114,51 +114,51 @@ contract TickGatingTest is BaseTest {
 
         // Should fail at spacing 4.
         vm.prank(borrower);
-        vm.expectRevert(IMidnight.TickNotAccessible.selector);
-        midnight.take(offer, hex"", units, borrower, borrower, address(0), hex"");
+        vm.expectRevert(IAwakening.TickNotAccessible.selector);
+        awakening.take(offer, hex"", units, borrower, borrower, address(0), hex"");
 
         // Refine to spacing 2.
-        midnight.setMarketTickSpacing(id, 2);
+        awakening.setMarketTickSpacing(id, 2);
 
         // Now should succeed.
         take(units, borrower, offer);
-        assertEq(midnight.creditOf(id, lender), units);
+        assertEq(awakening.creditOf(id, lender), units);
     }
 
     // --- setMarketTickSpacing governance ---
 
     function testSetMarketTickSpacingOnlyTickSpacingSetter() public {
         vm.prank(lender);
-        vm.expectRevert(IMidnight.OnlyTickSpacingSetter.selector);
-        midnight.setMarketTickSpacing(id, 2);
+        vm.expectRevert(IAwakening.OnlyTickSpacingSetter.selector);
+        awakening.setMarketTickSpacing(id, 2);
     }
 
     function testSetMarketTickSpacingInvalid() public {
-        vm.expectRevert(IMidnight.InvalidTickSpacing.selector);
-        midnight.setMarketTickSpacing(id, 3);
+        vm.expectRevert(IAwakening.InvalidTickSpacing.selector);
+        awakening.setMarketTickSpacing(id, 3);
 
-        vm.expectRevert(IMidnight.InvalidTickSpacing.selector);
-        midnight.setMarketTickSpacing(id, 0);
+        vm.expectRevert(IAwakening.InvalidTickSpacing.selector);
+        awakening.setMarketTickSpacing(id, 0);
 
         vm.expectEmit();
         emit EventsLib.SetMarketTickSpacing(id, 1);
 
-        midnight.setMarketTickSpacing(id, 1);
-        vm.expectRevert(IMidnight.InvalidTickSpacing.selector);
-        midnight.setMarketTickSpacing(id, 2);
+        awakening.setMarketTickSpacing(id, 1);
+        vm.expectRevert(IAwakening.InvalidTickSpacing.selector);
+        awakening.setMarketTickSpacing(id, 2);
     }
 
     function testSetMarketTickSpacingRequiresCreated() public {
-        vm.expectRevert(IMidnight.MarketNotCreated.selector);
-        midnight.setMarketTickSpacing(bytes32(uint256(42)), 1);
+        vm.expectRevert(IAwakening.MarketNotCreated.selector);
+        awakening.setMarketTickSpacing(bytes32(uint256(42)), 1);
     }
 
     // --- setTickSpacingSetter governance ---
 
     function testSetTickSpacingSetterOnlyOwner() public {
         vm.prank(lender);
-        vm.expectRevert(IMidnight.OnlyRoleSetter.selector);
-        midnight.setTickSpacingSetter(lender);
+        vm.expectRevert(IAwakening.OnlyRoleSetter.selector);
+        awakening.setTickSpacingSetter(lender);
     }
 
     // --- Coarser ticks remain valid after refinement ---
@@ -174,7 +174,7 @@ contract TickGatingTest is BaseTest {
         take(units, borrower, offer);
 
         // Refine to spacing 1 (every tick).
-        midnight.setMarketTickSpacing(id, 1);
+        awakening.setMarketTickSpacing(id, 1);
 
         // The same tick is still accessible at spacing 1.
         Offer memory offer2 = _makeOffer(tick);
@@ -183,6 +183,6 @@ contract TickGatingTest is BaseTest {
         collateralize(market, borrower, units);
         take(units, borrower, offer2);
 
-        assertEq(midnight.creditOf(id, lender), 2 * units);
+        assertEq(awakening.creditOf(id, lender), 2 * units);
     }
 }

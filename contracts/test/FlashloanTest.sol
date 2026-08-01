@@ -33,14 +33,14 @@ contract FlashLoanTest is BaseTest, IFlashLoanCallback {
         amounts[2] = amount2;
 
         for (uint256 i = 0; i < tokens.length; i++) {
-            deal(tokens[i], address(midnight), amounts[i]);
+            deal(tokens[i], address(awakening), amounts[i]);
         }
 
         vm.expectEmit();
         emit EventsLib.FlashLoan(caller, tokens, amounts, address(this));
 
         vm.prank(caller);
-        midnight.flashLoan(tokens, amounts, address(this), data);
+        awakening.flashLoan(tokens, amounts, address(this), data);
 
         assertEq(recordedTokens.length, tokens.length, "recorded tokens length");
         assertEq(recordedAmounts.length, amounts.length, "recorded amounts length");
@@ -48,7 +48,7 @@ contract FlashLoanTest is BaseTest, IFlashLoanCallback {
             assertEq(recordedTokens[i], tokens[i], "recorded token");
             assertEq(recordedAmounts[i], amounts[i], "recorded amount");
             assertEq(ERC20(tokens[i]).balanceOf(address(this)), 0, "balanceOf(this)");
-            assertEq(ERC20(tokens[i]).balanceOf(address(midnight)), amounts[i], "balanceOf(midnight)");
+            assertEq(ERC20(tokens[i]).balanceOf(address(awakening)), amounts[i], "balanceOf(awakening)");
         }
         assertEq(recordedCaller, caller, "recorded caller");
         assertEq(recordedData, data, "recorded data");
@@ -71,11 +71,11 @@ contract FlashLoanTest is BaseTest, IFlashLoanCallback {
         discardToken = true;
 
         for (uint256 i = 0; i < tokens.length; i++) {
-            deal(tokens[i], address(midnight), amounts[i]);
+            deal(tokens[i], address(awakening), amounts[i]);
         }
 
         vm.expectRevert(); // exact message depends on the token.
-        midnight.flashLoan(tokens, amounts, address(this), data);
+        awakening.flashLoan(tokens, amounts, address(this), data);
     }
 
     function onFlashLoan(address caller, address[] memory tokens, uint256[] memory amounts, bytes memory data)

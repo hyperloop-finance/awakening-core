@@ -2,7 +2,7 @@
 // Copyright (c) 2025 Morpho Association
 pragma solidity >=0.5.0;
 
-import {Offer, Market} from "../../interfaces/IMidnight.sol";
+import {Offer, Market} from "../../interfaces/IAwakening.sol";
 
 struct Take {
     Offer offer;
@@ -32,7 +32,7 @@ struct CollateralSupply {
     TokenPermit permit;
 }
 
-interface IMidnightBundles {
+interface IAwakeningBundles {
     /// ERRORS ///
     error ApproveReturnedFalse();
     error InconsistentMarket();
@@ -46,7 +46,7 @@ interface IMidnightBundles {
 
     /// STORAGE GETTERS ///
     function PERMIT2() external view returns (address);
-    function MIDNIGHT() external view returns (address);
+    function AWAKENING() external view returns (address);
 
     // forgefmt: disable-start
     /// FUNCTIONS ///

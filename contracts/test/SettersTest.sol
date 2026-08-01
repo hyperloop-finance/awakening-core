@@ -13,8 +13,8 @@ import {
     MAX_SETTLEMENT_FEE_360_DAYS
 } from "../src/libraries/ConstantsLib.sol";
 import {BaseTest} from "./BaseTest.sol";
-import {IMidnight, Market, CollateralParams} from "../src/interfaces/IMidnight.sol";
-import {Midnight} from "../src/Midnight.sol";
+import {IAwakening, Market, CollateralParams} from "../src/interfaces/IAwakening.sol";
+import {Awakening} from "../src/Awakening.sol";
 import {EventsLib} from "../src/libraries/EventsLib.sol";
 
 contract SettersTest is BaseTest {
@@ -29,52 +29,52 @@ contract SettersTest is BaseTest {
     }
 
     function testInitialRoleSetter() public view {
-        assertEq(midnight.roleSetter(), address(this), "deployer should be initial role setter");
+        assertEq(awakening.roleSetter(), address(this), "deployer should be initial role setter");
     }
 
     function testConstructorEvent() public {
         vm.expectEmit();
         emit EventsLib.Constructor(address(this), block.chainid);
 
-        new Midnight();
+        new Awakening();
     }
 
     function testSetRoleSetterSuccess(address rdm) public {
         vm.expectEmit();
         emit EventsLib.SetRoleSetter(rdm);
 
-        midnight.setRoleSetter(rdm);
-        assertEq(midnight.roleSetter(), rdm, "role setter should be transferred");
+        awakening.setRoleSetter(rdm);
+        assertEq(awakening.roleSetter(), rdm, "role setter should be transferred");
     }
 
     function testSetRoleSetterOnlyRoleSetter(address rdm) public {
         vm.assume(rdm != address(this));
         vm.prank(rdm);
-        vm.expectRevert(IMidnight.OnlyRoleSetter.selector);
-        midnight.setRoleSetter(makeAddr("newRoleSetter"));
+        vm.expectRevert(IAwakening.OnlyRoleSetter.selector);
+        awakening.setRoleSetter(makeAddr("newRoleSetter"));
     }
 
     function testSetFeeSetterSuccess(address feeSetter) public {
         vm.expectEmit();
         emit EventsLib.SetFeeSetter(feeSetter);
 
-        midnight.setFeeSetter(feeSetter);
-        assertEq(midnight.feeSetter(), feeSetter);
+        awakening.setFeeSetter(feeSetter);
+        assertEq(awakening.feeSetter(), feeSetter);
     }
 
     function testSetTickSpacingSetterSuccess(address tickSpacingSetter) public {
         vm.expectEmit();
         emit EventsLib.SetTickSpacingSetter(tickSpacingSetter);
 
-        midnight.setTickSpacingSetter(tickSpacingSetter);
-        assertEq(midnight.tickSpacingSetter(), tickSpacingSetter);
+        awakening.setTickSpacingSetter(tickSpacingSetter);
+        assertEq(awakening.tickSpacingSetter(), tickSpacingSetter);
     }
 
     function testSetFeeSetterOnlyRoleSetter(address rdm) public {
         vm.assume(rdm != address(this));
         vm.prank(rdm);
-        vm.expectRevert(IMidnight.OnlyRoleSetter.selector);
-        midnight.setFeeSetter(makeAddr("newFeeSetter"));
+        vm.expectRevert(IAwakening.OnlyRoleSetter.selector);
+        awakening.setFeeSetter(makeAddr("newFeeSetter"));
     }
 
     function testSetSettlementFeeSuccess(
@@ -108,118 +108,118 @@ contract SettersTest is BaseTest {
             liquidatorGate: address(0)
         });
         bytes32 id = toId(market);
-        midnight.touchMarket(market);
+        awakening.touchMarket(market);
 
         vm.expectEmit();
         emit EventsLib.SetMarketSettlementFee(id, 0, postMaturityFee);
-        midnight.setMarketSettlementFee(id, 0, postMaturityFee);
+        awakening.setMarketSettlementFee(id, 0, postMaturityFee);
 
         vm.expectEmit();
         emit EventsLib.SetMarketSettlementFee(id, 1, oneDayFee);
-        midnight.setMarketSettlementFee(id, 1, oneDayFee);
+        awakening.setMarketSettlementFee(id, 1, oneDayFee);
 
         vm.expectEmit();
         emit EventsLib.SetMarketSettlementFee(id, 2, sevenDaysFee);
-        midnight.setMarketSettlementFee(id, 2, sevenDaysFee);
+        awakening.setMarketSettlementFee(id, 2, sevenDaysFee);
 
         vm.expectEmit();
         emit EventsLib.SetMarketSettlementFee(id, 3, thirtyDaysFee);
-        midnight.setMarketSettlementFee(id, 3, thirtyDaysFee);
+        awakening.setMarketSettlementFee(id, 3, thirtyDaysFee);
 
         vm.expectEmit();
         emit EventsLib.SetMarketSettlementFee(id, 4, ninetyDaysFee);
-        midnight.setMarketSettlementFee(id, 4, ninetyDaysFee);
+        awakening.setMarketSettlementFee(id, 4, ninetyDaysFee);
 
         vm.expectEmit();
         emit EventsLib.SetMarketSettlementFee(id, 5, oneEightyDaysFee);
-        midnight.setMarketSettlementFee(id, 5, oneEightyDaysFee);
+        awakening.setMarketSettlementFee(id, 5, oneEightyDaysFee);
 
         vm.expectEmit();
         emit EventsLib.SetMarketSettlementFee(id, 6, threeSixtyDaysFee);
-        midnight.setMarketSettlementFee(id, 6, threeSixtyDaysFee);
+        awakening.setMarketSettlementFee(id, 6, threeSixtyDaysFee);
 
-        assertEq(midnight.settlementFee(id, 0), postMaturityFee, "post maturity settlement fee");
-        assertEq(midnight.settlementFee(id, 1 days), oneDayFee, "one day settlement fee");
-        assertEq(midnight.settlementFee(id, 7 days), sevenDaysFee, "seven days settlement fee");
-        assertEq(midnight.settlementFee(id, 30 days), thirtyDaysFee, "thirty days settlement fee");
-        assertEq(midnight.settlementFee(id, 90 days), ninetyDaysFee, "ninety days settlement fee");
-        assertEq(midnight.settlementFee(id, 180 days), oneEightyDaysFee, "one eighty days settlement fee");
-        assertEq(midnight.settlementFee(id, 360 days), threeSixtyDaysFee, "three sixty days settlement fee");
-        assertEq(midnight.settlementFee(id, 365 days), threeSixtyDaysFee, "three sixty five days settlement fee");
-        assertEq(midnight.settlementFee(id, 1000 days), threeSixtyDaysFee, "one thousand days settlement fee");
+        assertEq(awakening.settlementFee(id, 0), postMaturityFee, "post maturity settlement fee");
+        assertEq(awakening.settlementFee(id, 1 days), oneDayFee, "one day settlement fee");
+        assertEq(awakening.settlementFee(id, 7 days), sevenDaysFee, "seven days settlement fee");
+        assertEq(awakening.settlementFee(id, 30 days), thirtyDaysFee, "thirty days settlement fee");
+        assertEq(awakening.settlementFee(id, 90 days), ninetyDaysFee, "ninety days settlement fee");
+        assertEq(awakening.settlementFee(id, 180 days), oneEightyDaysFee, "one eighty days settlement fee");
+        assertEq(awakening.settlementFee(id, 360 days), threeSixtyDaysFee, "three sixty days settlement fee");
+        assertEq(awakening.settlementFee(id, 365 days), threeSixtyDaysFee, "three sixty five days settlement fee");
+        assertEq(awakening.settlementFee(id, 1000 days), threeSixtyDaysFee, "one thousand days settlement fee");
     }
 
     function testSetSettlementFeeInvalidIndex(bytes32 id) public {
-        vm.expectRevert(IMidnight.InvalidFeeIndex.selector);
-        midnight.setMarketSettlementFee(id, 7, 0);
+        vm.expectRevert(IAwakening.InvalidFeeIndex.selector);
+        awakening.setMarketSettlementFee(id, 7, 0);
     }
 
     function testSetDefaultSettlementFeeInvalidIndex(address loanToken) public {
-        vm.expectRevert(IMidnight.InvalidFeeIndex.selector);
-        midnight.setDefaultSettlementFee(loanToken, 7, 0);
+        vm.expectRevert(IAwakening.InvalidFeeIndex.selector);
+        awakening.setDefaultSettlementFee(loanToken, 7, 0);
     }
 
     function testSetMarketSettlementFeeValueTooHigh(bytes32 id, uint256 feeTooHigh, uint256 index) public {
         index = bound(index, 0, 6);
         feeTooHigh = bound(feeTooHigh, maxSettlementFee(index) + 1, 1e18);
-        vm.expectRevert(IMidnight.SettlementFeeTooHigh.selector);
-        midnight.setMarketSettlementFee(id, index, feeTooHigh);
+        vm.expectRevert(IAwakening.SettlementFeeTooHigh.selector);
+        awakening.setMarketSettlementFee(id, index, feeTooHigh);
     }
 
     function testSetSettlementFeeNotMultipleOfFeeCbp(bytes32 id, uint256 index, uint256 fee) public {
         index = bound(index, 0, 6);
         fee = bound(fee, 1, maxSettlementFee(index));
         vm.assume(fee % 1e12 != 0);
-        vm.expectRevert(IMidnight.FeeNotMultipleOfFeeCbp.selector);
-        midnight.setMarketSettlementFee(id, index, fee);
+        vm.expectRevert(IAwakening.FeeNotMultipleOfFeeCbp.selector);
+        awakening.setMarketSettlementFee(id, index, fee);
     }
 
     function testSetDefaultSettlementFeeNotMultipleOfFeeCbp(address loanToken, uint256 index, uint256 fee) public {
         index = bound(index, 0, 6);
         fee = bound(fee, 1, maxSettlementFee(index));
         vm.assume(fee % 1e12 != 0);
-        vm.expectRevert(IMidnight.FeeNotMultipleOfFeeCbp.selector);
-        midnight.setDefaultSettlementFee(loanToken, index, fee);
+        vm.expectRevert(IAwakening.FeeNotMultipleOfFeeCbp.selector);
+        awakening.setDefaultSettlementFee(loanToken, index, fee);
     }
 
     function testSetMarketSettlementFeeMarketNotCreated(bytes32 id) public {
-        vm.expectRevert(IMidnight.MarketNotCreated.selector);
-        midnight.setMarketSettlementFee(id, 0, 0);
+        vm.expectRevert(IAwakening.MarketNotCreated.selector);
+        awakening.setMarketSettlementFee(id, 0, 0);
     }
 
     function testSetMarketContinuousFeeMarketNotCreated(bytes32 id, uint256 fee) public {
         fee = bound(fee, 0, MAX_CONTINUOUS_FEE);
-        vm.expectRevert(IMidnight.MarketNotCreated.selector);
-        midnight.setMarketContinuousFee(id, fee);
+        vm.expectRevert(IAwakening.MarketNotCreated.selector);
+        awakening.setMarketContinuousFee(id, fee);
     }
 
     function testSetSettlementFeeOnlyFeeSetter(address rdm, bytes32 id) public {
         vm.assume(rdm != address(this));
         vm.prank(rdm);
-        vm.expectRevert(IMidnight.OnlyFeeSetter.selector);
-        midnight.setMarketSettlementFee(id, 0, 0);
+        vm.expectRevert(IAwakening.OnlyFeeSetter.selector);
+        awakening.setMarketSettlementFee(id, 0, 0);
     }
 
     function testSetFeeClaimerSuccess(address feeClaimer) public {
         vm.expectEmit();
         emit EventsLib.SetFeeClaimer(feeClaimer);
 
-        midnight.setFeeClaimer(feeClaimer);
-        assertEq(midnight.feeClaimer(), feeClaimer, "fee claimer set");
+        awakening.setFeeClaimer(feeClaimer);
+        assertEq(awakening.feeClaimer(), feeClaimer, "fee claimer set");
     }
 
     function testSetFeeClaimerOnlyRoleSetter(address rdm) public {
         vm.assume(rdm != address(this));
         vm.prank(rdm);
-        vm.expectRevert(IMidnight.OnlyRoleSetter.selector);
-        midnight.setFeeClaimer(makeAddr("newRecipient"));
+        vm.expectRevert(IAwakening.OnlyRoleSetter.selector);
+        awakening.setFeeClaimer(makeAddr("newRecipient"));
     }
 
     // Default settlement fee tests
 
     function testSettlementFeeRevertsWhenNotCreated() public {
-        vm.expectRevert(IMidnight.MarketNotCreated.selector);
-        midnight.settlementFee(bytes32(0), 0);
+        vm.expectRevert(IAwakening.MarketNotCreated.selector);
+        awakening.settlementFee(bytes32(0), 0);
     }
 
     function testSetDefaultSettlementFeeSuccess(
@@ -242,31 +242,31 @@ contract SettersTest is BaseTest {
 
         vm.expectEmit();
         emit EventsLib.SetDefaultSettlementFee(loanToken, 0, postMaturityFee);
-        midnight.setDefaultSettlementFee(loanToken, 0, postMaturityFee);
+        awakening.setDefaultSettlementFee(loanToken, 0, postMaturityFee);
 
         vm.expectEmit();
         emit EventsLib.SetDefaultSettlementFee(loanToken, 1, oneDayFee);
-        midnight.setDefaultSettlementFee(loanToken, 1, oneDayFee);
+        awakening.setDefaultSettlementFee(loanToken, 1, oneDayFee);
 
         vm.expectEmit();
         emit EventsLib.SetDefaultSettlementFee(loanToken, 2, sevenDaysFee);
-        midnight.setDefaultSettlementFee(loanToken, 2, sevenDaysFee);
+        awakening.setDefaultSettlementFee(loanToken, 2, sevenDaysFee);
 
         vm.expectEmit();
         emit EventsLib.SetDefaultSettlementFee(loanToken, 3, thirtyDaysFee);
-        midnight.setDefaultSettlementFee(loanToken, 3, thirtyDaysFee);
+        awakening.setDefaultSettlementFee(loanToken, 3, thirtyDaysFee);
 
         vm.expectEmit();
         emit EventsLib.SetDefaultSettlementFee(loanToken, 4, ninetyDaysFee);
-        midnight.setDefaultSettlementFee(loanToken, 4, ninetyDaysFee);
+        awakening.setDefaultSettlementFee(loanToken, 4, ninetyDaysFee);
 
         vm.expectEmit();
         emit EventsLib.SetDefaultSettlementFee(loanToken, 5, oneEightyDaysFee);
-        midnight.setDefaultSettlementFee(loanToken, 5, oneEightyDaysFee);
+        awakening.setDefaultSettlementFee(loanToken, 5, oneEightyDaysFee);
 
         vm.expectEmit();
         emit EventsLib.SetDefaultSettlementFee(loanToken, 6, threeSixtyDaysFee);
-        midnight.setDefaultSettlementFee(loanToken, 6, threeSixtyDaysFee);
+        awakening.setDefaultSettlementFee(loanToken, 6, threeSixtyDaysFee);
 
         // touch market with this loan token
         CollateralParams[] memory collateralParams = new CollateralParams[](1);
@@ -282,31 +282,31 @@ contract SettersTest is BaseTest {
             liquidatorGate: address(0)
         });
         bytes32 id = toId(market);
-        midnight.touchMarket(market);
+        awakening.touchMarket(market);
 
-        assertEq(midnight.settlementFee(id, 0), postMaturityFee, "0 days default fee");
-        assertEq(midnight.settlementFee(id, 1 days), oneDayFee, "1 day default fee");
-        assertEq(midnight.settlementFee(id, 7 days), sevenDaysFee, "7 days default fee");
-        assertEq(midnight.settlementFee(id, 30 days), thirtyDaysFee, "30 days default fee");
-        assertEq(midnight.settlementFee(id, 90 days), ninetyDaysFee, "90 days default fee");
-        assertEq(midnight.settlementFee(id, 180 days), oneEightyDaysFee, "180 days default fee");
-        assertEq(midnight.settlementFee(id, 360 days), threeSixtyDaysFee, "360 days default fee");
-        assertEq(midnight.settlementFee(id, 365 days), threeSixtyDaysFee, "365 days default fee");
-        assertEq(midnight.settlementFee(id, 1000 days), threeSixtyDaysFee, "1000 days default fee");
+        assertEq(awakening.settlementFee(id, 0), postMaturityFee, "0 days default fee");
+        assertEq(awakening.settlementFee(id, 1 days), oneDayFee, "1 day default fee");
+        assertEq(awakening.settlementFee(id, 7 days), sevenDaysFee, "7 days default fee");
+        assertEq(awakening.settlementFee(id, 30 days), thirtyDaysFee, "30 days default fee");
+        assertEq(awakening.settlementFee(id, 90 days), ninetyDaysFee, "90 days default fee");
+        assertEq(awakening.settlementFee(id, 180 days), oneEightyDaysFee, "180 days default fee");
+        assertEq(awakening.settlementFee(id, 360 days), threeSixtyDaysFee, "360 days default fee");
+        assertEq(awakening.settlementFee(id, 365 days), threeSixtyDaysFee, "365 days default fee");
+        assertEq(awakening.settlementFee(id, 1000 days), threeSixtyDaysFee, "1000 days default fee");
     }
 
     function testSetDefaultSettlementFeeOnlyFeeSetter(address rdm, address loanToken) public {
         vm.assume(rdm != address(this));
         vm.prank(rdm);
-        vm.expectRevert(IMidnight.OnlyFeeSetter.selector);
-        midnight.setDefaultSettlementFee(loanToken, 0, 0);
+        vm.expectRevert(IAwakening.OnlyFeeSetter.selector);
+        awakening.setDefaultSettlementFee(loanToken, 0, 0);
     }
 
     function testSetDefaultSettlementFeeValidation(address loanToken, uint256 feeTooHigh, uint256 index) public {
         index = bound(index, 0, 6);
         feeTooHigh = bound(feeTooHigh, maxSettlementFee(index) + 1, 1e18);
-        vm.expectRevert(IMidnight.SettlementFeeTooHigh.selector);
-        midnight.setDefaultSettlementFee(loanToken, index, feeTooHigh);
+        vm.expectRevert(IAwakening.SettlementFeeTooHigh.selector);
+        awakening.setDefaultSettlementFee(loanToken, index, feeTooHigh);
     }
 
     function testSettlementFeeLinearInterpolation(
@@ -339,42 +339,42 @@ contract SettersTest is BaseTest {
             liquidatorGate: address(0)
         });
         bytes32 id = toId(market);
-        midnight.touchMarket(market);
+        awakening.touchMarket(market);
 
-        midnight.setMarketSettlementFee(id, 0, settlementFee0);
-        midnight.setMarketSettlementFee(id, 1, settlementFee1);
-        midnight.setMarketSettlementFee(id, 2, settlementFee2);
-        midnight.setMarketSettlementFee(id, 3, settlementFee3);
-        midnight.setMarketSettlementFee(id, 4, settlementFee4);
-        midnight.setMarketSettlementFee(id, 5, settlementFee5);
-        midnight.setMarketSettlementFee(id, 6, settlementFee6);
+        awakening.setMarketSettlementFee(id, 0, settlementFee0);
+        awakening.setMarketSettlementFee(id, 1, settlementFee1);
+        awakening.setMarketSettlementFee(id, 2, settlementFee2);
+        awakening.setMarketSettlementFee(id, 3, settlementFee3);
+        awakening.setMarketSettlementFee(id, 4, settlementFee4);
+        awakening.setMarketSettlementFee(id, 5, settlementFee5);
+        awakening.setMarketSettlementFee(id, 6, settlementFee6);
 
         // Test exact breakpoints
-        assertEq(midnight.settlementFee(id, 0), settlementFee0, "0 days");
-        assertEq(midnight.settlementFee(id, 1 days), settlementFee1, "1 day");
-        assertEq(midnight.settlementFee(id, 7 days), settlementFee2, "7 days");
-        assertEq(midnight.settlementFee(id, 30 days), settlementFee3, "30 days");
-        assertEq(midnight.settlementFee(id, 90 days), settlementFee4, "90 days");
-        assertEq(midnight.settlementFee(id, 180 days), settlementFee5, "180 days");
-        assertEq(midnight.settlementFee(id, 360 days), settlementFee6, "360 days");
+        assertEq(awakening.settlementFee(id, 0), settlementFee0, "0 days");
+        assertEq(awakening.settlementFee(id, 1 days), settlementFee1, "1 day");
+        assertEq(awakening.settlementFee(id, 7 days), settlementFee2, "7 days");
+        assertEq(awakening.settlementFee(id, 30 days), settlementFee3, "30 days");
+        assertEq(awakening.settlementFee(id, 90 days), settlementFee4, "90 days");
+        assertEq(awakening.settlementFee(id, 180 days), settlementFee5, "180 days");
+        assertEq(awakening.settlementFee(id, 360 days), settlementFee6, "360 days");
 
         // Test interpolation midpoint (0.5 days is between index 0 and 1)
         uint256 expectedMidpoint = (settlementFee0 * (1 days - 0.5 days) + settlementFee1 * (0.5 days)) / 1 days;
-        assertEq(midnight.settlementFee(id, 0.5 days), expectedMidpoint, "Midpoint 0-1d");
+        assertEq(awakening.settlementFee(id, 0.5 days), expectedMidpoint, "Midpoint 0-1d");
 
         // Test interpolation midpoint (4 days is between index 1 and 2)
         uint256 expectedMid4d =
             (settlementFee1 * (7 days - 4 days) + settlementFee2 * (4 days - 1 days)) / (7 days - 1 days);
-        assertEq(midnight.settlementFee(id, 4 days), expectedMid4d, "Midpoint 1-7d");
+        assertEq(awakening.settlementFee(id, 4 days), expectedMid4d, "Midpoint 1-7d");
 
         // Test interpolation midpoint (270 days is between index 5 [180d] and index 6 [360d])
         uint256 expectedMid270d =
             (settlementFee5 * (360 days - 270 days) + settlementFee6 * (270 days - 180 days)) / (360 days - 180 days);
-        assertEq(midnight.settlementFee(id, 270 days), expectedMid270d, "Midpoint 180-360d");
+        assertEq(awakening.settlementFee(id, 270 days), expectedMid270d, "Midpoint 180-360d");
 
         // Test beyond 360 days
-        assertEq(midnight.settlementFee(id, 365 days), settlementFee6, "365 days");
-        assertEq(midnight.settlementFee(id, 1000 days), settlementFee6, "1000 days");
+        assertEq(awakening.settlementFee(id, 365 days), settlementFee6, "365 days");
+        assertEq(awakening.settlementFee(id, 1000 days), settlementFee6, "1000 days");
     }
 
     function testSetContinuousFeeOnlyFeeSetter(address rdm) public {
@@ -392,16 +392,16 @@ contract SettersTest is BaseTest {
             enterGate: address(0),
             liquidatorGate: address(0)
         });
-        midnight.touchMarket(market);
+        awakening.touchMarket(market);
         bytes32 id = toId(market);
 
         vm.prank(rdm);
-        vm.expectRevert(IMidnight.OnlyFeeSetter.selector);
-        midnight.setMarketContinuousFee(id, 100);
+        vm.expectRevert(IAwakening.OnlyFeeSetter.selector);
+        awakening.setMarketContinuousFee(id, 100);
 
         vm.prank(rdm);
-        vm.expectRevert(IMidnight.OnlyFeeSetter.selector);
-        midnight.setDefaultContinuousFee(address(loanToken), 100);
+        vm.expectRevert(IAwakening.OnlyFeeSetter.selector);
+        awakening.setDefaultContinuousFee(address(loanToken), 100);
     }
 
     function testSetContinuousFeeTooHigh(uint256 fee) public {
@@ -419,14 +419,14 @@ contract SettersTest is BaseTest {
             enterGate: address(0),
             liquidatorGate: address(0)
         });
-        midnight.touchMarket(market);
+        awakening.touchMarket(market);
         bytes32 id = toId(market);
 
-        vm.expectRevert(IMidnight.ContinuousFeeTooHigh.selector);
-        midnight.setMarketContinuousFee(id, fee);
+        vm.expectRevert(IAwakening.ContinuousFeeTooHigh.selector);
+        awakening.setMarketContinuousFee(id, fee);
 
-        vm.expectRevert(IMidnight.ContinuousFeeTooHigh.selector);
-        midnight.setDefaultContinuousFee(address(loanToken), fee);
+        vm.expectRevert(IAwakening.ContinuousFeeTooHigh.selector);
+        awakening.setDefaultContinuousFee(address(loanToken), fee);
     }
 
     function testSetContinuousFeeSuccess(uint256 fee, uint256 fee2) public {
@@ -437,8 +437,8 @@ contract SettersTest is BaseTest {
         vm.expectEmit();
         emit EventsLib.SetDefaultContinuousFee(address(loanToken), fee);
 
-        midnight.setDefaultContinuousFee(address(loanToken), fee);
-        assertEq(midnight.defaultContinuousFee(address(loanToken)), fee, "default fee updated");
+        awakening.setDefaultContinuousFee(address(loanToken), fee);
+        assertEq(awakening.defaultContinuousFee(address(loanToken)), fee, "default fee updated");
 
         CollateralParams[] memory collateralParams = new CollateralParams[](1);
         collateralParams[0] = CollateralParams({
@@ -452,15 +452,15 @@ contract SettersTest is BaseTest {
             enterGate: address(0),
             liquidatorGate: address(0)
         });
-        midnight.touchMarket(market);
+        awakening.touchMarket(market);
         bytes32 id = toId(market);
 
-        assertEq(midnight.continuousFee(id), fee, "market inherits default fee");
+        assertEq(awakening.continuousFee(id), fee, "market inherits default fee");
 
         vm.expectEmit();
         emit EventsLib.SetMarketContinuousFee(id, fee2);
 
-        midnight.setMarketContinuousFee(id, fee2);
-        assertEq(midnight.continuousFee(id), fee2, "market fee updated");
+        awakening.setMarketContinuousFee(id, fee2);
+        assertEq(awakening.continuousFee(id), fee2, "market fee updated");
     }
 }
