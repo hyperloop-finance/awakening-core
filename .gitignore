@@ -1,6 +1,11 @@
 # --- Internal docs (kept local, not published) ---
 docs/
 
+# --- Editor / AI tooling scratch ---
+.codex/
+.cursor/
+.superpowers/
+
 # --- OS ---
 .DS_Store
 Thumbs.db
