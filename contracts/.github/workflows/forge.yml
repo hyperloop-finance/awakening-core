@@ -71,6 +71,18 @@ jobs:
           submodules: recursive
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@8789b3e21e6c11b2697f5eb56eddae542f746c10 # v1
+      - name: Assert no liquidation surface remains
+        run: |
+          set -e
+          if grep -rn 'ILiquidateCallback\|ILiquidatorGate' src/ 2>/dev/null; then
+            echo "ERROR: liquidation interfaces must not exist in Awakening"
+            exit 1
+          fi
+          if grep -rn 'function liquidate(\|function _liquidate' src/ 2>/dev/null; then
+            echo "ERROR: liquidate() function must not exist in Awakening"
+            exit 1
+          fi
+          echo "OK: liquidation surface is gone"
       - name: Run Forge tests (${{ matrix.name }})
         run: forge test --deny warnings
         env:
