@@ -1,0 +1,953 @@
+No files changed, compilation skipped
+
+Ran 5 tests for test/MaxAmountsTest.sol:MaxAmountsTest
+[PASS] testMaxAmountIsUint128Max() (gas: 448)
+[PASS] testSupplyCollateralAboveMaxAmountReverts() (gas: 519281)
+[PASS] testSupplyCollateralMaxAmount() (gas: 598322)
+[PASS] testTakeAboveMaxAmountReverts() (gas: 978448)
+[PASS] testTakeMaxAmount() (gas: 1148136)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 20.90ms (6.77ms CPU time)
+
+Ran 1 test for test/FrontendSignatureTest.sol:FrontendSignatureTest
+[PASS] testFrontendSignatureVerification() (gas: 40514)
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 21.20ms (9.57ms CPU time)
+
+Ran 6 tests for test/helpers/ERC20Test.sol:ERC20Test
+[PASS] testApprove(address,uint256) (runs: 256, μ: 56262, ~: 56271)
+[PASS] testTransfer(address,uint256) (runs: 256, μ: 334840, ~: 334849)
+[PASS] testTransferFrom(address,address,uint256) (runs: 256, μ: 384895, ~: 384917)
+[PASS] testTransferFromInsufficientAllowance(address,address,uint256) (runs: 256, μ: 316245, ~: 316316)
+[PASS] testTransferFromInsufficientBalance(address,address,uint256) (runs: 256, μ: 79101, ~: 79038)
+[PASS] testTransferInsufficientBalance(address,uint256) (runs: 256, μ: 33518, ~: 33527)
+Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 328.14ms (316.50ms CPU time)
+
+Ran 10 tests for test/HashLibTest.sol:HashLibTest
+[PASS] testCollateralParamsTypeHash() (gas: 458)
+[PASS] testHashMarketMatchesReference((address,(address,uint256,uint256,address)[],uint256,uint256,address,address)) (runs: 256, μ: 256362, ~: 253553)
+[PASS] testIsLeaf2Leaves(bytes32,bytes32) (runs: 256, μ: 1617, ~: 1632)
+[PASS] testIsLeaf4Leaves(bytes32,bytes32,bytes32,bytes32) (runs: 256, μ: 3219, ~: 3219)
+[PASS] testIsLeafRevertsWhenLeafIndexOutOfRange(bytes32,bytes32,bytes32) (runs: 256, μ: 3478, ~: 3478)
+[PASS] testIsLeafSingle(bytes32) (runs: 256, μ: 796, ~: 864)
+[PASS] testMarketTypeHash() (gas: 1212)
+[PASS] testOfferTreeTypeHashInvalidHeight(uint256) (runs: 256, μ: 3833, ~: 3824)
+[PASS] testOfferTreeTypeHashes() (gas: 116250)
+[PASS] testOfferTypeHash() (gas: 1821)
+Suite result: ok. 10 passed; 0 failed; 0 skipped; finished in 334.65ms (334.55ms CPU time)
+
+Ran 14 tests for test/AuthorizationTest.sol:AuthorizationTest
+[PASS] testRepayAuthorization(address) (runs: 256, μ: 1724032, ~: 1724075)
+[PASS] testSetAuthorization() (gas: 111621)
+[PASS] testSetConsumedAuthorization(address,address) (runs: 256, μ: 138784, ~: 138952)
+[PASS] testSetIsAuthorizedAuthorization(address,address,address) (runs: 256, μ: 138534, ~: 139154)
+[PASS] testSupplyCollateralUnauthorized() (gas: 692591)
+[PASS] testTakeAuthorized() (gas: 1203959)
+[PASS] testTakeSelf() (gas: 1154079)
+[PASS] testTakeUnauthorized() (gas: 976400)
+[PASS] testWithdrawAuthorized() (gas: 1673811)
+[PASS] testWithdrawCollateralAuthorized() (gas: 711149)
+[PASS] testWithdrawCollateralSelf() (gas: 654095)
+[PASS] testWithdrawCollateralUnauthorized() (gas: 635884)
+[PASS] testWithdrawSelf() (gas: 1622435)
+[PASS] testWithdrawUnauthorized() (gas: 1589502)
+Suite result: ok. 14 passed; 0 failed; 0 skipped; finished in 467.21ms (471.08ms CPU time)
+
+Ran 12 tests for test/SafeTransferLibTest.sol:SafeTransferLibTest
+[PASS] testSafeTransferFrom(address,address,uint256) (runs: 256, μ: 33534, ~: 33533)
+[PASS] testSafeTransferFromNoBoolean(address,address,uint256) (runs: 256, μ: 33182, ~: 33181)
+[PASS] testSafeTransferFromNoCode() (gas: 26323)
+[PASS] testSafeTransferFromReturnedFalse() (gas: 32656)
+[PASS] testSafeTransferFromReverted() (gas: 32494)
+[PASS] testSafeTransferFromRevertedNoReason() (gas: 32238)
+[PASS] testSafeTransferNoBoolean(address,uint256) (runs: 256, μ: 33042, ~: 33049)
+[PASS] testSafeTransferNoCode() (gas: 26464)
+[PASS] testSafeTransferNormal(address,uint256) (runs: 256, μ: 33416, ~: 33423)
+[PASS] testSafeTransferReturnedFalse() (gas: 32144)
+[PASS] testSafeTransferReverted() (gas: 32073)
+[PASS] testSafeTransferRevertedNoReason() (gas: 31752)
+Suite result: ok. 12 passed; 0 failed; 0 skipped; finished in 52.00ms (51.84ms CPU time)
+
+Ran 3 tests for test/IdLibTest.sol:IdLibTest
+[PASS] testToIdIsInjectiveInChainId((address,(address,uint256,uint256,address)[],uint256,uint256,address,address),uint256,uint256,address) (runs: 256, μ: 235705, ~: 224802)
+[PASS] testToIdIsInjectiveInMarket((address,(address,uint256,uint256,address)[],uint256,uint256,address,address),(address,(address,uint256,uint256,address)[],uint256,uint256,address,address),uint256,address) (runs: 256, μ: 461016, ~: 444654)
+[PASS] testToIdIsInjectiveInMidnight((address,(address,uint256,uint256,address)[],uint256,uint256,address,address),uint256,address,address) (runs: 256, μ: 236053, ~: 225702)
+Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 563.72ms (555.55ms CPU time)
+
+Ran 5 tests for test/SetterRatifierTest.sol:SetterRatifierTest
+[PASS] testIsRatifiedAuthorizedSetterCanRatifyOnBehalf() (gas: 141073)
+[PASS] testIsRatifiedUsesLeafIndex() (gas: 107675)
+[PASS] testSetIsRootRatifiedMaker() (gas: 63521)
+[PASS] testSetIsRootRatifiedUnauthorizedOnBehalf() (gas: 41489)
+[PASS] testTakeAuthorizedSetterCanRatifyOnBehalf() (gas: 424103)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 1.73ms (526.17µs CPU time)
+
+Ran 27 tests for test/SettersTest.sol:SettersTest
+[PASS] testConstructorEvent() (gas: 5271430)
+[PASS] testInitialRoleSetter() (gas: 8020)
+[PASS] testMaxSettlementFeeConstants() (gas: 3262)
+[PASS] testSetContinuousFeeOnlyFeeSetter(address) (runs: 256, μ: 241554, ~: 241554)
+[PASS] testSetContinuousFeeSuccess(uint256,uint256) (runs: 256, μ: 299403, ~: 299475)
+[PASS] testSetContinuousFeeTooHigh(uint256) (runs: 256, μ: 241217, ~: 241189)
+[PASS] testSetDefaultSettlementFeeInvalidIndex(address) (runs: 256, μ: 32881, ~: 32923)
+[PASS] testSetDefaultSettlementFeeNotMultipleOfFeeCbp(address,uint256,uint256) (runs: 256, μ: 35104, ~: 35181)
+[PASS] testSetDefaultSettlementFeeOnlyFeeSetter(address,address) (runs: 256, μ: 34399, ~: 34445)
+[PASS] testSetDefaultSettlementFeeSuccess(address,uint256,uint256,uint256,uint256,uint256,uint256,uint256) (runs: 256, μ: 510528, ~: 513735)
+[PASS] testSetDefaultSettlementFeeValidation(address,uint256,uint256) (runs: 256, μ: 34674, ~: 34745)
+[PASS] testSetFeeClaimerOnlyRoleSetter(address) (runs: 256, μ: 35803, ~: 35803)
+[PASS] testSetFeeClaimerSuccess(address) (runs: 256, μ: 61272, ~: 61314)
+[PASS] testSetFeeSetterOnlyRoleSetter(address) (runs: 256, μ: 36243, ~: 36243)
+[PASS] testSetFeeSetterSuccess(address) (runs: 256, μ: 44359, ~: 44401)
+[PASS] testSetMarketContinuousFeeMarketNotCreated(bytes32,uint256) (runs: 256, μ: 35883, ~: 36079)
+[PASS] testSetMarketSettlementFeeMarketNotCreated(bytes32) (runs: 256, μ: 36261, ~: 36342)
+[PASS] testSetMarketSettlementFeeValueTooHigh(bytes32,uint256,uint256) (runs: 256, μ: 34817, ~: 34921)
+[PASS] testSetRoleSetterOnlyRoleSetter(address) (runs: 256, μ: 36136, ~: 36136)
+[PASS] testSetRoleSetterSuccess(address) (runs: 256, μ: 41969, ~: 42011)
+[PASS] testSetSettlementFeeInvalidIndex(bytes32) (runs: 256, μ: 33227, ~: 33308)
+[PASS] testSetSettlementFeeNotMultipleOfFeeCbp(bytes32,uint256,uint256) (runs: 256, μ: 35379, ~: 35429)
+[PASS] testSetSettlementFeeOnlyFeeSetter(address,bytes32) (runs: 256, μ: 34682, ~: 34772)
+[PASS] testSetSettlementFeeSuccess(address,uint256,uint256,uint256,uint256,uint256,uint256,uint256) (runs: 256, μ: 489897, ~: 490937)
+[PASS] testSetTickSpacingSetterSuccess(address) (runs: 256, μ: 44865, ~: 44907)
+[PASS] testSettlementFeeLinearInterpolation(uint256,uint256,uint256,uint256,uint256,uint256,uint256) (runs: 256, μ: 496301, ~: 498170)
+[PASS] testSettlementFeeRevertsWhenNotCreated() (gas: 11651)
+Suite result: ok. 27 passed; 0 failed; 0 skipped; finished in 1.00s (987.82ms CPU time)
+
+Ran 12 tests for test/TickLibTest.sol:TickLibTest
+[PASS] testGasBound(uint256) (runs: 256, μ: 738, ~: 843)
+[PASS] testGasPriceToTick(uint256) (runs: 256, μ: 6404, ~: 5994)
+[PASS] testGasTickToPrice(uint256) (runs: 256, μ: 840, ~: 829)
+[PASS] testPriceToTick(uint256) (runs: 256, μ: 7388, ~: 6912)
+[PASS] testPriceToTickConsistency() (gas: 40984488)
+[PASS] testPriceToTickGreaterThanOne(uint256) (runs: 256, μ: 3515, ~: 3420)
+[PASS] testReturnJumps() (gas: 10467188)
+[PASS] testTickMonotonicity() (gas: 5308398)
+[PASS] testTickToPriceAccuracy() (gas: 74100196)
+Logs:
+  Max absolute error (wad): 139189311428672
+  Avg absolute error (wad): 4204436004250
+  Max relative error (wad): 1000000000000000000
+  Avg relative error (wad): 19175197825882233
+
+[PASS] testTickToPriceMinMax() (gas: 2420)
+[PASS] testTickToPriceOutOfRange(uint256) (runs: 256, μ: 3811, ~: 3758)
+[PASS] testWExpOffsetProperty() (gas: 1395)
+Suite result: ok. 12 passed; 0 failed; 0 skipped; finished in 456.16ms (455.02ms CPU time)
+
+Ran 14 tests for test/UtilsLibTest.sol:UtilsLibTest
+[PASS] testFuzzCountBits(uint128) (runs: 256, μ: 4751, ~: 3674)
+[PASS] testMin(uint256,uint256) (runs: 256, μ: 913, ~: 885)
+[PASS] testMulDivDown(uint256,uint256,uint256) (runs: 256, μ: 1611, ~: 1465)
+[PASS] testMulDivDownDivisionByZero(uint256,uint256) (runs: 256, μ: 5511, ~: 5388)
+[PASS] testMulDivDownOverflow(uint256,uint256,uint256) (runs: 256, μ: 5247, ~: 5377)
+[PASS] testMulDivUp(uint256,uint256,uint256) (runs: 256, μ: 1903, ~: 1793)
+[PASS] testMulDivUpDivisionByZero(uint256,uint256) (runs: 256, μ: 4678, ~: 4697)
+[PASS] testMulDivUpOverflow(uint256,uint256,uint256) (runs: 256, μ: 5877, ~: 6003)
+[PASS] testRcfBound() (gas: 11399)
+[PASS] testToUint128Overflow(uint256) (runs: 256, μ: 3593, ~: 3674)
+[PASS] testWExp() (gas: 44345)
+[PASS] testWExpIncreasingAtTicks() (gas: 2788183)
+[PASS] testWExpNonDecreasing() (gas: 1716309)
+[PASS] testZeroFloorSub(uint256,uint256) (runs: 256, μ: 975, ~: 885)
+Suite result: ok. 14 passed; 0 failed; 0 skipped; finished in 108.32ms (108.15ms CPU time)
+
+Ran 8 tests for test/SetIsAuthorizedWithSigTest.sol:EcrecoverAuthorizerTest
+[PASS] testAuthorizationTypeHash() (gas: 321)
+[PASS] testEcrecoverAuthorizer() (gas: 270717)
+[PASS] testEcrecoverAuthorizerExpired() (gas: 52445)
+[PASS] testEcrecoverAuthorizerInvalidNonce() (gas: 71559)
+[PASS] testEcrecoverAuthorizerInvalidSignature() (gas: 101646)
+[PASS] testEcrecoverAuthorizerNonce(uint8) (runs: 256, μ: 1167813, ~: 819102)
+[PASS] testEcrecoverAuthorizerPermissionless() (gas: 187261)
+[PASS] testEip712DomainTypeHash() (gas: 638)
+Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 650.74ms (647.80ms CPU time)
+
+Ran 10 tests for test/SettlementFeeTest.sol:SettlementFeeTest
+[PASS] testBuyUnits(uint256,uint256,uint256) (runs: 256, μ: 1150772, ~: 1143928)
+[PASS] testClaimSettlementFee(uint256,uint256,uint256) (runs: 256, μ: 1118487, ~: 1124098)
+[PASS] testClaimSettlementFeeExcessReverts() (gas: 1070648)
+[PASS] testClaimSettlementFeeOnlyFeeClaimer(address) (runs: 256, μ: 38312, ~: 38355)
+[PASS] testDefaultSettlementFee(uint256,uint256,uint256) (runs: 256, μ: 1053547, ~: 1047786)
+[PASS] testEarlySettlementFee(uint256,uint256,uint256,uint256) (runs: 256, μ: 1162708, ~: 1141153)
+[PASS] testPostMaturitySettlementFee(uint256,uint256,uint256,uint256) (runs: 256, μ: 978113, ~: 987007)
+[PASS] testSellUnits(uint256,uint256,uint256) (runs: 256, μ: 1056417, ~: 1047040)
+[PASS] testSettlementFeesAccumulate() (gas: 1293279)
+[PASS] testSevenDayTtmSettlementFee(uint256,uint256,uint256,uint256) (runs: 256, μ: 1249289, ~: 1269904)
+Suite result: ok. 10 passed; 0 failed; 0 skipped; finished in 1.88s (1.88s CPU time)
+
+Ran 13 tests for test/GateTest.sol:GateTest
+[PASS] testDifferentGatesProduceDifferentIds() (gas: 28121)
+[PASS] testEnterGateAllowsTakeWhenBorrowerHadDebtBefore(uint256) (runs: 256, μ: 1226005, ~: 1225884)
+[PASS] testEnterGateAllowsTakeWhenLenderHadCreditBefore(uint256) (runs: 256, μ: 1224030, ~: 1223909)
+[PASS] testEnterGateAllowsWhitelistedUsers(uint256) (runs: 256, μ: 1018802, ~: 1018681)
+[PASS] testEnterGateBlocksNonWhitelistedBuyer(uint256) (runs: 256, μ: 828056, ~: 827935)
+[PASS] testEnterGateBlocksNonWhitelistedSeller(uint256) (runs: 256, μ: 831192, ~: 831071)
+[PASS] testLiquidatorGateOnBadDebt(uint256,bool) (runs: 256, μ: 1150477, ~: 1118681)
+[PASS] testLiquidatorGateOnLiquidation(uint256,bool) (runs: 256, μ: 1486637, ~: 1419236)
+[PASS] testNoEnterGateCheckWhenBorrowerIsExitingBorrower(uint256) (runs: 256, μ: 1711358, ~: 1711202)
+[PASS] testNoGateCheckOnRepay(uint256) (runs: 256, μ: 1436789, ~: 1436658)
+[PASS] testNoGateCheckOnWithdraw(uint256) (runs: 256, μ: 1485792, ~: 1485651)
+[PASS] testNoGateCheckWhenBothExit(uint256) (runs: 256, μ: 1721005, ~: 1720874)
+[PASS] testNoGateMeansUnrestricted(uint256) (runs: 256, μ: 887545, ~: 887424)
+Suite result: ok. 13 passed; 0 failed; 0 skipped; finished in 3.61s (3.54s CPU time)
+
+Ran 3 tests for test/MulticallTest.sol:MulticallTest
+[PASS] testMulticallEmpty() (gas: 28211)
+[PASS] testMulticallFailing() (gas: 57470)
+[PASS] testMulticallSuccess() (gas: 82212)
+Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 6.58ms (400.12µs CPU time)
+
+Ran 10 tests for test/TickGatingTest.sol:TickGatingTest
+[PASS] testCoarserTicksStillValidAfterRefinement(uint256) (runs: 256, μ: 1693733, ~: 1708971)
+[PASS] testDefaultSpacingApplied() (gas: 10877)
+[PASS] testRefineMakesPreviouslyInaccessibleTickValid() (gas: 1127229)
+[PASS] testSetMarketTickSpacingInvalid() (gas: 130812)
+[PASS] testSetMarketTickSpacingOnlyTickSpacingSetter() (gas: 38234)
+[PASS] testSetMarketTickSpacingRequiresCreated() (gas: 35561)
+[PASS] testSetTickSpacingSetterOnlyOwner() (gas: 36384)
+[PASS] testTakeRevertsAtInaccessibleTick() (gas: 861073)
+[PASS] testTakeRevertsAtSpacing2InaccessibleTick() (gas: 900028)
+[PASS] testTakeSucceedsAtAccessibleTick() (gas: 1040086)
+Suite result: ok. 10 passed; 0 failed; 0 skipped; finished in 455.33ms (453.21ms CPU time)
+
+Ran 12 tests for test/EcrecoverRatifierTest.sol:EcrecoverRatifierTest
+[PASS] testCancelRootAuthorizedOnBehalf() (gas: 148087)
+[PASS] testCancelRootMaker() (gas: 88853)
+[PASS] testCancelRootUnauthorizedOnBehalf() (gas: 41840)
+[PASS] testDomainSeparator() (gas: 6124)
+[PASS] testIsRatifiedAuthorizedSigns() (gas: 92087)
+[PASS] testIsRatifiedInvalidSignature() (gas: 35370)
+[PASS] testIsRatifiedMakerSigns() (gas: 32465)
+[PASS] testIsRatifiedRevokeAuthorizationInvalidates() (gas: 147370)
+[PASS] testIsRatifiedUnauthorizedSigner() (gas: 40955)
+[PASS] testIsRatifiedValidSignature(uint256) (runs: 256, μ: 79270, ~: 79265)
+[PASS] testIsRatifiedWorksForUnorderedTree() (gas: 35936)
+[PASS] testIsRatifiedWrongRoot() (gas: 24569)
+Suite result: ok. 12 passed; 0 failed; 0 skipped; finished in 82.99ms (81.53ms CPU time)
+
+Ran 2 tests for test/FlashloanTest.sol:FlashLoanTest
+[PASS] testFlashLoan(uint256,uint256,uint256,bytes,address) (runs: 256, μ: 1192027, ~: 1180931)
+[PASS] testFlashLoanNotReimbursed(uint256,uint256,uint256,bytes) (runs: 256, μ: 1332838, ~: 1325031)
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 587.79ms (586.62ms CPU time)
+
+Ran 11 tests for test/EcrecoverRatifierIntegrationTest.sol:EcrecoverRatifierIntegrationTest
+[PASS] testOfferAuthorization(uint256,address,uint256) (runs: 256, μ: 412176, ~: 412233)
+[PASS] testOfferAuthorizationAuthorizedSigner(uint256,address,uint256) (runs: 256, μ: 507284, ~: 507344)
+[PASS] testTakeFourLeaves(uint256,uint256,uint256,uint256) (runs: 256, μ: 2040246, ~: 2050652)
+[PASS] testTakeInvalidProof2LeavesWrongLeafHash(((address,(address,uint256,uint256,address)[],uint256,uint256,address,address),bool,address,uint256,uint256,uint256,bytes32,address,bytes,address,address,bool,uint256,uint256),bytes32[]) (runs: 256, μ: 557472, ~: 556189)
+[PASS] testTakeInvalidProof2LeavesWrongLeafIndex(((address,(address,uint256,uint256,address)[],uint256,uint256,address,address),bool,address,uint256,uint256,uint256,bytes32,address,bytes,address,address,bool,uint256,uint256)) (runs: 256, μ: 542203, ~: 537468)
+[PASS] testTakeInvalidProofOneLeaf(bytes32[]) (runs: 256, μ: 319226, ~: 318852)
+[PASS] testTakeInvalidRoot(bytes32) (runs: 256, μ: 309270, ~: 309353)
+[PASS] testTakeInvalidSignature() (gas: 305764)
+[PASS] testTakeNotRatified() (gas: 288257)
+[PASS] testTakeOfferValidSignature(uint256,address) (runs: 256, μ: 430587, ~: 430649)
+[PASS] testTakeTwoLeaves(uint256,((address,(address,uint256,uint256,address)[],uint256,uint256,address,address),bool,address,uint256,uint256,uint256,bytes32,address,bytes,address,address,bool,uint256,uint256)) (runs: 256, μ: 1479352, ~: 1471398)
+Suite result: ok. 11 passed; 0 failed; 0 skipped; finished in 5.22s (5.21s CPU time)
+
+Ran 68 tests for test/TakeTest.sol:TakeTest
+[PASS] testBugBuyMaxAssetsBypass() (gas: 1175664)
+[PASS] testBuy1(uint256,uint256) (runs: 256, μ: 1104137, ~: 1104097)
+[PASS] testBuy1PostMaturity() (gas: 944548)
+[PASS] testBuy2(uint256,uint256,uint256) (runs: 256, μ: 1612527, ~: 1612645)
+[PASS] testBuy2PostMaturity() (gas: 1645087)
+[PASS] testBuy3(uint256,uint256,uint256) (runs: 256, μ: 2021922, ~: 2023631)
+[PASS] testBuy3PostMaturity() (gas: 1893522)
+[PASS] testBuy4(uint256,uint256,uint256) (runs: 256, μ: 1560423, ~: 1561366)
+[PASS] testBuy4PostMaturity() (gas: 1583805)
+[PASS] testBuyBuyerCallback(uint256,uint32,bytes) (runs: 256, μ: 2290522, ~: 2292976)
+[PASS] testBuyBuyerCallbackRevertsOnInvalidReturn(uint256) (runs: 256, μ: 1248260, ~: 1248100)
+[PASS] testBuyConsumed(uint256,uint256,uint256,uint256) (runs: 256, μ: 1271045, ~: 1273507)
+[PASS] testBuyGroup(uint256,uint256) (runs: 256, μ: 1835466, ~: 1837320)
+[PASS] testBuyPastMaturity(uint256) (runs: 256, μ: 947503, ~: 947633)
+[PASS] testBuySellerCallback(uint256,uint32,bytes) (runs: 256, μ: 3608005, ~: 3592121)
+[PASS] testBuyUnhealthy(uint256,uint256,uint256) (runs: 256, μ: 1068174, ~: 1071816)
+[PASS] testCrossBottomUp(uint256,uint256) (runs: 256, μ: 2068869, ~: 2068899)
+[PASS] testCrossTopDown(uint256,uint256) (runs: 256, μ: 2076396, ~: 2076426)
+[PASS] testMatch(uint256,uint256,uint256) (runs: 256, μ: 1607977, ~: 1608252)
+[PASS] testMatchInverse(uint256,uint256,uint256) (runs: 256, μ: 2034328, ~: 2035196)
+[PASS] testMaxAssetsBuyerExact() (gas: 1067169)
+[PASS] testMaxAssetsBuyerPass(uint256) (runs: 256, μ: 1068565, ~: 1068431)
+[PASS] testMaxAssetsBuyerRevert() (gas: 910233)
+[PASS] testMaxAssetsSellerExact() (gas: 1067290)
+[PASS] testMaxAssetsSellerPass(uint256) (runs: 256, μ: 1069887, ~: 1069753)
+[PASS] testMaxAssetsSellerRevert() (gas: 909468)
+[PASS] testMaxAssetsZeroMeansNoLimitForBuyer(uint256) (runs: 256, μ: 1051391, ~: 1051257)
+[PASS] testMaxAssetsZeroMeansNoLimitForSeller(uint256) (runs: 256, μ: 1051609, ~: 1051475)
+[PASS] testMultipleMaxRevert() (gas: 901262)
+[PASS] testOrderByAuthorized(address,address) (runs: 256, μ: 212475, ~: 212641)
+[PASS] testOrderByTaker(address) (runs: 256, μ: 159386, ~: 159466)
+[PASS] testOrderNotAuthorized(address,address) (runs: 256, μ: 117961, ~: 118159)
+[PASS] testPriceZeroNoSettlementFeeSell() (gas: 772908)
+[PASS] testPriceZeroWithSettlementFeeBuy() (gas: 686562)
+[PASS] testPriceZeroWithSettlementFeeSell() (gas: 1197909)
+[PASS] testReduceOnlyBuyRevert(uint256,uint256) (runs: 256, μ: 1165855, ~: 1165870)
+[PASS] testReduceOnlyBuySuccess(uint256,uint256) (runs: 256, μ: 2025916, ~: 2025754)
+[PASS] testReduceOnlySellRevert(uint256,uint256) (runs: 256, μ: 1173742, ~: 1173757)
+[PASS] testReduceOnlySellSuccess(uint256,uint256) (runs: 256, μ: 1609529, ~: 1609572)
+[PASS] testSell1(uint256,uint256) (runs: 256, μ: 1104513, ~: 1104659)
+[PASS] testSell1PostMaturity() (gas: 944707)
+[PASS] testSell2(uint256,uint256,uint256) (runs: 256, μ: 1621502, ~: 1623225)
+[PASS] testSell2PostMaturity() (gas: 1646935)
+[PASS] testSell3(uint256,uint256,uint256) (runs: 256, μ: 1742315, ~: 1746646)
+[PASS] testSell3PostMaturity() (gas: 1893307)
+[PASS] testSell4(uint256,uint256,uint256) (runs: 256, μ: 1283538, ~: 1285154)
+[PASS] testSell4PostMaturity() (gas: 1580333)
+[PASS] testSellBuyerCallback(uint256,uint32,bytes) (runs: 256, μ: 2379577, ~: 2375065)
+[PASS] testSellConsumed(uint256,uint256,uint256,uint256) (runs: 256, μ: 1269438, ~: 1271900)
+[PASS] testSellGroup(uint256,uint256) (runs: 256, μ: 1836477, ~: 1838331)
+[PASS] testSellNestedTakeLiquidateRevertsWhileLiquidationLocked() (gas: 3230034)
+[PASS] testSellPastMaturity(uint256) (runs: 256, μ: 947530, ~: 947660)
+[PASS] testSellSellerCallback(uint256,uint32,bytes) (runs: 256, μ: 3409433, ~: 3407357)
+[PASS] testSellSellerCallbackLiquidateRevertsWhileLiquidationLocked() (gas: 1930592)
+[PASS] testSellSellerCallbackRevertsOnInvalidReturn(uint256) (runs: 256, μ: 1302080, ~: 1301920)
+[PASS] testSellUnhealthy(uint256,uint256,uint256) (runs: 256, μ: 1065852, ~: 1072084)
+[PASS] testTakeBuyerAndSellerSame(uint256) (runs: 256, μ: 133845, ~: 133767)
+[PASS] testTakeByRatificationDifferentFromMaker(address,address,uint256) (runs: 256, μ: 549481, ~: 549547)
+[PASS] testTakeByRatificationSameAsMaker(uint256,address) (runs: 256, μ: 548377, ~: 548397)
+[PASS] testTakeEmitsEvent(uint256,uint256,bytes32,uint256,uint256,uint256,bool) (runs: 256, μ: 4648150, ~: 4648154)
+[PASS] testTakeInvalidOfferCapsBothZero(uint256) (runs: 256, μ: 104960, ~: 104802)
+[PASS] testTakeOfferExpired(uint256) (runs: 256, μ: 109902, ~: 109778)
+[PASS] testTakeOfferNotStarted(uint256) (runs: 256, μ: 110174, ~: 110012)
+[PASS] testTakeOfferRatified(address,address) (runs: 256, μ: 546220, ~: 546394)
+[PASS] testTakeRatificationFailed(address,address,uint256) (runs: 256, μ: 538297, ~: 538457)
+[PASS] testTakeUnusedReceiverMustBeZeroBuy(address) (runs: 256, μ: 127847, ~: 127947)
+[PASS] testTakeUnusedReceiverMustBeZeroSell(address) (runs: 256, μ: 107929, ~: 108029)
+[PASS] testTakeWithAddressZero(uint256) (runs: 256, μ: 554358, ~: 554198)
+Suite result: ok. 68 passed; 0 failed; 0 skipped; finished in 9.77s (15.06s CPU time)
+
+Ran 6 tests for test/TakeAmountsTest.sol:TakeAmountsTest
+[PASS] testBuyerAssetsToUnitsBuyerIsBorrower(uint256,uint256,uint256,uint256) (runs: 256, μ: 1738421, ~: 1743878)
+[PASS] testBuyerAssetsToUnitsBuyerIsLender(uint256,uint256,uint256,uint256) (runs: 256, μ: 1296111, ~: 1303799)
+[PASS] testSellerAssetsToUnitsBuyerIsBorrower(uint256,uint256,uint256,uint256) (runs: 256, μ: 1738387, ~: 1743661)
+[PASS] testSellerAssetsToUnitsBuyerIsLender(uint256,uint256,uint256,uint256) (runs: 256, μ: 1296965, ~: 1303862)
+[PASS] testSnappedBuyerAssetsBuyerIsBorrower(uint256,uint256,uint256) (runs: 256, μ: 1719577, ~: 1726571)
+[PASS] testSnappedBuyerAssetsBuyerIsLender(uint256,uint256,uint256) (runs: 256, μ: 1224256, ~: 1228923)
+Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 50.88s (51.46s CPU time)
+
+Ran 33 tests for test/MidnightBundlesTest.sol:MidnightBundlesTest
+[PASS] testBuyBuyerAssetsTarget(uint256,uint256,uint256) (runs: 256, μ: 1310950, ~: 1280098)
+[PASS] testBuyBuyerAssetsTargetAveragePriceExceeded(uint256) (runs: 256, μ: 1166907, ~: 1166866)
+[PASS] testBuyBuyerAssetsTargetInconsistentMarket() (gas: 824372)
+[PASS] testBuyBuyerAssetsTargetPartiallyConsumed() (gas: 1381582)
+[PASS] testBuyBuyerAssetsTargetPermit() (gas: 1210488)
+[PASS] testBuyBuyerAssetsTargetPermit2() (gas: 1274300)
+[PASS] testBuyBuyerAssetsTargetWithCollateralWithdrawals(uint256) (runs: 256, μ: 1634297, ~: 1652844)
+[PASS] testBuyBuyerAssetsTargetWithReferralFee(uint256,uint256) (runs: 256, μ: 1169735, ~: 1176172)
+[PASS] testBuyUnitsTargetAveragePriceExceeded(uint256) (runs: 256, μ: 1130018, ~: 1130012)
+[PASS] testBuyUnitsTargetInconsistentMarket() (gas: 622837)
+[PASS] testBuyUnitsTargetPartiallyConsumed() (gas: 1377598)
+[PASS] testBuyUnitsTargetPermit2() (gas: 1262354)
+[PASS] testBuyUnitsTargetWithCollateralWithdrawals(uint256) (runs: 256, μ: 1633301, ~: 1651848)
+[PASS] testBuyUnitsTargetWithReferralFee(uint256,uint256) (runs: 256, μ: 1171401, ~: 1177656)
+[PASS] testPctExceeded() (gas: 334424)
+[PASS] testRepay(uint256,uint256,uint256) (runs: 256, μ: 1389386, ~: 1393193)
+[PASS] testRepayWithReferralFee(uint256,uint256,uint256) (runs: 256, μ: 1576277, ~: 1586951)
+[PASS] testRepayWithReferralFeeFullDebtInversion(uint256,uint256) (runs: 256, μ: 1580842, ~: 1586969)
+[PASS] testSellSellerAssetsTarget(uint256,uint256,uint256) (runs: 256, μ: 1097148, ~: 1070725)
+[PASS] testSellSellerAssetsTargetAveragePriceTooLow(uint256) (runs: 256, μ: 1086561, ~: 1086520)
+[PASS] testSellSellerAssetsTargetInconsistentMarket() (gas: 503927)
+[PASS] testSellSellerAssetsTargetPartiallyConsumed() (gas: 1181681)
+[PASS] testSellSellerAssetsTargetPermit2() (gas: 1262245)
+[PASS] testSellSellerAssetsTargetWithCollateralSupplies(uint256) (runs: 256, μ: 1417745, ~: 1589076)
+[PASS] testSellSellerAssetsTargetWithReferralFee(uint256,uint256) (runs: 256, μ: 983808, ~: 989397)
+[PASS] testSellUnitsTarget(uint256,uint256,uint256) (runs: 256, μ: 1009758, ~: 989312)
+[PASS] testSellUnitsTargetAveragePriceTooLow(uint256) (runs: 256, μ: 1082950, ~: 1082947)
+[PASS] testSellUnitsTargetInconsistentMarket() (gas: 499192)
+[PASS] testSellUnitsTargetPartiallyConsumed() (gas: 1090081)
+[PASS] testSellUnitsTargetPermit2() (gas: 899716)
+[PASS] testSellUnitsTargetWithCollateralSupplies(uint256) (runs: 256, μ: 1051436, ~: 1222726)
+[PASS] testSellUnitsTargetWithReferralFee(uint256,uint256) (runs: 256, μ: 988224, ~: 994668)
+[PASS] testUnauthorized() (gas: 120725)
+Suite result: ok. 33 passed; 0 failed; 0 skipped; finished in 53.76s (55.45s CPU time)
+
+Ran 37 tests for test/OtherFunctionsTest.sol:OtherFunctionsTest
+[PASS] testBelowExactMaxCollaterals(uint256) (runs: 256, μ: 39856518, ~: 38345217)
+[PASS] testCollateralBitmapClearedOnFullLiquidation(uint256) (runs: 256, μ: 18220409, ~: 18220427)
+[PASS] testCollateralBitmapClearedOnFullWithdraw(uint256) (runs: 256, μ: 16703793, ~: 16703811)
+[PASS] testCollateralBitmapCountBitsAfterMultipleSupplies(uint256) (runs: 256, μ: 13208253, ~: 13070252)
+[PASS] testCollateralBitmapCtzSingleCollateral(uint256) (runs: 256, μ: 9998722, ~: 9998740)
+[PASS] testCollateralsNotSorted() (gas: 49216)
+[PASS] testExactMaxCollaterals() (gas: 79251730)
+[PASS] testInvalidLif(uint256) (runs: 256, μ: 47966, ~: 47915)
+[PASS] testLltvNotAllowedAboveWad(uint256) (runs: 256, μ: 47448, ~: 47428)
+[PASS] testLltvNotAllowedBelowWad() (gas: 46407)
+[PASS] testMarketStateAfterTake() (gas: 1283722)
+[PASS] testMarketStateGetter((address,(address,uint256,uint256,address)[],uint256,uint256,address,address),uint256) (runs: 256, μ: 5917820, ~: 7561945)
+[PASS] testMaturityTooFar(uint256) (runs: 256, μ: 63283, ~: 63214)
+[PASS] testMaxCollaterals(uint256) (runs: 256, μ: 412049583, ~: 390654748)
+[PASS] testMaxCollateralsPerBorrower() (gas: 17644382)
+[PASS] testMidnightRevertsOnCallbacks(address,bytes) (runs: 256, μ: 129688, ~: 127859)
+[PASS] testRepay(uint256,uint256) (runs: 256, μ: 1657185, ~: 1659079)
+[PASS] testRepayCallback(uint256,uint256,bytes,address) (runs: 256, μ: 2962157, ~: 2954525)
+[PASS] testSetConsumed(address,bytes32,uint256) (runs: 256, μ: 63496, ~: 63741)
+[PASS] testSetConsumedDecreasingReverts(address,bytes32,uint256,uint256) (runs: 256, μ: 84507, ~: 84706)
+[PASS] testSetConsumedIncreasing(address,bytes32,uint256,uint256) (runs: 256, μ: 104734, ~: 104840)
+[PASS] testSstore2CodeStartsWithStop((address,(address,uint256,uint256,address)[],uint256,uint256,address,address)) (runs: 256, μ: 5715856, ~: 7608747)
+[PASS] testSupplyCollateralDoesNotCallOracle(uint256) (runs: 256, μ: 741242, ~: 741830)
+[PASS] testToId((address,(address,uint256,uint256,address)[],uint256,uint256,address,address)) (runs: 256, μ: 2815858, ~: 3819056)
+[PASS] testToIdStableAcrossHardfork((address,(address,uint256,uint256,address)[],uint256,uint256,address,address),(address,(address,uint256,uint256,address)[],uint256,uint256,address,address),uint64) (runs: 256, μ: 11326380, ~: 11078458)
+[PASS] testToMarket((address,(address,uint256,uint256,address)[],uint256,uint256,address,address)) (runs: 256, μ: 6019060, ~: 8005660)
+[PASS] testToMarketRevertsIfNotCreated(bytes32) (runs: 256, μ: 14936, ~: 14936)
+[PASS] testTouchMarket((address,(address,uint256,uint256,address)[],uint256,uint256,address,address)) (runs: 256, μ: 6236579, ~: 8177262)
+[PASS] testValidLifCursor025() (gas: 194019)
+[PASS] testValidLifCursor05() (gas: 194688)
+[PASS] testWithdraw(uint256,uint256) (runs: 256, μ: 1808039, ~: 1808282)
+[PASS] testWithdrawCollateralToReceiver(uint256,uint256) (runs: 256, μ: 692233, ~: 692753)
+[PASS] testWithdrawCollateralToZeroDoesNotCallOracle(uint256) (runs: 256, μ: 808123, ~: 808694)
+[PASS] testWithdrawCollateralWithBorrowHealthy(uint256,uint256,uint256) (runs: 256, μ: 1741476, ~: 1744514)
+[PASS] testWithdrawCollateralWithBorrowUnhealthy(uint256,uint256,uint256) (runs: 256, μ: 1684036, ~: 1684048)
+[PASS] testWithdrawToReceiver(uint256,uint256) (runs: 256, μ: 1790516, ~: 1790759)
+[PASS] testZeroCollaterals() (gas: 39134)
+Suite result: ok. 37 passed; 0 failed; 0 skipped; finished in 50.13s (201.62s CPU time)
+
+Ran 16 tests for test/ContinuousFeeTest.sol:ContinuousFeeTest
+[PASS] testAccrualAfterSlashReducesPendingFee(uint256,uint256,uint256,uint256,uint256) (runs: 256, μ: 3175842, ~: 3179442)
+[PASS] testAccrualPostMaturity(uint256,uint256,uint256,uint256) (runs: 256, μ: 1487108, ~: 1487178)
+[PASS] testAccrualPreMaturity(uint256,uint256,uint256,uint256) (runs: 256, μ: 1495692, ~: 1512979)
+[PASS] testClaimContinuousFee(uint256,uint256,uint256,uint256,uint256) (runs: 256, μ: 1869115, ~: 1869152)
+[PASS] testClaimContinuousFeeExcessReverts(uint256,uint256,uint256,uint256) (runs: 256, μ: 1394026, ~: 1394090)
+[PASS] testClaimContinuousFeeOnlyFeeClaimer(address) (runs: 256, μ: 62838, ~: 62878)
+[PASS] testClaimContinuousFeeRevertsIfMarketNotCreated() (gas: 64473)
+[PASS] testExitViaLenderTake(uint256,uint256,uint256,uint256,uint256) (runs: 256, μ: 1801621, ~: 1812875)
+[PASS] testLastAccrualZeroForFreshPosition() (gas: 1208180)
+[PASS] testMultipleAccrualsSumCorrectly(uint256,uint256,uint256,uint256,uint256) (runs: 256, μ: 1510509, ~: 1511358)
+[PASS] testSingleLend(uint256,uint256,uint256) (runs: 256, μ: 1248409, ~: 1248805)
+[PASS] testTwoLendersDifferentRates(uint256,uint256,uint256,uint256,uint256,uint256) (runs: 256, μ: 2196900, ~: 2197145)
+[PASS] testUpdatePositionReturnsUpdatedValues(uint256,uint256,uint256,uint256,bool) (runs: 256, μ: 2224546, ~: 3038039)
+[PASS] testUpdatePositionRevertsIfMarketNotCreated() (gas: 61905)
+[PASS] testUpdatePositionViewCorrect(uint256,uint256,uint256,uint256,bool) (runs: 256, μ: 2210564, ~: 3024042)
+[PASS] testWithdrawReducesPendingFee(uint256,uint256,uint256,uint256,uint256) (runs: 256, μ: 1756379, ~: 1755949)
+Suite result: ok. 16 passed; 0 failed; 0 skipped; finished in 53.76s (6.06s CPU time)
+
+Ran 38 tests for test/LiquidationTest.sol:LiquidationTest
+[PASS] testBadDebtPriceDownGivesBadDebt(uint256) (runs: 256, μ: 1282217, ~: 1282058)
+[PASS] testBadDebtPriceDownIsMaximal(uint256) (runs: 256, μ: 1281535, ~: 1281385)
+[PASS] testCannotRepayMoreThanDebt(uint256,uint256,uint256) (runs: 256, μ: 1365607, ~: 1365594)
+[PASS] testCannotSeizeMoreThanCollateral(uint256,uint256,uint256) (runs: 256, μ: 1336550, ~: 1336532)
+[PASS] testFullBadDebtWithdrawCollateral(uint256) (runs: 256, μ: 1601519, ~: 1601354)
+[PASS] testGasLiquidateMultipleCollaterals() (gas: 2081134)
+Logs:
+  Gas 1st seizure (cold): 162734
+  Gas 2nd seizure (warm): 61043
+
+[PASS] testLiquidateCallback(uint256,uint256,uint256,uint256,bytes,address) (runs: 256, μ: 1936995, ~: 1948023)
+[PASS] testLiquidateCollateralInput(uint256,uint256,uint256) (runs: 256, μ: 1451804, ~: 1453795)
+[PASS] testLiquidateEmitsLossFactorAndContinuousFeeCredit(uint256) (runs: 256, μ: 1589956, ~: 1590076)
+[PASS] testLiquidateFullyRepayOrFullySeizeWhenRcfDeactivated(uint256,uint256,uint256) (runs: 256, μ: 1369446, ~: 1366327)
+[PASS] testLiquidateHealthyPostMaturity(uint256,uint256) (runs: 256, μ: 1344534, ~: 1344412)
+[PASS] testLiquidateHealthyPreMaturity(uint256,uint256) (runs: 256, μ: 1313962, ~: 1313840)
+[PASS] testLiquidateInactiveCollateralIndex(uint256) (runs: 256, μ: 1547339, ~: 1547179)
+[PASS] testLiquidateInconsistentInput(uint256) (runs: 256, μ: 1272713, ~: 1272568)
+[PASS] testLiquidateInvalidCollateralIndex() (gas: 1313759)
+[PASS] testLiquidateNoDebtReverts() (gas: 281703)
+[PASS] testLiquidateNormalModeRequiresUnhealthy(uint256,uint256) (runs: 256, μ: 1315267, ~: 1315145)
+[PASS] testLiquidatePostMaturityFullLIF(uint256,uint256,uint256,uint256) (runs: 256, μ: 1459845, ~: 1463199)
+[PASS] testLiquidatePostMaturityModeBeforeMaturity(uint256,uint256) (runs: 256, μ: 1450003, ~: 1450496)
+[PASS] testLiquidatePostMaturityPartialLIF(uint256,uint256,uint256,uint256) (runs: 256, μ: 1449483, ~: 1454719)
+[PASS] testLiquidatePreMaturityLltvWad(uint256) (runs: 256, μ: 1420151, ~: 1419993)
+[PASS] testLiquidateUnhealthyPostMaturity(uint256,uint256) (runs: 256, μ: 1351692, ~: 1352185)
+[PASS] testLiquidateUnhealthyPreMaturity(uint256,uint256) (runs: 256, μ: 1351113, ~: 1351606)
+[PASS] testLiquidateUnitsInput(uint256,uint256,uint256) (runs: 256, μ: 1448823, ~: 1452344)
+[PASS] testLiquidateWithBadDebtRepaidInput(uint256,uint256,uint256) (runs: 256, μ: 1580742, ~: 1614427)
+[PASS] testLiquidateWithBadDebtSeizeMax(uint256,uint256) (runs: 256, μ: 1435485, ~: 1435386)
+[PASS] testLiquidateWithBadDebtSeizedInput(uint256,uint256,uint256) (runs: 256, μ: 1596707, ~: 1601990)
+[PASS] testMaxRepaid(uint256,uint256,uint256) (runs: 256, μ: 1490598, ~: 1491931)
+[PASS] testMaxRepaidMeansRecovery(uint256,uint256) (runs: 256, μ: 1454956, ~: 1454804)
+[PASS] testRcfThresholdAllowsFullLiquidation(uint256,uint256,uint256) (runs: 256, μ: 1455320, ~: 1455454)
+[PASS] testRcfThresholdEnforcesRecoveryCloseFactor(uint256,uint256,uint256) (runs: 256, μ: 1343034, ~: 1343409)
+[PASS] testRealizeOnlyBadDebt(uint256,uint256) (runs: 256, μ: 1515357, ~: 1519053)
+[PASS] testRecoveryCloseFactorAppliesPostMaturityWhenUnhealthy(uint256,uint256,uint256) (runs: 256, μ: 1372949, ~: 1372837)
+[PASS] testRecoveryCloseFactorMultipleCollaterals(uint256) (runs: 256, μ: 1811257, ~: 1811121)
+[PASS] testSlashAlreadySynced(uint256) (runs: 256, μ: 1556394, ~: 1556235)
+[PASS] testSlashNoBadDebt(uint256) (runs: 256, μ: 1302291, ~: 1302146)
+[PASS] testSlashNoCredit(uint256) (runs: 256, μ: 1499653, ~: 1499494)
+[PASS] testSlashNonFull(uint256) (runs: 256, μ: 1465134, ~: 1464975)
+Suite result: ok. 38 passed; 0 failed; 0 skipped; finished in 53.92s (60.72s CPU time)
+
+╭------------------------------------+-----------------+--------+--------+---------+---------╮
+| src/Midnight.sol:Midnight Contract |                 |        |        |         |         |
++============================================================================================+
+| Deployment Cost                    | Deployment Size |        |        |         |         |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+|                            5226860 |           23952 |        |        |         |         |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+|                                    |                 |        |        |         |         |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| Function Name                      | Min             | Avg    | Median | Max     | # Calls |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| INITIAL_CHAIN_ID                   |             588 |    588 |    588 |     588 |     514 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| claimContinuousFee                 |           29526 |  46968 |  34353 |   77002 |     772 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| claimSettlementFee                 |           24325 |  42505 |  26820 |   63541 |     515 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| claimableSettlementFee             |            2797 |   2797 |   2797 |    2797 |    1802 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| collateral                         |            3762 |   3762 |   3762 |    3762 |   12887 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| collateralBitmap                   |            3305 |   3305 |   3305 |    3305 |    3598 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| consumed                           |            3581 |   3581 |   3581 |    3581 |    8749 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| continuousFee                      |            3244 |   3244 |   3244 |    3244 |     771 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| continuousFeeCredit                |            3587 |   3587 |   3587 |    3587 |    1714 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| creditOf                           |            3333 |   3333 |   3333 |    3333 |   14668 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| debtOf                             |            3537 |   3537 |   3537 |    3537 |   20652 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| defaultContinuousFee               |            2561 |   2561 |   2561 |    2561 |     257 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| defaultSettlementFeeCbp            |            3488 |   3488 |   3488 |    3488 |    3598 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| feeClaimer                         |            2867 |   2867 |   2867 |    2867 |     257 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| feeSetter                          |            2889 |   2889 |   2889 |    2889 |     258 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| flashLoan                          |          291376 | 401263 | 405211 |  519020 |     514 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| isAuthorized                       |            3096 |   3096 |   3096 |    3096 |    4293 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| isHealthy                          |            4454 |   4454 |   4454 |    4454 |       4 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| lastAccrual                        |            3569 |   3569 |   3569 |    3569 |     515 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| lastLossFactor                     |            3141 |   3141 |   3141 |    3141 |    1285 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| liquidate                          |           34410 | 109719 |  83734 |  707715 |   11067 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| liquidationLocked                  |             718 |    718 |    718 |     718 |       1 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| lossFactor                         |            2806 |   2806 |   2806 |    2806 |    1028 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| marketState                        |            8034 |   8034 |   8034 |    8034 |     258 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| multicall                          |           22475 |  95906 |  39681 |  222123 |       5 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| onBuy                              |           22402 |  22598 |  22554 |   25000 |      87 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| onFlashLoan                        |           22402 |  22598 |  22554 |   25000 |      87 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| onLiquidate                        |           22402 |  22598 |  22554 |   25000 |      87 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| onRepay                            |           22402 |  22598 |  22554 |   25000 |      87 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| onSell                             |           22402 |  22598 |  22554 |   25000 |      87 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| pendingFee                         |            3475 |   3475 |   3475 |    3475 |    5424 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| repay                              |           29600 | 117224 |  93675 |  530664 |    3098 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| roleSetter                         |            2533 |   2533 |   2533 |    2533 |     261 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| setConsumed                        |           25072 |  39328 |  47599 |   49833 |    1804 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| setDefaultContinuousFee            |           24061 |  45031 |  47719 |   47731 |    4628 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| setDefaultSettlementFee            |           24356 |  34529 |  31983 |   49095 |    8714 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| setFeeClaimer                      |           24768 |  37583 |  47824 |   48040 |     573 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| setFeeSetter                       |            1160 |  35486 |  30764 |   47864 |     846 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| setIsAuthorized                    |           25053 |  46094 |  47658 |   49928 |   10878 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| setMarketContinuousFee             |           24398 |  29210 |  30996 |   31020 |    2570 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| setMarketSettlementFee             |           24552 |  31789 |  32331 |   32495 |   30113 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| setMarketTickSpacing               |           25222 |  32196 |  32246 |   32246 |     590 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| setRoleSetter                      |            5395 |  26688 |  24749 |   28827 |     516 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| setTickSpacingSetter               |           24976 |  40728 |  48260 |   48260 |     588 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| settlementFee                      |            1877 |   3491 |   3877 |    4096 |   13869 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| settlementFeeCbps                  |            3640 |   3640 |   3640 |    3640 |     257 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| supplyCollateral                   |           29312 | 179831 | 108086 |  727764 |   51287 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| take                               |           36920 | 204286 | 216961 |  836402 |   46062 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| tickSpacing                        |            3398 |   3398 |   3398 |    3398 |     261 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| tickSpacingSetter                  |            2955 |   2955 |   2955 |    2955 |     257 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| toId                               |            3276 |  10363 |   3975 |   97316 |    5482 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| toMarket                           |            3777 |  54499 |  60682 |   95426 |    1029 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| totalUnits                         |            2752 |   2752 |   2752 |    2752 |    7205 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| touchMarket                        |           27233 | 795620 | 171663 | 3974310 |    7575 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| updatePosition                     |           29307 |  58161 |  52517 |   71440 |    5921 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| updatePositionView                 |            9952 |   9952 |   9952 |    9952 |     514 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| withdraw                           |           29470 |  80905 |  85273 |   93865 |    1545 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| withdrawCollateral                 |           29850 |  71219 |  66060 |   99261 |    1545 |
+|------------------------------------+-----------------+--------+--------+---------+---------|
+| withdrawable                       |            2890 |   2890 |   2890 |    2890 |    1542 |
+╰------------------------------------+-----------------+--------+--------+---------+---------╯
+
+╭--------------------------------------------------------------------+-----------------+-------+--------+-------+---------╮
+| src/periphery/EcrecoverAuthorizer.sol:EcrecoverAuthorizer Contract |                 |       |        |       |         |
++=========================================================================================================================+
+| Deployment Cost                                                    | Deployment Size |       |        |       |         |
+|--------------------------------------------------------------------+-----------------+-------+--------+-------+---------|
+|                                                             329690 |            1444 |       |        |       |         |
+|--------------------------------------------------------------------+-----------------+-------+--------+-------+---------|
+|                                                                    |                 |       |        |       |         |
+|--------------------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| Function Name                                                      | Min             | Avg   | Median | Max   | # Calls |
+|--------------------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| nonce                                                              |            2402 |  2402 |   2402 |  2402 |    5988 |
+|--------------------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| setIsAuthorized                                                    |           26840 | 57776 |  66752 | 83852 |    2995 |
+╰--------------------------------------------------------------------+-----------------+-------+--------+-------+---------╯
+
+╭------------------------------------------------------------+-----------------+--------+--------+--------+---------╮
+| src/periphery/MidnightBundles.sol:MidnightBundles Contract |                 |        |        |        |         |
++===================================================================================================================+
+| Deployment Cost                                            | Deployment Size |        |        |        |         |
+|------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+|                                                    2397574 |           11078 |        |        |        |         |
+|------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+|                                                            |                 |        |        |        |         |
+|------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| Function Name                                              | Min             | Avg    | Median | Max    | # Calls |
+|------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| MIDNIGHT                                                   |             278 |    278 |    278 |    278 |      33 |
+|------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| buyWithAssetsTargetAndWithdrawCollateral                   |           43260 | 315727 | 303238 | 393168 |    1033 |
+|------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| buyWithUnitsTargetAndWithdrawCollateral                    |           43110 | 296639 | 282926 | 372938 |     776 |
+|------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| repayAndWithdrawCollateral                                 |           34660 | 159581 | 155847 | 189897 |     772 |
+|------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| supplyCollateralAndSellWithAssetsTarget                    |           43510 | 338410 | 320926 | 482230 |    1032 |
+|------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| supplyCollateralAndSellWithUnitsTarget                     |           42550 | 298473 | 252552 | 478313 |    1803 |
+╰------------------------------------------------------------+-----------------+--------+--------+--------+---------╯
+
+╭----------------------------------------------------------------+-----------------+-------+--------+-------+---------╮
+| src/ratifiers/EcrecoverRatifier.sol:EcrecoverRatifier Contract |                 |       |        |       |         |
++=====================================================================================================================+
+| Deployment Cost                                                | Deployment Size |       |        |       |         |
+|----------------------------------------------------------------+-----------------+-------+--------+-------+---------|
+|                                                         904438 |            4104 |       |        |       |         |
+|----------------------------------------------------------------+-----------------+-------+--------+-------+---------|
+|                                                                |                 |       |        |       |         |
+|----------------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| Function Name                                                  | Min             | Avg   | Median | Max   | # Calls |
+|----------------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| cancelRoot                                                     |           28353 | 42396 |  46361 | 52475 |       3 |
+|----------------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| isRatified                                                     |            3218 | 12330 |  13480 | 17319 |    3353 |
+|----------------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| isRootCanceled                                                 |            2536 |  2536 |   2536 |  2536 |       2 |
+╰----------------------------------------------------------------+-----------------+-------+--------+-------+---------╯
+
+╭----------------------------------------------------------+-----------------+-------+--------+-------+---------╮
+| src/ratifiers/SetterRatifier.sol:SetterRatifier Contract |                 |       |        |       |         |
++===============================================================================================================+
+| Deployment Cost                                          | Deployment Size |       |        |       |         |
+|----------------------------------------------------------+-----------------+-------+--------+-------+---------|
+|                                                   597711 |            2677 |       |        |       |         |
+|----------------------------------------------------------+-----------------+-------+--------+-------+---------|
+|                                                          |                 |       |        |       |         |
+|----------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| Function Name                                            | Min             | Avg   | Median | Max   | # Calls |
+|----------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| isRatified                                               |            6015 |  7574 |   7991 |  8299 |       4 |
+|----------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| isRootRatified                                           |            2525 |  2525 |   2525 |  2525 |       1 |
+|----------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| setIsRootRatified                                        |           28463 | 45559 |  46809 | 52863 |       5 |
+╰----------------------------------------------------------+-----------------+-------+--------+-------+---------╯
+
+╭---------------------------------------------------------------+-----------------+-----+--------+-----+---------╮
+| test/FrontendSignatureTest.sol:FrontendSignatureTest Contract |                 |     |        |     |         |
++================================================================================================================+
+| Deployment Cost                                               | Deployment Size |     |        |     |         |
+|---------------------------------------------------------------+-----------------+-----+--------+-----+---------|
+|                                                       2367740 |           11657 |     |        |     |         |
+|---------------------------------------------------------------+-----------------+-----+--------+-----+---------|
+|                                                               |                 |     |        |     |         |
+|---------------------------------------------------------------+-----------------+-----+--------+-----+---------|
+| Function Name                                                 | Min             | Avg | Median | Max | # Calls |
+|---------------------------------------------------------------+-----------------+-----+--------+-----+---------|
+| isAuthorized                                                  |             404 | 404 |    404 | 404 |       1 |
+╰---------------------------------------------------------------+-----------------+-----+--------+-----+---------╯
+
+╭------------------------------------------+-----------------+-------+--------+-------+---------╮
+| test/GateTest.sol:WhitelistGate Contract |                 |       |        |       |         |
++===============================================================================================+
+| Deployment Cost                          | Deployment Size |       |        |       |         |
+|------------------------------------------+-----------------+-------+--------+-------+---------|
+|                                   116613 |             319 |       |        |       |         |
+|------------------------------------------+-----------------+-------+--------+-------+---------|
+|                                          |                 |       |        |       |         |
+|------------------------------------------+-----------------+-------+--------+-------+---------|
+| Function Name                            | Min             | Avg   | Median | Max   | # Calls |
+|------------------------------------------+-----------------+-------+--------+-------+---------|
+| canIncreaseCredit                        |            2385 |  2385 |   2385 |  2385 |    2827 |
+|------------------------------------------+-----------------+-------+--------+-------+---------|
+| canIncreaseDebt                          |            2470 |  2470 |   2470 |  2470 |    2827 |
+|------------------------------------------+-----------------+-------+--------+-------+---------|
+| canLiquidate                             |            2429 |  2429 |   2429 |  2429 |     514 |
+|------------------------------------------+-----------------+-------+--------+-------+---------|
+| setWhitelisted                           |           22370 | 37287 |  44006 | 44018 |    8224 |
+╰------------------------------------------+-----------------+-------+--------+-------+---------╯
+
+╭----------------------------------------------------+-----------------+-------+--------+-------+---------╮
+| test/OtherFunctionsTest.sol:RepayCallback Contract |                 |       |        |       |         |
++=========================================================================================================+
+| Deployment Cost                                    | Deployment Size |       |        |       |         |
+|----------------------------------------------------+-----------------+-------+--------+-------+---------|
+|                                             752590 |            3262 |       |        |       |         |
+|----------------------------------------------------+-----------------+-------+--------+-------+---------|
+|                                                    |                 |       |        |       |         |
+|----------------------------------------------------+-----------------+-------+--------+-------+---------|
+| Function Name                                      | Min             | Avg   | Median | Max   | # Calls |
+|----------------------------------------------------+-----------------+-------+--------+-------+---------|
+| recordedData                                       |            2890 |  5756 |   5075 | 11669 |     257 |
+|----------------------------------------------------+-----------------+-------+--------+-------+---------|
+| recordedId                                         |            2341 |  2341 |   2341 |  2341 |     257 |
+|----------------------------------------------------+-----------------+-------+--------+-------+---------|
+| recordedMarket                                     |           31546 | 31546 |  31546 | 31546 |     257 |
+|----------------------------------------------------+-----------------+-------+--------+-------+---------|
+| recordedOnBehalf                                   |            2293 |  2293 |   2293 |  2293 |     257 |
+|----------------------------------------------------+-----------------+-------+--------+-------+---------|
+| recordedUnits                                      |            2319 |  2319 |   2319 |  2319 |     257 |
+╰----------------------------------------------------+-----------------+-------+--------+-------+---------╯
+
+╭-----------------------------------------------------------+-----------------+-------+--------+-------+---------╮
+| test/SafeTransferLibTest.sol:SafeTransferLibTest Contract |                 |       |        |       |         |
++================================================================================================================+
+| Deployment Cost                                           | Deployment Size |       |        |       |         |
+|-----------------------------------------------------------+-----------------+-------+--------+-------+---------|
+|                                                   1846550 |            9054 |       |        |       |         |
+|-----------------------------------------------------------+-----------------+-------+--------+-------+---------|
+|                                                           |                 |       |        |       |         |
+|-----------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| Function Name                                             | Min             | Avg   | Median | Max   | # Calls |
+|-----------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| safeTransfer                                              |           22422 | 26244 |  26247 | 26583 |     518 |
+|-----------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| safeTransferFrom                                          |           22637 | 26659 |  26679 | 27039 |     518 |
+╰-----------------------------------------------------------+-----------------+-------+--------+-------+---------╯
+
+╭-------------------------------------------+-----------------+-------+--------+-------+---------╮
+| test/TakeTest.sol:BorrowCallback Contract |                 |       |        |       |         |
++================================================================================================+
+| Deployment Cost                           | Deployment Size |       |        |       |         |
+|-------------------------------------------+-----------------+-------+--------+-------+---------|
+|                                    757236 |            3284 |       |        |       |         |
+|-------------------------------------------+-----------------+-------+--------+-------+---------|
+|                                           |                 |       |        |       |         |
+|-------------------------------------------+-----------------+-------+--------+-------+---------|
+| Function Name                             | Min             | Avg   | Median | Max   | # Calls |
+|-------------------------------------------+-----------------+-------+--------+-------+---------|
+| recordedData                              |           11648 | 15084 |  13834 | 20393 |     514 |
+|-------------------------------------------+-----------------+-------+--------+-------+---------|
+| recordedId                                |            2327 |  2327 |   2327 |  2327 |     514 |
+|-------------------------------------------+-----------------+-------+--------+-------+---------|
+| recordedMarket                            |           31539 | 31539 |  31539 | 31539 |     514 |
+|-------------------------------------------+-----------------+-------+--------+-------+---------|
+| recordedPendingFeeDecrease                |            2418 |  2418 |   2418 |  2418 |     514 |
+|-------------------------------------------+-----------------+-------+--------+-------+---------|
+| recordedReceiver                          |            2414 |  2414 |   2414 |  2414 |     514 |
+|-------------------------------------------+-----------------+-------+--------+-------+---------|
+| recordedSeller                            |            2271 |  2271 |   2271 |  2271 |     514 |
+|-------------------------------------------+-----------------+-------+--------+-------+---------|
+| recordedSellerAssets                      |            2374 |  2374 |   2374 |  2374 |     514 |
+|-------------------------------------------+-----------------+-------+--------+-------+---------|
+| recordedUnits                             |            2305 |  2305 |   2305 |  2305 |     514 |
+╰-------------------------------------------+-----------------+-------+--------+-------+---------╯
+
+╭-----------------------------------------------+-----------------+-------+--------+-------+---------╮
+| test/TakeTest.sol:IsRatifiedCallback Contract |                 |       |        |       |         |
++====================================================================================================+
+| Deployment Cost                               | Deployment Size |       |        |       |         |
+|-----------------------------------------------+-----------------+-------+--------+-------+---------|
+|                                        293780 |            1069 |       |        |       |         |
+|-----------------------------------------------+-----------------+-------+--------+-------+---------|
+|                                               |                 |       |        |       |         |
+|-----------------------------------------------+-----------------+-------+--------+-------+---------|
+| Function Name                                 | Min             | Avg   | Median | Max   | # Calls |
+|-----------------------------------------------+-----------------+-------+--------+-------+---------|
+| isRatified                                    |            5266 |  5269 |   5269 |  5272 |    1028 |
+|-----------------------------------------------+-----------------+-------+--------+-------+---------|
+| setReturnValue                                |           21522 | 21522 |  21522 | 21522 |     257 |
+╰-----------------------------------------------+-----------------+-------+--------+-------+---------╯
+
+╭-----------------------------------------+-----------------+-------+--------+-------+---------╮
+| test/TakeTest.sol:LendCallback Contract |                 |       |        |       |         |
++==============================================================================================+
+| Deployment Cost                         | Deployment Size |       |        |       |         |
+|-----------------------------------------+-----------------+-------+--------+-------+---------|
+|                                  687589 |            2962 |       |        |       |         |
+|-----------------------------------------+-----------------+-------+--------+-------+---------|
+|                                         |                 |       |        |       |         |
+|-----------------------------------------+-----------------+-------+--------+-------+---------|
+| Function Name                           | Min             | Avg   | Median | Max   | # Calls |
+|-----------------------------------------+-----------------+-------+--------+-------+---------|
+| recordedBuyer                           |            2266 |  2266 |   2266 |  2266 |     514 |
+|-----------------------------------------+-----------------+-------+--------+-------+---------|
+| recordedBuyerAssets                     |            2366 |  2366 |   2366 |  2366 |     514 |
+|-----------------------------------------+-----------------+-------+--------+-------+---------|
+| recordedData                            |            2863 |  5761 |   5082 | 11676 |     514 |
+|-----------------------------------------+-----------------+-------+--------+-------+---------|
+| recordedId                              |            2344 |  2344 |   2344 |  2344 |     514 |
+|-----------------------------------------+-----------------+-------+--------+-------+---------|
+| recordedMarket                          |           31550 | 31550 |  31550 | 31550 |     514 |
+|-----------------------------------------+-----------------+-------+--------+-------+---------|
+| recordedPendingFeeIncrease              |            2278 |  2278 |   2278 |  2278 |     514 |
+|-----------------------------------------+-----------------+-------+--------+-------+---------|
+| recordedUnits                           |            2322 |  2322 |   2322 |  2322 |     514 |
+╰-----------------------------------------+-----------------+-------+--------+-------+---------╯
+
+╭-----------------------------------------------------------------+-----------------+--------+--------+--------+---------╮
+| test/TakeTest.sol:NestedTakeReentrantLiquidateCallback Contract |                 |        |        |        |         |
++========================================================================================================================+
+| Deployment Cost                                                 | Deployment Size |        |        |        |         |
+|-----------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+|                                                         1262485 |            5626 |        |        |        |         |
+|-----------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+|                                                                 |                 |        |        |        |         |
+|-----------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| Function Name                                                   | Min             | Avg    | Median | Max    | # Calls |
+|-----------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| liquidateErrorSelector                                          |            2348 |   2348 |   2348 |   2348 |       1 |
+|-----------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| liquidateSucceeded                                              |            2300 |   2300 |   2300 |   2300 |       1 |
+|-----------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| prepare                                                         |          478255 | 478255 | 478255 | 478255 |       1 |
+|-----------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| reentered                                                       |            2264 |   2264 |   2264 |   2264 |       1 |
+╰-----------------------------------------------------------------+-----------------+--------+--------+--------+---------╯
+
+╭-------------------------------------------------------------+-----------------+------+--------+------+---------╮
+| test/TakeTest.sol:ReentrantLiquidateBorrowCallback Contract |                 |      |        |      |         |
++================================================================================================================+
+| Deployment Cost                                             | Deployment Size |      |        |      |         |
+|-------------------------------------------------------------+-----------------+------+--------+------+---------|
+|                                                      568095 |            2412 |      |        |      |         |
+|-------------------------------------------------------------+-----------------+------+--------+------+---------|
+|                                                             |                 |      |        |      |         |
+|-------------------------------------------------------------+-----------------+------+--------+------+---------|
+| Function Name                                               | Min             | Avg  | Median | Max  | # Calls |
+|-------------------------------------------------------------+-----------------+------+--------+------+---------|
+| liquidateErrorSelector                                      |            2321 | 2321 |   2321 | 2321 |       1 |
+|-------------------------------------------------------------+-----------------+------+--------+------+---------|
+| liquidateSucceeded                                          |            2264 | 2264 |   2264 | 2264 |       1 |
+╰-------------------------------------------------------------+-----------------+------+--------+------+---------╯
+
+╭---------------------------------------------+-----------------+-----+--------+-----+---------╮
+| test/UtilsLibTest.sol:UtilsLibTest Contract |                 |     |        |     |         |
++==============================================================================================+
+| Deployment Cost                             | Deployment Size |     |        |     |         |
+|---------------------------------------------+-----------------+-----+--------+-----+---------|
+|                                     3645096 |           18036 |     |        |     |         |
+|---------------------------------------------+-----------------+-----+--------+-----+---------|
+|                                             |                 |     |        |     |         |
+|---------------------------------------------+-----------------+-----+--------+-----+---------|
+| Function Name                               | Min             | Avg | Median | Max | # Calls |
+|---------------------------------------------+-----------------+-----+--------+-----+---------|
+| mulDivDown                                  |             707 | 727 |    727 | 747 |     514 |
+|---------------------------------------------+-----------------+-----+--------+-----+---------|
+| mulDivUp                                    |             326 | 343 |    326 | 432 |     514 |
+╰---------------------------------------------+-----------------+-----+--------+-----+---------╯
+
+╭--------------------------------------+-----------------+-------+--------+-------+---------╮
+| test/erc20s/ERC20.sol:ERC20 Contract |                 |       |        |       |         |
++===========================================================================================+
+| Deployment Cost                      | Deployment Size |       |        |       |         |
+|--------------------------------------+-----------------+-------+--------+-------+---------|
+|                               392602 |            2527 |       |        |       |         |
+|--------------------------------------+-----------------+-------+--------+-------+---------|
+|                                      |                 |       |        |       |         |
+|--------------------------------------+-----------------+-------+--------+-------+---------|
+| Function Name                        | Min             | Avg   | Median | Max   | # Calls |
+|--------------------------------------+-----------------+-------+--------+-------+---------|
+| allowance                            |            2704 |  2704 |   2704 |  2704 |     514 |
+|--------------------------------------+-----------------+-------+--------+-------+---------|
+| approve                              |           43848 | 44128 |  44124 | 44436 |   11401 |
+|--------------------------------------+-----------------+-------+--------+-------+---------|
+| balanceOf                            |            2486 |  2486 |   2486 |  2486 |   58033 |
+|--------------------------------------+-----------------+-------+--------+-------+---------|
+| transfer                             |           23998 | 34578 |  34545 | 45092 |     514 |
+|--------------------------------------+-----------------+-------+--------+-------+---------|
+| transferFrom                         |           24164 | 32466 |  26914 | 46160 |     771 |
+╰--------------------------------------+-----------------+-------+--------+-------+---------╯
+
+╭--------------------------------------------------+-----------------+-------+--------+-------+---------╮
+| test/erc20s/ERC20Permit.sol:ERC20Permit Contract |                 |       |        |       |         |
++=======================================================================================================+
+| Deployment Cost                                  | Deployment Size |       |        |       |         |
+|--------------------------------------------------+-----------------+-------+--------+-------+---------|
+|                                           728368 |            4160 |       |        |       |         |
+|--------------------------------------------------+-----------------+-------+--------+-------+---------|
+|                                                  |                 |       |        |       |         |
+|--------------------------------------------------+-----------------+-------+--------+-------+---------|
+| Function Name                                    | Min             | Avg   | Median | Max   | # Calls |
+|--------------------------------------------------+-----------------+-------+--------+-------+---------|
+| DOMAIN_SEPARATOR                                 |            3060 |  3060 |   3060 |  3060 |       1 |
+|--------------------------------------------------+-----------------+-------+--------+-------+---------|
+| PERMIT_TYPEHASH                                  |             233 |   233 |    233 |   233 |       1 |
+|--------------------------------------------------+-----------------+-------+--------+-------+---------|
+| allowance                                        |            2814 |  2814 |   2814 |  2814 |    3402 |
+|--------------------------------------------------+-----------------+-------+--------+-------+---------|
+| approve                                          |           22370 | 34829 |  44064 | 44436 |   80681 |
+|--------------------------------------------------+-----------------+-------+--------+-------+---------|
+| balanceOf                                        |            2530 |  2530 |   2530 |  2530 |  409040 |
+╰--------------------------------------------------+-----------------+-------+--------+-------+---------╯
+
+╭-------------------------------------------------------+-----------------+------+--------+------+---------╮
+| test/helpers/DummyRatifier.sol:DummyRatifier Contract |                 |      |        |      |         |
++==========================================================================================================+
+| Deployment Cost                                       | Deployment Size |      |        |      |         |
+|-------------------------------------------------------+-----------------+------+--------+------+---------|
+|                                                261863 |             990 |      |        |      |         |
+|-------------------------------------------------------+-----------------+------+--------+------+---------|
+|                                                       |                 |      |        |      |         |
+|-------------------------------------------------------+-----------------+------+--------+------+---------|
+| Function Name                                         | Min             | Avg  | Median | Max  | # Calls |
+|-------------------------------------------------------+-----------------+------+--------+------+---------|
+| isRatified                                            |            2777 | 3097 |   3139 | 8227 |   44833 |
+╰-------------------------------------------------------+-----------------+------+--------+------+---------╯
+
+╭-----------------------------------------+-----------------+-------+--------+-------+---------╮
+| test/helpers/Oracle.sol:Oracle Contract |                 |       |        |       |         |
++==============================================================================================+
+| Deployment Cost                         | Deployment Size |       |        |       |         |
+|-----------------------------------------+-----------------+-------+--------+-------+---------|
+|                                   98896 |             149 |       |        |       |         |
+|-----------------------------------------+-----------------+-------+--------+-------+---------|
+|                                         |                 |       |        |       |         |
+|-----------------------------------------+-----------------+-------+--------+-------+---------|
+| Function Name                           | Min             | Avg   | Median | Max   | # Calls |
+|-----------------------------------------+-----------------+-------+--------+-------+---------|
+| price                                   |             263 |  2256 |   2263 |  2263 |   99574 |
+|-----------------------------------------+-----------------+-------+--------+-------+---------|
+| setPrice                                |           21525 | 25356 |  26457 | 26577 |   13905 |
+╰-----------------------------------------+-----------------+-------+--------+-------+---------╯
+
+╭-----------------------------------------------------------+-----------------+-------+--------+-------+---------╮
+| test/helpers/RevertingOracle.sol:RevertingOracle Contract |                 |       |        |       |         |
++================================================================================================================+
+| Deployment Cost                                           | Deployment Size |       |        |       |         |
+|-----------------------------------------------------------+-----------------+-------+--------+-------+---------|
+|                                                    116998 |             233 |       |        |       |         |
+|-----------------------------------------------------------+-----------------+-------+--------+-------+---------|
+|                                                           |                 |       |        |       |         |
+|-----------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| Function Name                                             | Min             | Avg   | Median | Max   | # Calls |
+|-----------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| stopOracle                                                |           43312 | 43312 |  43312 | 43312 |     514 |
+╰-----------------------------------------------------------+-----------------+-------+--------+-------+---------╯
+
+
+Ran 25 test suites in 67.77s (288.06s CPU time): 376 tests passed, 0 failed, 0 skipped (376 total tests)
