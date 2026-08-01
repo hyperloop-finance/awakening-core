@@ -1,0 +1,44 @@
+# --- Internal docs (kept local, not published) ---
+docs/
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Editors ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+
+# --- Env / secrets ---
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# --- Node / frontend ---
+node_modules/
+dist/
+build/
+.next/
+.nuxt/
+out/
+.turbo/
+
+# --- Foundry (contracts/) ---
+contracts/out/
+contracts/cache/
+contracts/broadcast/*/*/dry-run/
+
+# --- Python ---
+__pycache__/
+*.pyc
+
+# --- Logs ---
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
