@@ -2,6 +2,7 @@
 docs/
 
 # --- Editor / AI tooling scratch ---
+.claude/
 .codex/
 .cursor/
 .superpowers/
