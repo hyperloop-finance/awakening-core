@@ -450,7 +450,6 @@ contract Awakening is IAwakening {
             payer
         );
 
-        bool wasLocked = UtilsLib.tExchange(LIQUIDATION_LOCK_SLOT, id, seller, true);
         if (buyerCallback != address(0)) {
             bytes memory buyerCallbackData = offer.buy ? offer.callbackData : takerCallbackData;
             require(
@@ -481,8 +480,7 @@ contract Awakening is IAwakening {
                 WrongSellCallbackReturnValue()
             );
         }
-        if (!wasLocked) UtilsLib.tExchange(LIQUIDATION_LOCK_SLOT, id, seller, false);
-        require(liquidationLocked(id, seller) || isHealthy(offer.market, id, seller), SellerIsLiquidatable());
+        require(isHealthy(offer.market, id, seller), SellerIsLiquidatable());
 
         return (buyerAssets, sellerAssets);
     }
@@ -795,10 +793,6 @@ contract Awakening is IAwakening {
 
     function lastAccrual(bytes32 id, address user) external view returns (uint128) {
         return position[id][user].lastAccrual;
-    }
-
-    function liquidationLocked(bytes32 id, address user) public view returns (bool) {
-        return UtilsLib.tGet(LIQUIDATION_LOCK_SLOT, id, user);
     }
 
     /// @dev This function should be called with the id corresponding to the market.

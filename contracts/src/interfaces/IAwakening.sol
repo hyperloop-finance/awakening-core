@@ -178,7 +178,6 @@ interface IAwakening {
     function continuousFeeCredit(bytes32 id) external view returns (uint128);
     function pendingFee(bytes32 id, address user) external view returns (uint128);
     function lastAccrual(bytes32 id, address user) external view returns (uint128);
-    function liquidationLocked(bytes32 id, address user) external view returns (bool);
     function isHealthy(Market memory market, bytes32 id, address borrower) external view returns (bool);
     function settlementFee(bytes32 id, uint256 timeToMaturity) external view returns (uint256);
     // forgefmt: disable-end

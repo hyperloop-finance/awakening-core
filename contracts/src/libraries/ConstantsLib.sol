@@ -21,7 +21,6 @@ uint256 constant MAX_COLLATERALS = 128;
 uint256 constant MAX_COLLATERALS_PER_BORROWER = 16;
 uint256 constant LIQUIDATION_CURSOR_LOW = 0.25e18;
 uint256 constant LIQUIDATION_CURSOR_HIGH = 0.5e18;
-uint256 constant LIQUIDATION_LOCK_SLOT = uint256(keccak256("hyperloop.awakening.liquidationLocked"));
 bytes32 constant CALLBACK_SUCCESS = keccak256("hyperloop.awakening.callbackSuccess");
 uint8 constant DEFAULT_TICK_SPACING = 4;
 
