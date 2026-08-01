@@ -1,0 +1,29 @@
+name: awakening-local
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: awakening-postgres
+    environment:
+      POSTGRES_USER: awakening
+      POSTGRES_PASSWORD: awakening
+      POSTGRES_DB: awakening
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U awakening"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  anvil:
+    image: ghcr.io/foundry-rs/foundry:latest
+    container_name: awakening-anvil
+    command: 'anvil --host 0.0.0.0 --chain-id 31337 --accounts 10 --balance 10000'
+    ports:
+      - "8545:8545"
+
+volumes:
+  postgres-data:
