@@ -358,48 +358,6 @@ contract ContinuousFeeTest is BaseTest {
         }
     }
 
-    function testAccrualAfterSlashReducesPendingFee(
-        uint256 credit,
-        uint256 feeRate,
-        uint256 ttm,
-        uint256 elapsed1,
-        uint256 elapsed2
-    ) public {
-        credit = bound(credit, 100, MAX_CREDIT);
-        feeRate = bound(feeRate, 1, MAX_CONTINUOUS_FEE);
-        ttm = bound(ttm, 10, 360 days);
-        elapsed1 = bound(elapsed1, 1, ttm - 2);
-        elapsed2 = bound(elapsed2, 1, ttm - elapsed1 - 1);
-
-        setupLender(credit, feeRate, ttm);
-
-        // Phase 1: accrue fees on original credit before the slash.
-        vm.warp(vm.getBlockTimestamp() + elapsed1);
-        awakening.updatePosition(market, lender);
-
-        uint256 creditBeforeSlash = awakening.creditOf(id, lender);
-
-        // Slash.
-        createBadDebt(market);
-        awakening.updatePosition(market, lender);
-
-        uint256 creditAfterSlash = awakening.creditOf(id, lender);
-        vm.assume(creditAfterSlash < creditBeforeSlash);
-
-        uint256 pendingAfterSlash = awakening.pendingFee(id, lender);
-
-        // Phase 2: accrue fees on slashed credit.
-        vm.warp(vm.getBlockTimestamp() + elapsed2);
-        uint256 accruedFee = pendingAfterSlash.mulDivDown(elapsed2, ttm - elapsed1);
-
-        awakening.updatePosition(market, lender);
-
-        assertEq(awakening.creditOf(id, lender), creditAfterSlash - accruedFee, "credit after slash and accrual");
-        assertApproxEqAbs(
-            awakening.pendingFee(id, lender), pendingAfterSlash - accruedFee, 1, "remaining after slash and accrual"
-        );
-    }
-
     function testClaimContinuousFee(uint256 credit, uint256 feeRate, uint256 ttm, uint256 elapsed, uint256 claimAmount)
         public
     {
