@@ -1,5 +1,6 @@
 # --- Internal docs (kept local, not published) ---
 docs/
+todo.md
 
 # --- Editor / AI tooling scratch ---
 .claude/
