@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Awakening Frontend
 
-## Getting Started
+Next.js 15 (App Router) + TypeScript + Tailwind + wagmi v2 + RainbowKit.
 
-First, run the development server:
+See `../Awakening Implementation Plan.md` §Phase 3 for the milestone plan.
+This scaffold delivers Milestone 3A (setup) + empty page shells for
+Milestones 3B / 3C / 3D / 3E. No live data yet.
+
+## Prerequisites
+
+- Node 22+
+- pnpm 9+
+
+## Setup
+
+1. Copy env template:
+   ```bash
+   cp .env.local.example .env.local
+   ```
+2. Fill in `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` — get one at
+   https://cloud.walletconnect.com. Without this, wallet connect UI will
+   render but connections will fail.
+3. Optionally set `NEXT_PUBLIC_SEPOLIA_RPC_URL` (defaults to `https://sepolia.drpc.org`).
+
+## Development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Serves on http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm build
+pnpm start
+```
 
-## Learn More
+## Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+├── app/
+│   ├── layout.tsx          Root layout + <Providers>
+│   ├── page.tsx            Landing page with ConnectButton
+│   ├── providers.tsx       Wagmi + RainbowKit + react-query providers
+│   ├── markets/            Milestone 3B
+│   ├── borrow/[marketId]/  Milestone 3C
+│   ├── lend/[marketId]/    Milestone 3D
+│   └── portfolio/          Milestone 3E
+└── lib/
+    └── wagmi.ts            Chain + RPC + wallet config
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deployment
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Vercel (per Appendix B decision). Set the three
+`NEXT_PUBLIC_*` env vars in the Vercel project.
