@@ -3,13 +3,13 @@
 pragma solidity ^0.8.0;
 
 import {IAwakening, Market, Offer, CollateralParams} from "../src/interfaces/IAwakening.sol";
-import {IEnterGate, ILiquidatorGate} from "../src/interfaces/IGate.sol";
+import {IEnterGate} from "../src/interfaces/IGate.sol";
 import {LIQUIDATION_CURSOR_LOW, ORACLE_PRICE_SCALE} from "../src/libraries/ConstantsLib.sol";
 import {MAX_TICK} from "../src/libraries/TickLib.sol";
 import {BaseTest, MAX_TEST_AMOUNT} from "./BaseTest.sol";
 import {Oracle} from "./helpers/Oracle.sol";
 
-contract WhitelistGate is IEnterGate, ILiquidatorGate {
+contract WhitelistGate is IEnterGate {
     mapping(address => bool) public whitelisted;
 
     function setWhitelisted(address account, bool status) external {
@@ -24,9 +24,6 @@ contract WhitelistGate is IEnterGate, ILiquidatorGate {
         return whitelisted[account];
     }
 
-    function canLiquidate(address account) external view returns (bool) {
-        return whitelisted[account];
-    }
 }
 
 contract GateTest is BaseTest {
@@ -262,41 +259,6 @@ contract GateTest is BaseTest {
         awakening.withdraw(gatedMarket, units, lender, lender);
 
         assertEq(awakening.creditOf(gatedId, lender), 0, "lender should have withdrawn");
-    }
-
-    // --- Liquidator gate tests ---
-
-    function testLiquidatorGateOnLiquidation(uint256 units, bool isWhitelisted) public {
-        units = bound(units, 1, MAX_TEST_AMOUNT * 3 / 4);
-        gate.setWhitelisted(lender, true);
-        gate.setWhitelisted(borrower, true);
-        gate.setWhitelisted(liquidator, isWhitelisted);
-
-        collateralize(gatedMarket, borrower, units);
-        take(units, lender, borrowerOffer);
-
-        Oracle(gatedMarket.collateralParams[0].oracle).setPrice(ORACLE_PRICE_SCALE / 2);
-
-        deal(address(loanToken), liquidator, units);
-        vm.prank(liquidator);
-        if (!isWhitelisted) vm.expectRevert(IAwakening.LiquidatorGatedFromLiquidating.selector);
-        awakening.liquidate(gatedMarket, 0, 1, 0, borrower, false, address(this), address(0), "");
-    }
-
-    function testLiquidatorGateOnBadDebt(uint256 units, bool isWhitelisted) public {
-        units = bound(units, 1, MAX_TEST_AMOUNT * 3 / 4);
-        gate.setWhitelisted(lender, true);
-        gate.setWhitelisted(borrower, true);
-        gate.setWhitelisted(liquidator, isWhitelisted);
-
-        collateralize(gatedMarket, borrower, units);
-        take(units, lender, borrowerOffer);
-
-        Oracle(gatedMarket.collateralParams[0].oracle).setPrice(0);
-
-        vm.prank(liquidator);
-        if (!isWhitelisted) vm.expectRevert(IAwakening.LiquidatorGatedFromLiquidating.selector);
-        awakening.liquidate(gatedMarket, 0, 0, 0, borrower, false, address(this), address(0), "");
     }
 
     // --- Default (no gate) tests ---

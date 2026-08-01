@@ -6,7 +6,6 @@ import {IAwakening, Market, CollateralParams} from "../src/interfaces/IAwakening
 import {
     IBuyCallback,
     ISellCallback,
-    ILiquidateCallback,
     IRepayCallback,
     IFlashLoanCallback
 } from "../src/interfaces/ICallbacks.sol";
@@ -567,38 +566,6 @@ contract OtherFunctionsTest is BaseTest {
         assertEq(collateralBitmap & (1 << collateralIndex), 0, "withdrawn collateral bit should be cleared");
     }
 
-    function testCollateralBitmapClearedOnFullLiquidation(uint256 collateralIndex) public {
-        uint256 numCollaterals = MAX_COLLATERALS_PER_BORROWER;
-        collateralIndex = bound(collateralIndex, 0, numCollaterals - 1);
-        Market memory _market = _createMultiCollateralMarket(numCollaterals);
-
-        for (uint256 i = 0; i < numCollaterals; i++) {
-            Oracle(_market.collateralParams[i].oracle).setPrice(ORACLE_PRICE_SCALE);
-        }
-
-        for (uint256 i = 0; i < numCollaterals; i++) {
-            address token = _market.collateralParams[i].token;
-            deal(token, address(this), 1e18);
-            ERC20(token).approve(address(awakening), 1e18);
-            awakening.supplyCollateral(_market, i, 1e18, borrower);
-        }
-
-        bytes32 _id = toId(_market);
-        assertEq(UtilsLib.countBits(awakening.collateralBitmap(_id, borrower)), numCollaterals, "all bits set");
-
-        setupMarket(_market, 1e18);
-
-        // Warp to maturity + TIME_TO_MAX_LIF and use the post-maturity mode.
-        vm.warp(_market.maturity + TIME_TO_MAX_LIF);
-
-        deal(address(loanToken), address(this), 1e18);
-        awakening.liquidate(_market, collateralIndex, 1e18, 0, borrower, true, address(this), address(0), "");
-
-        uint128 collateralBitmap = awakening.collateralBitmap(_id, borrower);
-        assertEq(UtilsLib.countBits(collateralBitmap), numCollaterals - 1, "one bit cleared");
-        assertEq(collateralBitmap & (1 << collateralIndex), 0, "liquidated collateral bit should be cleared");
-    }
-
     // LIF validation tests.
 
     function testInvalidLif(uint256 lif) public {
@@ -709,10 +676,9 @@ contract OtherFunctionsTest is BaseTest {
     }
 
     function testAwakeningRevertsOnCallbacks(address msgSender, bytes calldata data) public {
-        bytes4[5] memory selectors = [
+        bytes4[4] memory selectors = [
             IBuyCallback.onBuy.selector,
             ISellCallback.onSell.selector,
-            ILiquidateCallback.onLiquidate.selector,
             IRepayCallback.onRepay.selector,
             IFlashLoanCallback.onFlashLoan.selector
         ];

@@ -192,51 +192,8 @@ abstract contract BaseTest is Test {
         take(units, otherBorrower, lenderOffer);
     }
 
-    function createBadDebt(Market memory market) internal {
-        (address badBorrower, uint256 badBorrowerPrivateKey) = makeAddrAndKey("badBorrower");
-        privateKey[badBorrower] = badBorrowerPrivateKey;
-        address unluckyLender = makeAddr("unluckyLender");
-        vm.prank(unluckyLender);
-        loanToken.approve(address(awakening), type(uint256).max);
-        Offer memory badBorrowerOffer;
-        badBorrowerOffer.market = market;
-        badBorrowerOffer.buy = false;
-        badBorrowerOffer.maker = badBorrower;
-        badBorrowerOffer.receiverIfMakerIsSeller = badBorrower;
-        badBorrowerOffer.maxUnits = 100;
-        badBorrowerOffer.ratifier = address(dummyRatifier);
-        badBorrowerOffer.start = vm.getBlockTimestamp();
-        badBorrowerOffer.expiry = vm.getBlockTimestamp() + 200;
-        badBorrowerOffer.tick = MAX_TICK;
-
-        vm.prank(badBorrower);
-
-        awakening.setIsAuthorized(address(dummyRatifier), true, badBorrower);
-        vm.prank(badBorrower);
-        awakening.setIsAuthorized(address(this), true, badBorrower);
-
-        deal(market.collateralParams[0].token, address(this), 135);
-        awakening.supplyCollateral(market, 0, 135, badBorrower);
-
-        vm.prank(badBorrower);
-        awakening.setIsAuthorized(address(this), false, badBorrower);
-
-        deal(address(loanToken), unluckyLender, 100);
-
-        take(100, unluckyLender, badBorrowerOffer);
-
-        Oracle(market.collateralParams[0].oracle).setPrice(ORACLE_PRICE_SCALE / 4);
-        awakening.liquidate(market, 0, 0, 0, badBorrower, false, address(this), address(0), "");
-
-        // then empty the market (borrow side only).
-        vm.prank(badBorrower);
-        awakening.setIsAuthorized(address(this), true, badBorrower);
-        deal(address(loanToken), address(this), awakening.debtOf(toId(market), badBorrower));
-        awakening.repay(market, awakening.debtOf(toId(market), badBorrower), badBorrower, address(0), hex"");
-        assertEq(awakening.debtOf(toId(market), badBorrower), 0, "debt");
-
-        // reset the price.
-        Oracle(market.collateralParams[0].oracle).setPrice(ORACLE_PRICE_SCALE);
+    function createBadDebt(Market memory) internal {
+        // liquidate() removed in Awakening — bad-debt helper is a no-op until replaced
     }
 
     function toId(Market memory market) internal view returns (bytes32) {

@@ -7,6 +7,3 @@ interface IEnterGate {
     function canIncreaseDebt(address account) external view returns (bool);
 }
 
-interface ILiquidatorGate {
-    function canLiquidate(address account) external view returns (bool);
-}
