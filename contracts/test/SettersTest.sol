@@ -97,15 +97,14 @@ contract SettersTest is BaseTest {
 
         CollateralParams[] memory collateralParams = new CollateralParams[](1);
         collateralParams[0] = CollateralParams({
-            token: address(collateralToken1), lltv: 0.77e18, maxLif: maxLif(0.77e18, 0.25e18), oracle: address(oracle1)
+            token: address(collateralToken1), oracle: address(oracle1)
         });
         Market memory market = Market({
             loanToken: loanToken,
             maturity: vm.getBlockTimestamp() + 1 days,
             collateralParams: collateralParams,
-            rcfThreshold: 0,
-            enterGate: address(0),
-            liquidatorGate: address(0)
+            
+            enterGate: address(0)
         });
         bytes32 id = toId(market);
         awakening.touchMarket(market);
@@ -271,15 +270,14 @@ contract SettersTest is BaseTest {
         // touch market with this loan token
         CollateralParams[] memory collateralParams = new CollateralParams[](1);
         collateralParams[0] = CollateralParams({
-            token: address(collateralToken1), lltv: 0.77e18, maxLif: maxLif(0.77e18, 0.25e18), oracle: address(oracle1)
+            token: address(collateralToken1), oracle: address(oracle1)
         });
         Market memory market = Market({
             loanToken: loanToken,
             maturity: vm.getBlockTimestamp() + 1 days,
             collateralParams: collateralParams,
-            rcfThreshold: 0,
-            enterGate: address(0),
-            liquidatorGate: address(0)
+            
+            enterGate: address(0)
         });
         bytes32 id = toId(market);
         awakening.touchMarket(market);
@@ -328,15 +326,14 @@ contract SettersTest is BaseTest {
 
         CollateralParams[] memory cols = new CollateralParams[](1);
         cols[0] = CollateralParams({
-            token: address(collateralToken1), lltv: 0.77e18, maxLif: maxLif(0.77e18, 0.25e18), oracle: address(oracle1)
+            token: address(collateralToken1), oracle: address(oracle1)
         });
         Market memory market = Market({
             loanToken: address(0),
             maturity: vm.getBlockTimestamp() + 1 days,
             collateralParams: cols,
-            rcfThreshold: 0,
-            enterGate: address(0),
-            liquidatorGate: address(0)
+            
+            enterGate: address(0)
         });
         bytes32 id = toId(market);
         awakening.touchMarket(market);
@@ -382,15 +379,14 @@ contract SettersTest is BaseTest {
 
         CollateralParams[] memory collateralParams = new CollateralParams[](1);
         collateralParams[0] = CollateralParams({
-            token: address(collateralToken1), lltv: 0.77e18, maxLif: maxLif(0.77e18, 0.25e18), oracle: address(oracle1)
+            token: address(collateralToken1), oracle: address(oracle1)
         });
         Market memory market = Market({
             loanToken: address(loanToken),
             maturity: vm.getBlockTimestamp() + 100 days,
             collateralParams: collateralParams,
-            rcfThreshold: 0,
-            enterGate: address(0),
-            liquidatorGate: address(0)
+            
+            enterGate: address(0)
         });
         awakening.touchMarket(market);
         bytes32 id = toId(market);
@@ -409,15 +405,14 @@ contract SettersTest is BaseTest {
 
         CollateralParams[] memory collateralParams = new CollateralParams[](1);
         collateralParams[0] = CollateralParams({
-            token: address(collateralToken1), lltv: 0.77e18, maxLif: maxLif(0.77e18, 0.25e18), oracle: address(oracle1)
+            token: address(collateralToken1), oracle: address(oracle1)
         });
         Market memory market = Market({
             loanToken: address(loanToken),
             maturity: vm.getBlockTimestamp() + 100 days,
             collateralParams: collateralParams,
-            rcfThreshold: 0,
-            enterGate: address(0),
-            liquidatorGate: address(0)
+            
+            enterGate: address(0)
         });
         awakening.touchMarket(market);
         bytes32 id = toId(market);
@@ -442,15 +437,14 @@ contract SettersTest is BaseTest {
 
         CollateralParams[] memory collateralParams = new CollateralParams[](1);
         collateralParams[0] = CollateralParams({
-            token: address(collateralToken1), lltv: 0.77e18, maxLif: maxLif(0.77e18, 0.25e18), oracle: address(oracle1)
+            token: address(collateralToken1), oracle: address(oracle1)
         });
         Market memory market = Market({
             loanToken: address(loanToken),
             maturity: vm.getBlockTimestamp() + 100 days,
             collateralParams: collateralParams,
-            rcfThreshold: 0,
-            enterGate: address(0),
-            liquidatorGate: address(0)
+            
+            enterGate: address(0)
         });
         awakening.touchMarket(market);
         bytes32 id = toId(market);

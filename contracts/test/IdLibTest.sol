@@ -16,16 +16,9 @@ contract IdLibTest is Test {
         bool sameLoanToken = market1.loanToken == market2.loanToken;
         bool sameMaturity = market1.maturity == market2.maturity;
         bool sameCollaterals = market1.collateralParams.length == market2.collateralParams.length;
-        bool sameRcfThreshold = market1.rcfThreshold == market2.rcfThreshold;
         if (sameCollaterals) {
             for (uint256 i = 0; i < market1.collateralParams.length; i++) {
                 if (market1.collateralParams[i].token != market2.collateralParams[i].token) {
-                    sameCollaterals = false;
-                }
-                if (market1.collateralParams[i].lltv != market2.collateralParams[i].lltv) {
-                    sameCollaterals = false;
-                }
-                if (market1.collateralParams[i].maxLif != market2.collateralParams[i].maxLif) {
                     sameCollaterals = false;
                 }
                 if (market1.collateralParams[i].oracle != market2.collateralParams[i].oracle) {
@@ -34,7 +27,7 @@ contract IdLibTest is Test {
             }
         }
 
-        vm.assume(!(sameLoanToken && sameMaturity && sameCollaterals && sameRcfThreshold));
+        vm.assume(!(sameLoanToken && sameMaturity && sameCollaterals));
 
         bytes32 id1 = IdLib.toId(market1, chainid, awakening);
         bytes32 id2 = IdLib.toId(market2, chainid, awakening);

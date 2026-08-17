@@ -10,9 +10,9 @@ import {
 } from "../src/ratifiers/libraries/HashLib.sol";
 import {Market} from "../src/interfaces/IAwakening.sol";
 
-bytes constant COLLATERAL_PARAMS_TYPE = "CollateralParams(address token,uint256 lltv,uint256 maxLif,address oracle)";
+bytes constant COLLATERAL_PARAMS_TYPE = "CollateralParams(address token,address oracle)";
 bytes constant MARKET_TYPE =
-    "Market(address loanToken,CollateralParams[] collateralParams,uint256 maturity,uint256 rcfThreshold,address enterGate,address liquidatorGate)";
+    "Market(address loanToken,CollateralParams[] collateralParams,uint256 maturity,address enterGate)";
 bytes constant OFFER_TYPE =
     "Offer(Market market,bool buy,address maker,uint256 start,uint256 expiry,uint256 tick,bytes32 group,address callback,bytes callbackData,address receiverIfMakerIsSeller,address ratifier,bool reduceOnly,uint256 maxUnits,uint256 maxAssets)";
 
@@ -40,9 +40,7 @@ contract HashLibTest is Test {
                 market.loanToken,
                 keccak256(abi.encodePacked(collateralParamsHashes)),
                 market.maturity,
-                market.rcfThreshold,
-                market.enterGate,
-                market.liquidatorGate
+                market.enterGate
             )
         );
         assertEq(HashLib.hashMarket(market), expectedHash);

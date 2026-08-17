@@ -25,22 +25,12 @@ contract TakeAmountsTest is BaseTest {
             .push(
                 CollateralParams({
                     token: address(collateralToken1),
-                    lltv: 0.77e18,
-                    maxLif: maxLif(0.77e18, 0.25e18),
+                    
+                    
                     oracle: address(oracle1)
                 })
             );
-        market.collateralParams
-            .push(
-                CollateralParams({
-                    token: address(collateralToken2),
-                    lltv: 0.77e18,
-                    maxLif: maxLif(0.77e18, 0.25e18),
-                    oracle: address(oracle2)
-                })
-            );
-        market.collateralParams = sortCollateralParams(market.collateralParams);
-        market.rcfThreshold = 0;
+                market.collateralParams = sortCollateralParams(market.collateralParams);
 
         id = toId(market);
 

@@ -6,15 +6,11 @@ struct Market {
     address loanToken;
     CollateralParams[] collateralParams;
     uint256 maturity;
-    uint256 rcfThreshold;
     address enterGate;
-    address liquidatorGate;
 }
 
 struct CollateralParams {
     address token;
-    uint256 lltv;
-    uint256 maxLif;
     address oracle;
 }
 
@@ -39,7 +35,6 @@ struct Offer {
 /// values.
 struct MarketState {
     uint128 totalUnits;
-    uint128 lossFactor;
     uint128 withdrawable;
     uint128 continuousFeeCredit;
     uint16 settlementFeeCbp0;
@@ -56,7 +51,6 @@ struct MarketState {
 struct Position {
     uint128 credit;
     uint128 pendingFee;
-    uint128 lastLossFactor;
     uint128 lastAccrual;
     uint128 debt;
     uint128 collateralBitmap;
@@ -68,7 +62,6 @@ interface IAwakening {
     error AlreadyConsumed();
     error BuyerGatedFromIncreasingCredit();
     error CannotIncreaseDebtPostMaturity();
-    error CollateralParamsNotSorted();
     error ConsumedAssets();
     error ConsumedUnits();
     error ContinuousFeeTooHigh();
@@ -77,20 +70,13 @@ interface IAwakening {
     error WrongBuyCallbackReturnValue();
     error WrongSellCallbackReturnValue();
     error WrongRepayCallbackReturnValue();
-    error WrongLiquidateCallbackReturnValue();
     error WrongFlashLoanCallbackReturnValue();
+    error InvalidCollateralParams();
     error InvalidFeeIndex();
-    error InvalidMaxLif();
     error InvalidOfferCaps();
     error InvalidTickSpacing();
-    error LiquidatorGatedFromLiquidating();
-    error LltvNotAllowed();
     error MakerCreditOrDebtIncreased();
     error MaturityTooFar();
-    error NoCollateralParams();
-    error NotBorrower();
-    error NotLiquidatable();
-    error MarketLossFactorMaxedOut();
     error MarketNotCreated();
     error OfferExpired();
     error OfferNotStarted();
@@ -100,17 +86,13 @@ interface IAwakening {
     error OnlyTickSpacingSetter();
     error RatifierFail();
     error RatifierUnauthorized();
-    error RecoveryCloseFactorConditionsViolated();
     error SelfTake();
     error SellerGatedFromIncreasingDebt();
-    error SellerIsLiquidatable();
     error TakerUnauthorized();
     error TickNotAccessible();
     error TooManyActivatedCollaterals();
-    error TooManyCollateralParams();
     error SettlementFeeTooHigh();
     error Unauthorized();
-    error UnhealthyBorrower();
     error UnusedReceiverMustBeZero();
 
     // forgefmt: disable-start
@@ -118,8 +100,8 @@ interface IAwakening {
     function INITIAL_CHAIN_ID() external view returns (uint256);
 
     /// STORAGE GETTERS ///
-    function position(bytes32 id, address user) external view returns (uint128 credit, uint128 pendingFee, uint128 lastLossFactor, uint128 lastAccrual, uint128 debt, uint128 collateralBitmap);
-    function marketState(bytes32 id) external view returns (uint128 totalUnits, uint128 lossFactor, uint128 withdrawable, uint128 continuousFeeCredit, uint16 settlementFeeCbp0, uint16 settlementFeeCbp1, uint16 settlementFeeCbp2, uint16 settlementFeeCbp3, uint16 settlementFeeCbp4, uint16 settlementFeeCbp5, uint16 settlementFeeCbp6, uint32 continuousFee, uint8 tickSpacing);
+    function position(bytes32 id, address user) external view returns (uint128 credit, uint128 pendingFee, uint128 lastAccrual, uint128 debt, uint128 collateralBitmap);
+    function marketState(bytes32 id) external view returns (uint128 totalUnits, uint128 withdrawable, uint128 continuousFeeCredit, uint16 settlementFeeCbp0, uint16 settlementFeeCbp1, uint16 settlementFeeCbp2, uint16 settlementFeeCbp3, uint16 settlementFeeCbp4, uint16 settlementFeeCbp5, uint16 settlementFeeCbp6, uint32 continuousFee, uint8 tickSpacing);
     function consumed(address user, bytes32 group) external view returns (uint256);
     function isAuthorized(address authorizer, address authorized) external view returns (bool);
     function defaultSettlementFeeCbp(address loanToken, uint256 index) external view returns (uint16);
@@ -157,12 +139,11 @@ interface IAwakening {
     function flashLoan(address[] memory tokens, uint256[] memory assets, address callback, bytes memory data) external;
     function touchMarket(Market memory market) external returns (bytes32);
 
-    /// SLASHING AND CONTINUOUS FEE ACCRUAL ///
+    /// CONTINUOUS FEE ACCRUAL ///
     function updatePositionView(Market memory market, bytes32 id, address user) external view returns (uint128, uint128, uint128);
     function updatePosition(Market memory market, address user) external returns (uint128, uint128, uint128);
 
     /// OTHER VIEW FUNCTIONS ///
-    function lastLossFactor(bytes32 id, address user) external view returns (uint128);
     function collateralBitmap(bytes32 id, address user) external view returns (uint128);
     function collateral(bytes32 id, address user, uint256 index) external view returns (uint128);
     function toId(Market memory market) external view returns (bytes32);
@@ -170,7 +151,6 @@ interface IAwakening {
     function creditOf(bytes32 id, address user) external view returns (uint128);
     function debtOf(bytes32 id, address user) external view returns (uint128);
     function totalUnits(bytes32 id) external view returns (uint128);
-    function lossFactor(bytes32 id) external view returns (uint128);
     function tickSpacing(bytes32 id) external view returns (uint8);
     function withdrawable(bytes32 id) external view returns (uint128);
     function settlementFeeCbps(bytes32 id) external view returns (uint16[7] memory);
@@ -178,7 +158,6 @@ interface IAwakening {
     function continuousFeeCredit(bytes32 id) external view returns (uint128);
     function pendingFee(bytes32 id, address user) external view returns (uint128);
     function lastAccrual(bytes32 id, address user) external view returns (uint128);
-    function isHealthy(Market memory market, bytes32 id, address borrower) external view returns (bool);
     function settlementFee(bytes32 id, uint256 timeToMaturity) external view returns (uint256);
     // forgefmt: disable-end
 }

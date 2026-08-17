@@ -14,18 +14,9 @@ import {IdLib} from "../src/libraries/IdLib.sol";
 import {EventsLib} from "../src/libraries/EventsLib.sol";
 
 import {ERC20} from "./erc20s/ERC20.sol";
-import {Oracle} from "./helpers/Oracle.sol";
 import {RevertingOracle} from "./helpers/RevertingOracle.sol";
 import {BaseTest, MAX_TEST_AMOUNT} from "./BaseTest.sol";
-import {
-    MAX_COLLATERALS,
-    MAX_COLLATERALS_PER_BORROWER,
-    MAX_CONTINUOUS_FEE,
-    WAD,
-    ORACLE_PRICE_SCALE,
-    TIME_TO_MAX_LIF,
-    CALLBACK_SUCCESS
-} from "../src/libraries/ConstantsLib.sol";
+import {MAX_CONTINUOUS_FEE, CALLBACK_SUCCESS} from "../src/libraries/ConstantsLib.sol";
 import {UtilsLib} from "../src/libraries/UtilsLib.sol";
 
 // Collateral = units / lltv (~1.33x). Some tests add additional collateral on top.
@@ -47,22 +38,12 @@ contract OtherFunctionsTest is BaseTest {
             .push(
                 CollateralParams({
                     token: address(collateralToken1),
-                    lltv: 0.77e18,
-                    maxLif: maxLif(0.77e18, 0.25e18),
+                    
+                    
                     oracle: address(oracle1)
                 })
             );
-        market.collateralParams
-            .push(
-                CollateralParams({
-                    token: address(collateralToken2),
-                    lltv: 0.77e18,
-                    maxLif: maxLif(0.77e18, 0.25e18),
-                    oracle: address(oracle2)
-                })
-            );
-        market.collateralParams = sortCollateralParams(market.collateralParams);
-        market.rcfThreshold = 0;
+                market.collateralParams = sortCollateralParams(market.collateralParams);
 
         vm.prank(borrower);
 
@@ -99,24 +80,6 @@ contract OtherFunctionsTest is BaseTest {
             ERC20(collateralToken).balanceOf(address(awakening)), initialCollateral - withdraw, "balance of awakening"
         );
         assertEq(ERC20(collateralToken).balanceOf(borrower), withdraw, "balance of borrower");
-    }
-
-    function testWithdrawCollateralWithBorrowUnhealthy(uint256 additionalCollateral, uint256 withdraw, uint256 units)
-        public
-    {
-        units = bound(units, 1, MAX_UNITS);
-        additionalCollateral = bound(additionalCollateral, 0, MAX_UNITS);
-        address collateralToken = market.collateralParams[0].token;
-        collateralize(market, borrower, units);
-        setupMarket(market, units);
-        deal(collateralToken, address(this), additionalCollateral);
-        awakening.supplyCollateral(market, 0, additionalCollateral, borrower);
-        uint256 initialCollateral = awakening.collateral(id, borrower, 0);
-        withdraw = bound(withdraw, additionalCollateral + 1, initialCollateral);
-
-        vm.prank(borrower);
-        vm.expectRevert(IAwakening.UnhealthyBorrower.selector);
-        awakening.withdrawCollateral(market, 0, withdraw, borrower, borrower);
     }
 
     function testRepay(uint256 units, uint256 repaid) public {
@@ -275,8 +238,6 @@ contract OtherFunctionsTest is BaseTest {
         assertEq(_market.collateralParams.length, marketFromId.collateralParams.length, "collateralParams length");
         for (uint256 i = 0; i < marketFromId.collateralParams.length; i++) {
             assertEq(_market.collateralParams[i].token, marketFromId.collateralParams[i].token, "collateral token");
-            assertEq(_market.collateralParams[i].lltv, marketFromId.collateralParams[i].lltv, "lltv");
-            assertEq(_market.collateralParams[i].maxLif, marketFromId.collateralParams[i].maxLif, "maxLif");
             assertEq(_market.collateralParams[i].oracle, marketFromId.collateralParams[i].oracle, "oracle");
         }
     }
@@ -332,8 +293,8 @@ contract OtherFunctionsTest is BaseTest {
         CollateralParams[] memory collateralParams = new CollateralParams[](1);
         collateralParams[0] = CollateralParams({
             token: address(collateralToken1),
-            lltv: 0.77e18,
-            maxLif: maxLif(0.77e18, 0.25e18),
+            
+            
             oracle: address(revertingOracle)
         });
 
@@ -356,8 +317,8 @@ contract OtherFunctionsTest is BaseTest {
         CollateralParams[] memory collateralParams = new CollateralParams[](1);
         collateralParams[0] = CollateralParams({
             token: address(collateralToken1),
-            lltv: 0.77e18,
-            maxLif: maxLif(0.77e18, 0.25e18),
+            
+            
             oracle: address(revertingOracle)
         });
 
@@ -378,24 +339,6 @@ contract OtherFunctionsTest is BaseTest {
         awakening.withdrawCollateral(marketWithRevertingOracle, 0, collateral, borrower, borrower);
     }
 
-    // CollateralBitmap tests.
-
-    function _createMultiCollateralMarket(uint256 numCollaterals) internal returns (Market memory _market) {
-        CollateralParams[] memory collateralParams = new CollateralParams[](numCollaterals);
-        for (uint256 i = 0; i < numCollaterals; i++) {
-            ERC20 token = new ERC20("", "");
-            Oracle _oracle = new Oracle();
-            collateralParams[i] = CollateralParams({
-                token: address(token), lltv: 0.77e18, maxLif: maxLif(0.77e18, 0.25e18), oracle: address(_oracle)
-            });
-        }
-        collateralParams = sortCollateralParams(collateralParams);
-        _market.loanToken = address(loanToken);
-        _market.maturity = vm.getBlockTimestamp() + 100;
-        _market.collateralParams = collateralParams;
-        _market.rcfThreshold = 0;
-    }
-
     function testMaturityTooFar(uint256 maturity) public {
         maturity = bound(maturity, vm.getBlockTimestamp() + 100 * 365 days + 1, type(uint256).max);
         Market memory longMarket;
@@ -405,215 +348,6 @@ contract OtherFunctionsTest is BaseTest {
 
         vm.expectRevert(IAwakening.MaturityTooFar.selector);
         awakening.touchMarket(longMarket);
-    }
-
-    function testZeroCollaterals() public {
-        Market memory _market;
-        _market.loanToken = address(loanToken);
-        _market.maturity = vm.getBlockTimestamp() + 100;
-        _market.collateralParams = new CollateralParams[](0);
-        vm.expectRevert(IAwakening.NoCollateralParams.selector);
-        awakening.touchMarket(_market);
-    }
-
-    function testMaxCollaterals(uint256 numCollaterals) public {
-        numCollaterals = bound(numCollaterals, MAX_COLLATERALS + 1, 1000);
-        Market memory _market = _createMultiCollateralMarket(numCollaterals);
-
-        vm.expectRevert(IAwakening.TooManyCollateralParams.selector);
-        awakening.touchMarket(_market);
-    }
-
-    function testExactMaxCollaterals() public {
-        Market memory _market = _createMultiCollateralMarket(MAX_COLLATERALS);
-
-        bytes32 _id = awakening.touchMarket(_market);
-        address sstore2Address = address(uint160(uint256(_id)));
-        Market memory marketFromId = awakening.toMarket(_id);
-
-        assertEq(awakening.tickSpacing(_id) > 0, true, "market created");
-        assertEq(sstore2Address.code.length, abi.encode(_market).length, "stored market code size");
-        assertLt(sstore2Address.code.length, 24_576, "stored market code size below EIP-170 limit");
-        assertEq(marketFromId.collateralParams.length, MAX_COLLATERALS, "collateralParams length");
-    }
-
-    function testCollateralsNotSorted() public {
-        Market memory _market;
-        _market.loanToken = address(loanToken);
-        _market.maturity = vm.getBlockTimestamp() + 100;
-        CollateralParams[] memory collateralParams = new CollateralParams[](2);
-        collateralParams[0] = CollateralParams({
-            token: address(uint160(2)), lltv: 0.77e18, maxLif: maxLif(0.77e18, 0.25e18), oracle: address(oracle1)
-        });
-        collateralParams[1] = CollateralParams({
-            token: address(uint160(1)), lltv: 0.77e18, maxLif: maxLif(0.77e18, 0.25e18), oracle: address(oracle2)
-        });
-        _market.collateralParams = collateralParams;
-        vm.expectRevert(IAwakening.CollateralParamsNotSorted.selector);
-        awakening.touchMarket(_market);
-    }
-
-    function testLltvNotAllowedAboveWad(uint256 lltv) public {
-        lltv = bound(lltv, WAD + 1, type(uint256).max);
-        Market memory _market;
-        _market.loanToken = address(loanToken);
-        _market.maturity = vm.getBlockTimestamp() + 100;
-        CollateralParams[] memory collateralParams = new CollateralParams[](1);
-        collateralParams[0] = CollateralParams({
-            token: address(collateralToken1), lltv: lltv, maxLif: maxLif(0.77e18, 0.25e18), oracle: address(oracle1)
-        });
-        _market.collateralParams = collateralParams;
-        vm.expectRevert(IAwakening.LltvNotAllowed.selector);
-        awakening.touchMarket(_market);
-    }
-
-    function testLltvNotAllowedBelowWad() public {
-        // 0.5e18 is not an allowed LLTV tier
-        uint256 lltv = 0.5e18;
-        Market memory _market;
-        _market.loanToken = address(loanToken);
-        _market.maturity = vm.getBlockTimestamp() + 100;
-        CollateralParams[] memory collateralParams = new CollateralParams[](1);
-        collateralParams[0] = CollateralParams({
-            token: address(collateralToken1), lltv: lltv, maxLif: maxLif(0.77e18, 0.25e18), oracle: address(oracle1)
-        });
-        _market.collateralParams = collateralParams;
-        vm.expectRevert(IAwakening.LltvNotAllowed.selector);
-        awakening.touchMarket(_market);
-    }
-
-    function testBelowExactMaxCollaterals(uint256 numCollaterals) public {
-        numCollaterals = bound(numCollaterals, 1, MAX_COLLATERALS - 1);
-        Market memory _market = _createMultiCollateralMarket(numCollaterals);
-
-        awakening.touchMarket(_market);
-    }
-
-    function testMaxCollateralsPerBorrower() public {
-        uint256 numCollaterals = MAX_COLLATERALS_PER_BORROWER + 1;
-        Market memory _market = _createMultiCollateralMarket(numCollaterals);
-
-        for (uint256 i = 0; i < MAX_COLLATERALS_PER_BORROWER; i++) {
-            address token = _market.collateralParams[i].token;
-            deal(token, address(this), 1e18);
-            ERC20(token).approve(address(awakening), 1e18);
-            awakening.supplyCollateral(_market, i, 1e18, borrower);
-        }
-
-        address lastToken = _market.collateralParams[numCollaterals - 1].token;
-        deal(lastToken, address(this), 1e18);
-        ERC20(lastToken).approve(address(awakening), 1e18);
-        vm.expectRevert(IAwakening.TooManyActivatedCollaterals.selector);
-        awakening.supplyCollateral(_market, numCollaterals - 1, 1e18, borrower);
-    }
-
-    function testCollateralBitmapCtzSingleCollateral(uint256 collateralIndex) public {
-        uint256 numCollaterals = MAX_COLLATERALS_PER_BORROWER;
-        collateralIndex = bound(collateralIndex, 0, numCollaterals - 1);
-        Market memory _market = _createMultiCollateralMarket(numCollaterals);
-
-        address token = _market.collateralParams[collateralIndex].token;
-        deal(token, address(this), 1e18);
-        ERC20(token).approve(address(awakening), 1e18);
-        awakening.supplyCollateral(_market, collateralIndex, 1e18, borrower);
-
-        uint128 collateralBitmap = awakening.collateralBitmap(toId(_market), borrower);
-
-        assertEq(collateralBitmap, 1 << collateralIndex, "collateralBitmap should have only bit at collateralIndex");
-        assertEq(UtilsLib.msb(collateralBitmap), collateralIndex, "msb should equal collateralIndex");
-    }
-
-    function testCollateralBitmapCountBitsAfterMultipleSupplies(uint256 k) public {
-        uint256 numCollaterals = MAX_COLLATERALS_PER_BORROWER;
-        k = bound(k, 1, numCollaterals);
-        Market memory _market = _createMultiCollateralMarket(numCollaterals);
-
-        for (uint256 i = 0; i < k; i++) {
-            address token = _market.collateralParams[i].token;
-            deal(token, address(this), 1e18);
-            ERC20(token).approve(address(awakening), 1e18);
-            awakening.supplyCollateral(_market, i, 1e18, borrower);
-        }
-
-        bytes32 _id = toId(_market);
-        uint128 collateralBitmap = awakening.collateralBitmap(_id, borrower);
-        assertEq(UtilsLib.countBits(collateralBitmap), k, "countBits should equal number of supplied collateralParams");
-        assertEq(UtilsLib.msb(collateralBitmap), k - 1, "msb should equal number of supplied collateralParams - 1");
-    }
-
-    function testCollateralBitmapClearedOnFullWithdraw(uint256 collateralIndex) public {
-        uint256 numCollaterals = MAX_COLLATERALS_PER_BORROWER;
-        collateralIndex = bound(collateralIndex, 0, numCollaterals - 1);
-        Market memory _market = _createMultiCollateralMarket(numCollaterals);
-
-        // Supply all collateralParams.
-        for (uint256 i = 0; i < numCollaterals; i++) {
-            address token = _market.collateralParams[i].token;
-            deal(token, address(this), 1e18);
-            ERC20(token).approve(address(awakening), 1e18);
-            awakening.supplyCollateral(_market, i, 1e18, borrower);
-        }
-
-        bytes32 _id = toId(_market);
-        assertEq(UtilsLib.countBits(awakening.collateralBitmap(_id, borrower)), numCollaterals, "all bits set");
-
-        // Withdraw one collateral fully.
-        vm.prank(borrower);
-        awakening.withdrawCollateral(_market, collateralIndex, 1e18, borrower, borrower);
-
-        uint128 collateralBitmap = awakening.collateralBitmap(_id, borrower);
-        assertEq(UtilsLib.countBits(collateralBitmap), numCollaterals - 1, "one bit cleared");
-        assertEq(collateralBitmap & (1 << collateralIndex), 0, "withdrawn collateral bit should be cleared");
-    }
-
-    // LIF validation tests.
-
-    function testInvalidLif(uint256 lif) public {
-        lif = bound(lif, 0, type(uint256).max);
-        uint256 lltv = 0.77e18;
-        vm.assume(lif != maxLif(lltv, 0.25e18));
-        vm.assume(lif != maxLif(lltv, 0.5e18));
-
-        Market memory _market;
-        _market.loanToken = address(loanToken);
-        _market.maturity = vm.getBlockTimestamp() + 100;
-        CollateralParams[] memory collateralParams = new CollateralParams[](1);
-        collateralParams[0] =
-            CollateralParams({token: address(collateralToken1), lltv: lltv, maxLif: lif, oracle: address(oracle1)});
-        _market.collateralParams = collateralParams;
-
-        vm.expectRevert(IAwakening.InvalidMaxLif.selector);
-        awakening.touchMarket(_market);
-    }
-
-    function testValidLifCursor025() public {
-        uint256 lltv = 0.77e18;
-        Market memory _market;
-        _market.loanToken = address(loanToken);
-        _market.maturity = vm.getBlockTimestamp() + 100;
-        CollateralParams[] memory collateralParams = new CollateralParams[](1);
-        collateralParams[0] = CollateralParams({
-            token: address(collateralToken1), lltv: lltv, maxLif: maxLif(lltv, 0.25e18), oracle: address(oracle1)
-        });
-        _market.collateralParams = collateralParams;
-
-        awakening.touchMarket(_market);
-        assertEq(awakening.tickSpacing(toId(_market)) > 0, true, "market created with cursor 0.25");
-    }
-
-    function testValidLifCursor05() public {
-        uint256 lltv = 0.77e18;
-        Market memory _market;
-        _market.loanToken = address(loanToken);
-        _market.maturity = vm.getBlockTimestamp() + 200;
-        CollateralParams[] memory collateralParams = new CollateralParams[](1);
-        collateralParams[0] = CollateralParams({
-            token: address(collateralToken1), lltv: lltv, maxLif: maxLif(lltv, 0.5e18), oracle: address(oracle1)
-        });
-        _market.collateralParams = collateralParams;
-
-        awakening.touchMarket(_market);
-        assertEq(awakening.tickSpacing(toId(_market)) > 0, true, "market created with cursor 0.5");
     }
 
     function testMarketStateGetter(Market memory _market, uint256 _defaultContinuousFee) public {
@@ -630,7 +364,6 @@ contract OtherFunctionsTest is BaseTest {
 
         (
             uint128 totalUnits,
-            uint128 _lossFactor,
             uint128 _withdrawable,
             uint128 _continuousFeeCredit,
             uint16 settlementFeeCbp0,
@@ -647,7 +380,6 @@ contract OtherFunctionsTest is BaseTest {
         uint8 expectedTickSpacing = 4;
 
         assertEq(totalUnits, 0, "totalUnits");
-        assertEq(_lossFactor, 0, "lossFactor");
         assertEq(_withdrawable, 0, "withdrawable");
         assertEq(_continuousFeeCredit, 0, "continuousFeeCredit");
         assertEq(_continuousFee, _defaultContinuousFee, "continuousFee");
@@ -668,7 +400,7 @@ contract OtherFunctionsTest is BaseTest {
         collateralize(market, borrower, units);
         setupMarket(market, units);
 
-        (uint128 totalUnits,,,,,,,,,,, uint32 _continuousFee, uint8 tickSpacing) = awakening.marketState(id);
+        (uint128 totalUnits,,,,,,,,,, uint32 _continuousFee, uint8 tickSpacing) = awakening.marketState(id);
 
         assertEq(totalUnits, units, "totalUnits after take");
         assertEq(_continuousFee, MAX_CONTINUOUS_FEE, "continuousFee after take");

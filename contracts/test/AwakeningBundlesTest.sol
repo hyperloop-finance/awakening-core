@@ -5,10 +5,9 @@ pragma solidity ^0.8.0;
 import {Market, Offer, CollateralParams} from "../src/interfaces/IAwakening.sol";
 import {UtilsLib} from "../src/libraries/UtilsLib.sol";
 import {TickLib, MAX_TICK} from "../src/libraries/TickLib.sol";
-import {WAD, ORACLE_PRICE_SCALE, DEFAULT_TICK_SPACING} from "../src/libraries/ConstantsLib.sol";
+import {WAD, DEFAULT_TICK_SPACING} from "../src/libraries/ConstantsLib.sol";
 import {ERC20} from "./erc20s/ERC20.sol";
 import {ERC20Permit} from "./erc20s/ERC20Permit.sol";
-import {Oracle} from "./helpers/Oracle.sol";
 import {AwakeningBundles} from "../src/periphery/AwakeningBundles.sol";
 import {
     IAwakeningBundles,
@@ -51,22 +50,12 @@ contract AwakeningBundlesTest is BaseTest {
             .push(
                 CollateralParams({
                     token: address(collateralToken1),
-                    lltv: 0.77e18,
-                    maxLif: maxLif(0.77e18, 0.25e18),
+                    
+                    
                     oracle: address(oracle1)
                 })
             );
-        market.collateralParams
-            .push(
-                CollateralParams({
-                    token: address(collateralToken2),
-                    lltv: 0.77e18,
-                    maxLif: maxLif(0.77e18, 0.25e18),
-                    oracle: address(oracle2)
-                })
-            );
-        market.collateralParams = sortCollateralParams(market.collateralParams);
-        market.rcfThreshold = 0;
+                market.collateralParams = sortCollateralParams(market.collateralParams);
 
         id = awakening.touchMarket(market);
 
@@ -785,10 +774,8 @@ contract AwakeningBundlesTest is BaseTest {
 
     // Collateral transfers.
 
-    function _collateralAmount(uint256 collateralIndex, uint256 debt) internal view returns (uint256) {
-        uint256 oraclePrice = Oracle(market.collateralParams[collateralIndex].oracle).price();
-        return
-            debt.mulDivUp(WAD, market.collateralParams[collateralIndex].lltv).mulDivUp(ORACLE_PRICE_SCALE, oraclePrice);
+    function _collateralAmount(uint256 collateralIndex, uint256 debt) internal pure returns (uint256) {
+        return debt;
     }
 
     function _supplyTakerCollateral(address taker, uint256 numCollaterals, uint256 units)
@@ -807,7 +794,7 @@ contract AwakeningBundlesTest is BaseTest {
     }
 
     function testBuyUnitsTargetWithCollateralWithdrawals(uint256 numCollaterals) public {
-        numCollaterals = bound(numCollaterals, 0, 2);
+        numCollaterals = bound(numCollaterals, 0, 1);
         uint256 units = 100e18;
 
         offers[0].buy = false;
@@ -846,7 +833,7 @@ contract AwakeningBundlesTest is BaseTest {
     }
 
     function testBuyBuyerAssetsTargetWithCollateralWithdrawals(uint256 numCollaterals) public {
-        numCollaterals = bound(numCollaterals, 0, 2);
+        numCollaterals = bound(numCollaterals, 0, 1);
         uint256 units = 100e18;
 
         offers[0].buy = false;
@@ -885,7 +872,7 @@ contract AwakeningBundlesTest is BaseTest {
     }
 
     function testSellUnitsTargetWithCollateralSupplies(uint256 numCollaterals) public {
-        numCollaterals = bound(numCollaterals, 1, 2);
+        numCollaterals = bound(numCollaterals, 1, 1);
         uint256 units = 100e18;
 
         offers[0].maxUnits = units;
@@ -996,7 +983,7 @@ contract AwakeningBundlesTest is BaseTest {
 
     function testSellSellerAssetsTargetWithCollateralSupplies(uint256 numCollaterals) public {
         deal(address(loanToken), address(awakeningBundles), 0);
-        numCollaterals = bound(numCollaterals, 1, 2);
+        numCollaterals = bound(numCollaterals, 1, 1);
         uint256 units = 100e18;
 
         offers[0].maxUnits = units;

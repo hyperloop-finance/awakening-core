@@ -9,33 +9,17 @@ import {SafeTransferLib} from "./libraries/SafeTransferLib.sol";
 import {EventsLib} from "./libraries/EventsLib.sol";
 import "./libraries/ConstantsLib.sol"; // forge-lint: disable-line(unaliased-plain-import)
 import "./interfaces/ICallbacks.sol"; // forge-lint: disable-line(unaliased-plain-import)
-import {IOracle} from "./interfaces/IOracle.sol";
 import {IRatifier} from "./interfaces/IRatifier.sol";
 import {IEnterGate} from "./interfaces/IGate.sol";
-import {IAwakening, Market, Offer, CollateralParams, MarketState, Position} from "./interfaces/IAwakening.sol";
+import {IAwakening, Market, Offer, MarketState, Position} from "./interfaces/IAwakening.sol";
 
 /// MARKETS
 /// @dev The maximum time to maturity is 100 years.
-/// @dev Markets have at most 128 collaterals.
-/// @dev Collaterals list must be sorted by collateral address (ascending, no duplicates), and not empty.
-/// @dev Within a market, a borrower can use at most MAX_COLLATERALS_PER_BORROWER (16) collaterals simultaneously.
-/// @dev The case LLTV = 1 is special, and should be used with care, notably:
-/// - It has no overcollateralization, so unhealthy positions will almost always realize bad debt when liquidated. In
-/// particular, the RCF (see LIQUIDATIONS section) is "inactive", meaning liquidations can always liquidate everything.
-/// - It has no liquidation incentive, so liquidators repay at exactly the oracle price (plus roundings).
+/// @dev A market has exactly one collateral (BTC), and the collateral token must be non-zero.
 /// @dev To check if a market has been touched, check if tickSpacing(marketId) > 0.
-/// @dev When some assets become withdrawable before maturity (after a repayment or a liquidation), there
+/// @dev When some assets become withdrawable before maturity (after a repayment), there
 /// is an incentive to take resting sell offers with price < 1 (more precisely price < 1 - settlementFee) and withdraw
 /// instantly. Lenders (and the fee claimer) might also race to withdraw first.
-///
-/// MULTI-COLLATERAL MARKETS
-/// @dev Borrowers can supply/withdraw their collaterals at any time, subject only to a health check on withdrawal. In
-/// particular, the borrowers of multi-collateral markets can completely change their collateral composition.
-/// @dev Liquidation reverts if any of the activated collaterals' oracle reverts (see LIVENESS).
-/// @dev Note that a borrower can activate a collateral once its oracle is reverting because the oracle is not called in
-/// supplyCollateral.
-/// @dev The oracle-quoted liquidator incentive (i.e., maxRepayable * (LIF-1)) might not be constant across activated
-/// collaterals. Hence, liquidators may have a preference order over collaterals when liquidating.
 ///
 /// SETTLEMENT FEES
 /// @dev A default settlement fee (per loan token) is set on new markets. Then, the fee setter can override it.
@@ -53,33 +37,6 @@ import {IAwakening, Market, Offer, CollateralParams, MarketState, Position} from
 /// @dev The fee is tracked per lender via pendingFee in each position. If the market's continuous fee changes, the
 /// pending fee of existing lenders is not updated (=> their fee is fixed).
 /// @dev In the absence of bad debt realizations, the face value of a lender's position is credit - pendingFee.
-///
-/// LIQUIDATIONS
-/// @dev Accounts are liquidatable only if they are either unhealthy or the maturity has passed. The liquidation
-/// shouldn't be locked either.
-/// @dev Liquidations are locked for the seller during the callbacks of take.
-/// @dev Liquidations can revert for other reasons, see LIVENESS.
-/// @dev There are two liquidation modes: The "post-maturity mode", available after the market's maturity, and the
-/// "normal mode", available if the borrower is unhealthy. After maturity, an unhealthy borrower's liquidator can choose
-/// between both modes.
-/// @dev In the "normal mode", the liquidation incentive factor (LIF) is maxLif and the liquidation amount is capped
-/// by what is needed to put back the position into health ("recovery close factor", or "RCF").
-/// @dev The RCF condition is (omitting scaling and roundings):
-///   newDebt >= newMaxDebt <=> debtOf - repaidUnits >= maxDebt - repaidUnits*LIF*LLTV
-///                         <=> repaidUnits <= (debtOf-maxDebt) / (1 - LIF*LLTV).
-/// @dev The RCF is deactivated for small collateral amount, essentially to mitigate issues with liquidations that are
-/// too small compared to the gas cost. More precisely, it is deactivated if the liquidation could leave a collateral
-/// with a value that would not be enough to repay rcfThreshold units. Which means (omitting scaling and roundings):
-///   minNewCollateral * liquidatedCollatPrice / LIF < rcfThreshold
-///     <=> (collateral - maxRepaid * LIF / liquidatedCollatPrice) * liquidatedCollatPrice / LIF < rcfThreshold
-///     <=> collateral * liquidatedCollatPrice / LIF - maxRepaid < rcfThreshold
-/// @dev In the "post-maturity mode", the LIF (liquidation incentive factor) grows linearly from 1 at maturity to maxLif
-/// at maturity + TIME_TO_MAX_LIF, and the RCF is deactivated.
-/// @dev In both modes, maxLif is used to determine if the account has some bad debt, to always assume the worst case.
-///
-/// SLASHING
-/// @dev When a borrower's bad debt is realized, it is socialized among lenders in this market.
-/// @dev At each lender's next interaction, their credit is slashed proportionally.
 ///
 /// GROUPS
 /// @dev Groups are useful to have a global offered amount shared across multiple offers ("One cancels the other").
@@ -108,29 +65,18 @@ import {IAwakening, Market, Offer, CollateralParams, MarketState, Position} from
 /// contracts might re-use Awakening's authorization mapping too (e.g ratifiers and authorizers). In particular,
 /// authorized accounts can authorize other accounts on behalf of the user.
 /// - Under which conditions the account can return CALLBACK_SUCCESS when its isRatified function is called.
-/// @dev updatePosition and liquidate (for liquidatable users) also impact the position and are permissionless.
+/// @dev updatePosition also impacts the position and is permissionless.
 ///
 /// ROUNDINGS
 /// @dev assets are rounded against the taker and in favor of the maker in take (in particular a take with non-zero
 /// units could end up with buyerAssets or sellerAssets equal to zero). Therefore, the settlement fee has no defined
 /// rounding direction, which could lead to fees manipulations on chains with very cheap gas.
 /// @dev pendingFee updates are rounded in favor of the user. It could lead to fees manipulations too.
-/// @dev maxDebt is rounded down in isHealthy and liquidate.
-/// @dev lossFactor is rounded up so lenders collectively lose a bit more than badDebt on each bad debt realization.
-/// @dev If a market loses almost all of its value to bad debt over its lifetime, then the accounting of the loss
-/// may become extremely imprecise (against the user), potentially leading to a total loss. Note that the take function
-/// reverts when the loss factor is maxed out.
-/// @dev updatePosition rounds credit down, so each lender loses a bit at their next interaction after a bad debt
-/// realization.
-/// @dev repaidUnits/seizedAssets computations round against the liquidator.
-/// @dev maxRepaid is rounded up to avoid consecutive max liquidations, so the liquidated position could be slightly
-/// healthy after a liquidation in the normal mode.
 ///
 /// GATES
 /// @dev Gates are optional (address(0) = unrestricted).
 /// @dev The entry gate can prevent increasing credit or debt in the market.
 /// @dev In particular, it does not prevent the user from exiting the market even when the entry gate is reverting.
-/// @dev The liquidator gate can prevent the user from liquidating borrowers in the market (and realizing bad debt).
 ///
 /// TOKEN SAFETY REQUIREMENTS
 /// @dev List of assumptions on tokens that guarantee that Awakening behaves as expected:
@@ -142,21 +88,13 @@ import {IAwakening, Market, Offer, CollateralParams, MarketState, Position} from
 /// @dev See LIVENESS for liveness guarantees.
 ///
 /// LIVENESS
-/// @dev If an activated collateral oracle reverts on price, liquidate reverts.
-/// @dev If an activated collateral oracle reverts on price, isHealthy, withdrawCollateral and take revert when the user
-/// (seller for take) has non-zero debt.
-/// @dev If the liquidated collateral oracle returns 0 on price, liquidate with repaid input reverts.
-/// @dev If an activated collateral oracle returns a price such that the user's collateral quoted in loan token is
-/// greater than type(uint128).max, then liquidate, isHealthy, withdrawCollateral when the borrower has debt, and take
-/// whenever the seller still has debt could revert.
 /// @dev If enterGate.canIncreaseCredit reverts or returns false, take reverts if the buyer's credit increases.
 /// @dev If enterGate.canIncreaseDebt reverts or returns false, take reverts if the seller's debt increases.
-/// @dev If liquidatorGate.canLiquidate reverts or returns false, liquidate reverts.
 /// @dev If a token pulled by Awakening reverts or returns false on transferFrom, take, repay, supplyCollateral,
-/// liquidate, and flashLoan repayment revert when they need to pull that token.
+/// and flashLoan repayment revert when they need to pull that token.
 /// @dev If a token sent by Awakening reverts or returns false on transfer, withdraw, withdrawCollateral, fee claims,
-/// liquidate, and flashLoan revert when they need to send that token.
-/// @dev If a callback reverts or returns something other than CALLBACK_SUCCESS, take, repay, liquidate, and flashLoan
+/// and flashLoan revert when they need to send that token.
+/// @dev If a callback reverts or returns something other than CALLBACK_SUCCESS, take, repay, and flashLoan
 /// revert.
 ///
 /// ROLES
@@ -170,8 +108,7 @@ import {IAwakening, Market, Offer, CollateralParams, MarketState, Position} from
 /// @dev No-ops are allowed.
 /// @dev Zero checks are not systematically performed.
 /// @dev NatSpec comments are included only when they bring clarity.
-/// @dev creditOf, pendingFee, and lastLossFactor are not up to date. Use updatePositionView to get the up-to-date
-/// values.
+/// @dev creditOf and pendingFee are not up to date. Use updatePositionView to get the up-to-date values.
 /// @dev The max amount of totalUnits, collateral, credit, continuousFeeCredit and debt is type(uint128).max (~1e38).
 /// @dev INITIAL_CHAIN_ID is captured at construction and used in place of block.chainid when computing market ids,
 /// so a hard fork that changes block.chainid does not strand existing accounting. But as a result, after a hard-fork
@@ -336,7 +273,6 @@ contract Awakening is IAwakening {
     /// @dev In particular, if the settlement fee gets increased, it might implicitly cancel offers with very low price.
     /// @dev All sellerAssets are reachable with the units input, and all buyerAssets are reachable only if buyerPrice
     /// <= WAD.
-    /// @dev The seller cannot be liquidated during the callbacks of a take.
     /// @dev Returns buyerAssets and sellerAssets.
     function take(
         Offer memory offer,
@@ -350,7 +286,6 @@ contract Awakening is IAwakening {
         require(taker == msg.sender || isAuthorized[taker][msg.sender], TakerUnauthorized());
         bytes32 id = touchMarket(offer.market);
         MarketState storage _marketState = marketState[id];
-        require(_marketState.lossFactor < type(uint128).max, MarketLossFactorMaxedOut());
         require((offer.maxAssets == 0) != (offer.maxUnits == 0), InvalidOfferCaps());
         require(offer.tick % _marketState.tickSpacing == 0, TickNotAccessible());
         require(block.timestamp >= offer.start, OfferNotStarted());
@@ -480,8 +415,6 @@ contract Awakening is IAwakening {
                 WrongSellCallbackReturnValue()
             );
         }
-        require(isHealthy(offer.market, id, seller), SellerIsLiquidatable());
-
         return (buyerAssets, sellerAssets);
     }
 
@@ -572,8 +505,6 @@ contract Awakening is IAwakening {
             _position.collateralBitmap = _position.collateralBitmap.clearBit(collateralIndex);
         }
 
-        require(isHealthy(market, id, onBehalf), UnhealthyBorrower());
-
         emit EventsLib.WithdrawCollateral(msg.sender, id, collateralToken, assets, onBehalf, receiver);
 
         SafeTransferLib.safeTransfer(collateralToken, receiver, assets);
@@ -617,21 +548,8 @@ contract Awakening is IAwakening {
         bytes32 id = toId(market);
         if (marketState[id].tickSpacing == 0) {
             require(market.maturity <= block.timestamp + 100 * 365 days, MaturityTooFar());
-            require(market.collateralParams.length > 0, NoCollateralParams());
-            require(market.collateralParams.length <= MAX_COLLATERALS, TooManyCollateralParams());
-            address previousCollateralToken;
-            for (uint256 i = 0; i < market.collateralParams.length; i++) {
-                address collateralToken = market.collateralParams[i].token;
-                require(collateralToken > previousCollateralToken, CollateralParamsNotSorted());
-                uint256 lltv = market.collateralParams[i].lltv;
-                require(isLltvAllowed(lltv), LltvNotAllowed());
-                require(
-                    market.collateralParams[i].maxLif == maxLif(lltv, LIQUIDATION_CURSOR_LOW)
-                        || market.collateralParams[i].maxLif == maxLif(lltv, LIQUIDATION_CURSOR_HIGH),
-                    InvalidMaxLif()
-                );
-                previousCollateralToken = collateralToken;
-            }
+            require(market.collateralParams.length == 1, InvalidCollateralParams());
+            require(market.collateralParams[0].token != address(0), InvalidCollateralParams());
 
             MarketState storage _marketState = marketState[id];
             _marketState.tickSpacing = DEFAULT_TICK_SPACING;
@@ -662,21 +580,15 @@ contract Awakening is IAwakening {
     {
         Position storage _position = position[id][user];
         uint128 credit = _position.credit;
-        uint128 _lastLossFactor = _position.lastLossFactor;
-        uint256 postSlashCredit = _lastLossFactor < type(uint128).max
-            ? credit.mulDivDown(type(uint128).max - marketState[id].lossFactor, type(uint128).max - _lastLossFactor)
-            : 0;
         uint128 _pendingFee = _position.pendingFee;
-        uint256 postSlashPendingFee =
-            credit > 0 ? _pendingFee - _pendingFee.mulDivUp(credit - postSlashCredit, credit) : 0;
         uint256 accrualEnd = UtilsLib.min(block.timestamp, market.maturity);
         uint128 _lastAccrual = _position.lastAccrual;
         // forge-lint: disable-next-item(unsafe-typecast) as fee <= pending <= credit which are uint128 position fields
         uint128 fee = _lastAccrual < market.maturity
-            ? uint128(postSlashPendingFee.mulDivDown(accrualEnd - _lastAccrual, market.maturity - _lastAccrual))
+            ? uint128(_pendingFee.mulDivDown(accrualEnd - _lastAccrual, market.maturity - _lastAccrual))
             : 0;
         // forge-lint: disable-next-item(unsafe-typecast) as credit and pending are <= uint128 position fields
-        return (uint128(postSlashCredit) - fee, uint128(postSlashPendingFee) - fee, fee);
+        return (credit - fee, _pendingFee - fee, fee);
     }
 
     /// @dev Slashes the position and accrues the continuous fee.
@@ -701,7 +613,6 @@ contract Awakening is IAwakening {
         uint128 pendingFeeDecrease = _position.pendingFee - newPendingFee;
 
         _position.credit = newCredit;
-        _position.lastLossFactor = marketState[id].lossFactor;
         _position.pendingFee = newPendingFee;
         _position.lastAccrual = uint128(block.timestamp);
         marketState[id].continuousFeeCredit += UtilsLib.toUint128(accruedFee);
@@ -716,10 +627,6 @@ contract Awakening is IAwakening {
     }
 
     /// OTHER VIEW FUNCTIONS ///
-
-    function lastLossFactor(bytes32 id, address user) external view returns (uint128) {
-        return position[id][user].lastLossFactor;
-    }
 
     function collateralBitmap(bytes32 id, address user) external view returns (uint128) {
         return position[id][user].collateralBitmap;
@@ -751,10 +658,6 @@ contract Awakening is IAwakening {
 
     function totalUnits(bytes32 id) external view returns (uint128) {
         return marketState[id].totalUnits;
-    }
-
-    function lossFactor(bytes32 id) external view returns (uint128) {
-        return marketState[id].lossFactor;
     }
 
     function tickSpacing(bytes32 id) external view returns (uint8) {
@@ -793,27 +696,6 @@ contract Awakening is IAwakening {
 
     function lastAccrual(bytes32 id, address user) external view returns (uint128) {
         return position[id][user].lastAccrual;
-    }
-
-    /// @dev This function should be called with the id corresponding to the market.
-    /// @dev This function does not call any oracle if debt is 0.
-    /// @dev Expects the id to correspond to the market's id.
-    function isHealthy(Market memory market, bytes32 id, address borrower) public view returns (bool) {
-        Position storage _position = position[id][borrower];
-        uint256 debt = _position.debt;
-        uint256 maxDebt;
-        if (debt > 0) {
-            uint128 _collateralBitmap = _position.collateralBitmap;
-            while (_collateralBitmap != 0) {
-                uint256 i = UtilsLib.msb(_collateralBitmap);
-                CollateralParams memory collateralParam = market.collateralParams[i];
-                uint256 price = IOracle(collateralParam.oracle).price();
-                maxDebt += _position.collateral[i].mulDivDown(price, ORACLE_PRICE_SCALE)
-                    .mulDivDown(collateralParam.lltv, WAD);
-                _collateralBitmap = _collateralBitmap.clearBit(i);
-            }
-        }
-        return maxDebt >= debt;
     }
 
     /// @dev Returns the settlement fee using piecewise linear interpolation between breakpoints.

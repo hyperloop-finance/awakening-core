@@ -4,21 +4,19 @@ pragma solidity ^0.8.0;
 import {Test} from "../lib/forge-std/src/Test.sol";
 import {EcrecoverRatifier} from "../src/ratifiers/EcrecoverRatifier.sol";
 import {Offer, CollateralParams} from "../src/interfaces/IAwakening.sol";
-import {Signature} from "../src/ratifiers/interfaces/IEcrecoverRatifier.sol";
+import {Signature, EIP712_DOMAIN_TYPEHASH} from "../src/ratifiers/interfaces/IEcrecoverRatifier.sol";
 import {CALLBACK_SUCCESS} from "../src/libraries/ConstantsLib.sol";
 import {HashLib} from "../src/ratifiers/libraries/HashLib.sol";
-
-// Paste from frontend output.
-address constant ACCOUNT = 0x19E7E376E7C213B7E7e7e46cc70A5dD086DAff2A;
-uint8 constant SIG_V = 28;
-bytes32 constant SIG_R = 0x3b634e6e609860ff1d80ec02a97d6d82bfe7ff35a8108120138ff561460d7040;
-bytes32 constant SIG_S = 0x3eb97018d5ccf0711062df8c70faea0971c4f8e9556d57673a03246728bd91c6;
 
 address constant RATIFIER = 0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB;
 
 contract FrontendSignatureTest is Test {
+    address internal account;
+    uint256 internal privateKey;
+
     function setUp() public {
         vm.chainId(1);
+        (account, privateKey) = makeAddrAndKey("frontend-signer");
         EcrecoverRatifier impl = new EcrecoverRatifier(address(this));
         vm.etch(RATIFIER, address(impl).code);
     }
@@ -31,7 +29,7 @@ contract FrontendSignatureTest is Test {
         offer.ratifier = RATIFIER;
     }
 
-    function testFrontendSignatureVerification() public view {
+    function testFrontendSignatureVerification() public {
         Offer[4] memory offers;
         offers[0] = defaultOffer(1);
         offers[1] = defaultOffer(2);
@@ -66,13 +64,19 @@ contract FrontendSignatureTest is Test {
         proof3[1] = left;
         assertTrue(HashLib.isLeaf(_root, h3, 3, proof3));
 
-        bytes memory ratifierData = abi.encode(Signature({v: SIG_V, r: SIG_R, s: SIG_S}), _root, 0, proof0);
+        // Sign the offer tree root dynamically (mirrors test/frontend/sign-root.ts).
+        bytes32 structHash = keccak256(abi.encode(HashLib.offerTreeTypeHash(2), _root));
+        bytes32 domainSeparator = keccak256(abi.encode(EIP712_DOMAIN_TYPEHASH, block.chainid, RATIFIER));
+        bytes32 digest = keccak256(bytes.concat("\x19\x01", domainSeparator, structHash));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, digest);
+
+        bytes memory ratifierData = abi.encode(Signature({v: v, r: r, s: s}), _root, 0, proof0);
         bytes32 result = EcrecoverRatifier(RATIFIER).isRatified(offers[0], ratifierData);
         assertEq(result, CALLBACK_SUCCESS);
     }
 
     // Trick to ensure isRatified checks that the signer is the maker, without having the offers depend on the maker.
-    function isAuthorized(address, address signer) external pure returns (bool) {
-        return signer == ACCOUNT;
+    function isAuthorized(address, address signer) external view returns (bool) {
+        return signer == account;
     }
 }

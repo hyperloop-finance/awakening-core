@@ -4,12 +4,12 @@ pragma solidity ^0.8.0;
 
 import {Offer, Market, CollateralParams} from "../../interfaces/IAwakening.sol";
 
-/// @dev keccak256("CollateralParams(address token,uint256 lltv,uint256 maxLif,address oracle)").
-bytes32 constant COLLATERAL_PARAMS_TYPEHASH = 0xaf44a88eb50ebdbbebd980e5a23045c44f61ece5f80ab708a1bbe8718102e6af;
+/// @dev keccak256("CollateralParams(address token,address oracle)").
+bytes32 constant COLLATERAL_PARAMS_TYPEHASH = 0x0c4f2c279b10d8346c4943fffb51f100eab965e879d825d0f6ee977f53052237;
 /// @dev keccak256(bytes.concat(MARKET_TYPE, COLLATERAL_PARAMS_TYPE)).
-bytes32 constant MARKET_TYPEHASH = 0x358117e98511cc3df97175dca58053b06675b43ad090b0553f8a1eff008b6e2e;
+bytes32 constant MARKET_TYPEHASH = 0x82732e8d16ad47d2257f927cb4b2374a0c6f083117f95e096481e9d615917df0;
 /// @dev keccak256(bytes.concat(OFFER_TYPE, COLLATERAL_PARAMS_TYPE, MARKET_TYPE)).
-bytes32 constant OFFER_TYPEHASH = 0x980a4cfc9766df84667f316d76e10cefc8caf04fb4cd4a9fca00a8e7b34f619c;
+bytes32 constant OFFER_TYPEHASH = 0xf0fe03a0bebd3b83b21a80658db6459d86abcbfb1b2da30c5839d25237bb7191;
 
 library HashLib {
     error LeafIndexOutOfRange();
@@ -21,28 +21,28 @@ library HashLib {
     /// @dev Reverts if height is greater than 20.
     function offerTreeTypeHash(uint256 height) internal pure returns (bytes32) {
         if (height <= 10) {
-            if (height == 0) return 0x2b9ee710e1977dfc5778fe18c905ccc1d9e144baf3ba83be732d4da65ecb73e3;
-            if (height == 1) return 0x3cc16189b92a85898f1d5c6e87282c8ded7c1c93b2323d5e85ae10c5f4b2b220;
-            if (height == 2) return 0x6de37d3e570afa293a8107d4b6b1d9547616c04f42164d009c89194787b2ffa6;
-            if (height == 3) return 0xba3ea2ddfbf40a906fcd1b9506dbd344c062e8dcba8b5c902ceb13339f45a358;
-            if (height == 4) return 0xe5faa865e93bc1b7b8fdf91980f54682d649683b014edd6c54b642f5a0c96977;
-            if (height == 5) return 0xeda50f61dd2a827c6ff9fbfcd54335628dcaa78aaa4f2d118c60886219cdce2b;
-            if (height == 6) return 0x54e2c9cc40cdc0e9ad530cf2be298f952f57af2b18b02f88274a9bbab359d23a;
-            if (height == 7) return 0xc9d81859d60d6b21c688f4be93ca83e3be222728bb156ef5f4cf497f879f1e29;
-            if (height == 8) return 0xd59b0c4544e0c60c8611eab0aaa402575f14ee784d22289c5d57f48c422a62d6;
-            if (height == 9) return 0xccad21701f34f08bb8398a3dbc77e20e4c9c424930f3a8b31485bf059e2bdb20;
-            return 0x8a42dfb49807647bfc49c906aef322aa0239d40e4cb675761e141bc7bfa530da;
+            if (height == 0) return 0x0cf4eb833103e1064f5eff067fcd58cf5c5bbb6f91b89e889809e14787e73f1c;
+            if (height == 1) return 0x2f92d273e6035b743944a5d066999f54da97f12300ee37c119784d08daad5e62;
+            if (height == 2) return 0x66fcc5cda45387f8c243921c8a1d5ad0fbaedce2a10f72f054290cd529eaf5c2;
+            if (height == 3) return 0xe0842f7ec02de8f2a2571929d953dfa54edc6363e4f8460e824474ec0f3546dd;
+            if (height == 4) return 0xa020fce2fa88dc9c31902ea6028b08fbd89fb293ccb9ea8fd68c3fffdeaec1d4;
+            if (height == 5) return 0xedf200246aab5d6e567e659efcad67aaa60cb0442f73f8250bb8bab5c6554ab9;
+            if (height == 6) return 0x235d8881404e4599defa00138dab779ea07ec9f15c82a08f0bda4a07c6af90e4;
+            if (height == 7) return 0xd3247f80a6fe8904d8cb844894f38ddf77606b773bf9b28d1f79242c4dc39a61;
+            if (height == 8) return 0x391e707dcd243a44782d3ae75ffe5ec11261ca231eb962c4b650195e9d7125bb;
+            if (height == 9) return 0x1b75c0c19ee40e790d0ca3663ad69e41dd0918b3dcc553ff530858ca0f6b4ffe;
+            return 0x52ad7a0be8cbdde5d59d67f9861a968a02675508cb51eb49ab561bdb7945a844;
         } else {
-            if (height == 11) return 0x2adc0d948b2e3ecb642661590d2eec36d4e71e9acf382deb6574371800caf198;
-            if (height == 12) return 0xf5845dfaed016de272342f346346a49d4b1694f622144d420558a38e46ac9dad;
-            if (height == 13) return 0x3d7df854e6294bf433b64bbb8d0a82fa875a87b45b0016db27fc5752e54126ad;
-            if (height == 14) return 0x72a991a101708716ff427c524404ab44f4d4d1f4e7e76c0ae8b967222164b348;
-            if (height == 15) return 0x762c88fc52cf78a54401d247790f1bdb619d51d3458d1415c20d1422197cecc4;
-            if (height == 16) return 0x8ede2209e94c8d5f8379d733dc8712b71a3888c1c4b70f3d6b22285f70bf4286;
-            if (height == 17) return 0x425b18f07b3ac2f641977d2c294590565dd40b5d8414610568dca64628399975;
-            if (height == 18) return 0x7e7d98718c0180e882e5963b9bd49810096912c273dfa38d8afdd6d39fde86ec;
-            if (height == 19) return 0x8d35d491a29d846489e19688efff3c4cc7dbd54458058d49b30294074539f0b9;
-            if (height == 20) return 0x824e385eea1953bcbc783bf900b18aa6fba129b6908765e986cf0968b491ec4f;
+            if (height == 11) return 0x07a120a71c5b0a2b27fb34e57050a3654fdf3f23769b9852360e42bb9c39f18c;
+            if (height == 12) return 0x13266a8723b74a3220ec475764d89f9dc2b0404b99d6ceeb11a6b305ad9f6420;
+            if (height == 13) return 0x5135f1ec9f02b601e726201aa2feedbafa7c837e0074cee81e472bdd63727a45;
+            if (height == 14) return 0xcea8d8861095fe0510cda504f42f9a473449e3204c0f065da06eda5ead68bb5b;
+            if (height == 15) return 0x6dcbf5b5e93ecc61ad59fccaecd549f97025da2ccbc3ab4ee1412f86477dee9c;
+            if (height == 16) return 0xacb30f314b82918aa108824889d5efd29bef0820b886f00287f1ae815bd27211;
+            if (height == 17) return 0x1707316ba99b80b1434553e031b23af1fa0976468e20d8d7fdbe4011397b9496;
+            if (height == 18) return 0x3bfec969e3939ecdbe37c3aa19d5784d1340f9875adacd055dc6a8b9198a1245;
+            if (height == 19) return 0x385a62e3b66c21a1ba6b9b36c4fdc80ce8b32142289ffc9817aa04ea6fa87353;
+            if (height == 20) return 0xa91d94df556a27baa4376a135428f7fbf268b486e1c2df595b2020738913ac2f;
             revert TreeTooHigh();
         }
     }
@@ -73,15 +73,7 @@ library HashLib {
 
     /// @dev Computes the EIP-712 hash struct of a CollateralParams.
     function hashCollateralParams(CollateralParams memory collateralParams) internal pure returns (bytes32) {
-        return keccak256(
-            abi.encode(
-                COLLATERAL_PARAMS_TYPEHASH,
-                collateralParams.token,
-                collateralParams.lltv,
-                collateralParams.maxLif,
-                collateralParams.oracle
-            )
-        );
+        return keccak256(abi.encode(COLLATERAL_PARAMS_TYPEHASH, collateralParams.token, collateralParams.oracle));
     }
 
     /// @dev Computes the EIP-712 hash struct of a Market.
@@ -101,15 +93,7 @@ library HashLib {
         }
 
         return keccak256(
-            abi.encode(
-                MARKET_TYPEHASH,
-                market.loanToken,
-                collateralParamsHash,
-                market.maturity,
-                market.rcfThreshold,
-                market.enterGate,
-                market.liquidatorGate
-            )
+            abi.encode(MARKET_TYPEHASH, market.loanToken, collateralParamsHash, market.maturity, market.enterGate)
         );
     }
 
