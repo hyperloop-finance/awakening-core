@@ -147,6 +147,7 @@ interface IAwakening {
     function feeSetter() external view returns (address);
     function feeClaimer() external view returns (address);
     function tickSpacingSetter() external view returns (address);
+    function optionKeeper() external view returns (address);
 
     /// MULTICALL ///
     function multicall(bytes[] memory calls) external;
@@ -156,6 +157,7 @@ interface IAwakening {
     function setFeeSetter(address newFeeSetter) external;
     function setFeeClaimer(address newFeeClaimer) external;
     function setTickSpacingSetter(address newTickSpacingSetter) external;
+    function setOptionKeeper(address newOptionKeeper) external;
     function setMarketTickSpacing(bytes32 id, uint256 newTickSpacing) external;
     function setMarketSettlementFee(bytes32 id, uint256 index, uint256 newSettlementFee) external;
     function setDefaultSettlementFee(address loanToken, uint256 index, uint256 newSettlementFee) external;

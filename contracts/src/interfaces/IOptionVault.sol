@@ -6,6 +6,10 @@ pragma solidity >=0.5.0;
 /// @dev The option keeper withdraws escrowed loan tokens to buy the put off-chain, then the completion
 /// step transfers the remaining loan tokens to the borrower.
 interface IOptionVault {
+    /// ERRORS ///
+    error OnlyAwakening();
+    error OnlyOptionKeeper();
+
     /// @dev Deposits `amount` of `token` into escrow.
     function deposit(address token, uint256 amount) external;
 

@@ -98,11 +98,12 @@ import {IAwakening, Market, Offer, MarketState, Position} from "./interfaces/IAw
 /// revert.
 ///
 /// ROLES
-/// @dev The role setter can set the role setter, fee setter, fee claimer, and tick spacing setter.
+/// @dev The role setter can set the role setter, fee setter, fee claimer, tick spacing setter, and option keeper.
 /// @dev The fee setter can set the default and per-market settlement fee and continuous fee.
 /// @dev The fee claimer can claim the settlement fee and continuous fee.
 /// @dev When the claimer is set, the old claimer loses the unclaimed fees.
 /// @dev The tick spacing setter can decrease the tick spacing of a market.
+/// @dev The option keeper executes the off-chain put purchase/sale and reports the outcome on-chain.
 ///
 /// MISC
 /// @dev No-ops are allowed.
@@ -138,6 +139,7 @@ contract Awakening is IAwakening {
     address public feeSetter;
     address public feeClaimer;
     address public tickSpacingSetter;
+    address public optionKeeper;
 
     /// CONSTRUCTOR ///
 
@@ -184,6 +186,12 @@ contract Awakening is IAwakening {
         require(msg.sender == roleSetter, OnlyRoleSetter());
         tickSpacingSetter = newTickSpacingSetter;
         emit EventsLib.SetTickSpacingSetter(newTickSpacingSetter);
+    }
+
+    function setOptionKeeper(address newOptionKeeper) external {
+        require(msg.sender == roleSetter, OnlyRoleSetter());
+        optionKeeper = newOptionKeeper;
+        emit EventsLib.SetOptionKeeper(newOptionKeeper);
     }
 
     /// @dev Refines the tick spacing of a market. Can not increase (more ticks become accessible).
