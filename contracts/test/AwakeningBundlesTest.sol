@@ -46,6 +46,8 @@ contract AwakeningBundlesTest is BaseTest {
 
         market.loanToken = address(loanToken);
         market.maturity = vm.getBlockTimestamp() + 100;
+        market.maxStrike = type(uint256).max;
+        market.penaltyPct = 5e16;
         market.collateralParams
             .push(
                 CollateralParams({
@@ -345,6 +347,8 @@ contract AwakeningBundlesTest is BaseTest {
     function testBuyUnitsTargetInconsistentMarket() public {
         Market memory otherMarket = market;
         otherMarket.maturity = vm.getBlockTimestamp() + 360 days;
+        otherMarket.maxStrike = type(uint256).max;
+        otherMarket.penaltyPct = 5e16;
 
         offers[0].buy = false;
         offers[0].maker = borrower;
@@ -370,6 +374,8 @@ contract AwakeningBundlesTest is BaseTest {
     function testSellUnitsTargetInconsistentMarket() public {
         Market memory otherMarket = market;
         otherMarket.maturity = vm.getBlockTimestamp() + 360 days;
+        otherMarket.maxStrike = type(uint256).max;
+        otherMarket.penaltyPct = 5e16;
 
         offers[0].maxUnits = 1;
         offers[1].market = otherMarket;
@@ -393,6 +399,8 @@ contract AwakeningBundlesTest is BaseTest {
 
         Market memory otherMarket = market;
         otherMarket.maturity = vm.getBlockTimestamp() + 360 days;
+        otherMarket.maxStrike = type(uint256).max;
+        otherMarket.penaltyPct = 5e16;
 
         offers[0].buy = false;
         offers[0].maker = borrower;
@@ -478,6 +486,8 @@ contract AwakeningBundlesTest is BaseTest {
     function testSellSellerAssetsTargetInconsistentMarket() public {
         Market memory otherMarket = market;
         otherMarket.maturity = vm.getBlockTimestamp() + 360 days;
+        otherMarket.maxStrike = type(uint256).max;
+        otherMarket.penaltyPct = 5e16;
 
         offers[0].maxUnits = 1;
         offers[1].market = otherMarket;

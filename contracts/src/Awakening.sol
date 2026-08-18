@@ -550,6 +550,8 @@ contract Awakening is IAwakening {
             require(market.maturity <= block.timestamp + 100 * 365 days, MaturityTooFar());
             require(market.collateralParams.length == 1, InvalidCollateralParams());
             require(market.collateralParams[0].token != address(0), InvalidCollateralParams());
+            require(market.maxStrike > 0, InvalidMaxStrike());
+            require(market.penaltyPct <= WAD, InvalidPenaltyPct());
 
             MarketState storage _marketState = marketState[id];
             _marketState.tickSpacing = DEFAULT_TICK_SPACING;

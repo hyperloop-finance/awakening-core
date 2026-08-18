@@ -24,6 +24,8 @@ contract ContinuousFeeTest is BaseTest {
 
         market.loanToken = address(loanToken);
         market.maturity = vm.getBlockTimestamp() + 100 days;
+        market.maxStrike = type(uint256).max;
+        market.penaltyPct = 5e16;
         market.collateralParams
             .push(
                 CollateralParams({
@@ -47,6 +49,8 @@ contract ContinuousFeeTest is BaseTest {
     /// borrower.pendingFee = 0.
     function setupLender(uint256 credit, uint256 feeRate, uint256 ttm) internal {
         market.maturity = vm.getBlockTimestamp() + ttm;
+        market.maxStrike = type(uint256).max;
+        market.penaltyPct = 5e16;
         id = toId(market);
         awakening.setDefaultContinuousFee(address(loanToken), feeRate);
         collateralize(market, borrower, credit * 2);
@@ -211,6 +215,8 @@ contract ContinuousFeeTest is BaseTest {
 
         // First lend at rate1
         market.maturity = vm.getBlockTimestamp() + ttm;
+        market.maxStrike = type(uint256).max;
+        market.penaltyPct = 5e16;
         id = toId(market);
         awakening.setDefaultContinuousFee(address(loanToken), rate1);
         collateralize(market, borrower, (credit1 + credit2) * 2);

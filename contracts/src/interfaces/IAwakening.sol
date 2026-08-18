@@ -6,6 +6,10 @@ struct Market {
     address loanToken;
     CollateralParams[] collateralParams;
     uint256 maturity;
+    /// @dev Max borrow value per unit collateral (loan-per-collateral, scaled by ORACLE_PRICE_SCALE = 1e36).
+    uint256 maxStrike;
+    /// @dev Default penalty on defaulted liquidation (WAD); e.g. 5e16 = 5%.
+    uint256 penaltyPct;
     address enterGate;
 }
 
@@ -57,6 +61,36 @@ struct Position {
     uint128[128] collateral;
 }
 
+/// @dev Escrow record left by phase 1 of a two-step take.
+struct PendingTake {
+    bytes32 id;
+    Offer offer;
+    uint256 units;
+    address borrower;
+    address lender;
+    uint256 collateral;
+    uint256 escrowed;
+    uint256 premiumQuote;
+    uint256 deadline;
+}
+
+/// @dev A completed loan with its put option attribution.
+struct Loan {
+    bytes32 id;
+    address borrower;
+    uint256 principal;
+    uint256 collateral;
+    uint256 strike;
+    uint256 premium;
+    uint256 expiry;
+    address pat;
+    uint256 patTokenId;
+    uint256 lastRepaid;
+    uint256 claimablePutProceeds;
+}
+
+enum SettlementState { PRE_MATURITY, ORACLE_READ, PAT_REDEEMED, REPAY_WINDOW_OPEN, REPAY_WINDOW_CLOSED, FINAL }
+
 interface IAwakening {
     /// ERRORS ///
     error AlreadyConsumed();
@@ -67,6 +101,8 @@ interface IAwakening {
     error ContinuousFeeTooHigh();
     error FeeNotMultipleOfFeeCbp();
     error InconsistentInput();
+    error InvalidMaxStrike();
+    error InvalidPenaltyPct();
     error WrongBuyCallbackReturnValue();
     error WrongSellCallbackReturnValue();
     error WrongRepayCallbackReturnValue();

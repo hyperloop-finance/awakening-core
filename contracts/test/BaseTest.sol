@@ -216,6 +216,8 @@ abstract contract BaseTest is Test {
         vm.assume(collateralParams[0].token != address(0));
         market.collateralParams = collateralParams;
         market.maturity = bound(market.maturity, 0, vm.getBlockTimestamp() + 100 * 365 days);
+        market.maxStrike = type(uint256).max;
+        market.penaltyPct = 5e16;
         return market;
     }
 

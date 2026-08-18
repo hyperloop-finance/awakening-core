@@ -34,6 +34,8 @@ contract OtherFunctionsTest is BaseTest {
 
         market.loanToken = address(loanToken);
         market.maturity = vm.getBlockTimestamp() + 100;
+        market.maxStrike = type(uint256).max;
+        market.penaltyPct = 5e16;
         market.collateralParams
             .push(
                 CollateralParams({
@@ -301,6 +303,8 @@ contract OtherFunctionsTest is BaseTest {
         Market memory marketWithRevertingOracle;
         marketWithRevertingOracle.loanToken = address(loanToken);
         marketWithRevertingOracle.maturity = vm.getBlockTimestamp() + 100;
+        marketWithRevertingOracle.maxStrike = type(uint256).max;
+        marketWithRevertingOracle.penaltyPct = 5e16;
         marketWithRevertingOracle.collateralParams = collateralParams;
 
         // Make the oracle revert.
@@ -325,6 +329,8 @@ contract OtherFunctionsTest is BaseTest {
         Market memory marketWithRevertingOracle;
         marketWithRevertingOracle.loanToken = address(loanToken);
         marketWithRevertingOracle.maturity = vm.getBlockTimestamp() + 100;
+        marketWithRevertingOracle.maxStrike = type(uint256).max;
+        marketWithRevertingOracle.penaltyPct = 5e16;
         marketWithRevertingOracle.collateralParams = collateralParams;
 
         deal(address(collateralToken1), address(this), collateral);
@@ -344,6 +350,8 @@ contract OtherFunctionsTest is BaseTest {
         Market memory longMarket;
         longMarket.loanToken = address(loanToken);
         longMarket.maturity = maturity;
+        longMarket.maxStrike = type(uint256).max;
+        longMarket.penaltyPct = 5e16;
         longMarket.collateralParams = market.collateralParams;
 
         vm.expectRevert(IAwakening.MaturityTooFar.selector);

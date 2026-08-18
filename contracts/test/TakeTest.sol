@@ -35,6 +35,8 @@ contract TakeTest is BaseTest {
 
         market.loanToken = address(loanToken);
         market.maturity = vm.getBlockTimestamp() + 100;
+        market.maxStrike = type(uint256).max;
+        market.penaltyPct = 5e16;
         market.collateralParams
             .push(
                 CollateralParams({

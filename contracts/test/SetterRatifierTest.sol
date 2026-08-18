@@ -22,6 +22,8 @@ contract SetterRatifierTest is BaseTest {
         Market memory market;
         market.loanToken = address(loanToken);
         market.maturity = vm.getBlockTimestamp() + 100;
+        market.maxStrike = type(uint256).max;
+        market.penaltyPct = 5e16;
         market.collateralParams = new CollateralParams[](1);
         market.collateralParams[0] = CollateralParams({
             token: address(collateralToken1), oracle: address(oracle1)

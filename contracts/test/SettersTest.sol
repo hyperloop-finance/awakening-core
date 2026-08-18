@@ -104,6 +104,8 @@ contract SettersTest is BaseTest {
             maturity: vm.getBlockTimestamp() + 1 days,
             collateralParams: collateralParams,
             
+            maxStrike: type(uint256).max,
+            penaltyPct: 5e16,
             enterGate: address(0)
         });
         bytes32 id = toId(market);
@@ -277,6 +279,8 @@ contract SettersTest is BaseTest {
             maturity: vm.getBlockTimestamp() + 1 days,
             collateralParams: collateralParams,
             
+            maxStrike: type(uint256).max,
+            penaltyPct: 5e16,
             enterGate: address(0)
         });
         bytes32 id = toId(market);
@@ -333,6 +337,8 @@ contract SettersTest is BaseTest {
             maturity: vm.getBlockTimestamp() + 1 days,
             collateralParams: cols,
             
+            maxStrike: type(uint256).max,
+            penaltyPct: 5e16,
             enterGate: address(0)
         });
         bytes32 id = toId(market);
@@ -386,6 +392,8 @@ contract SettersTest is BaseTest {
             maturity: vm.getBlockTimestamp() + 100 days,
             collateralParams: collateralParams,
             
+            maxStrike: type(uint256).max,
+            penaltyPct: 5e16,
             enterGate: address(0)
         });
         awakening.touchMarket(market);
@@ -412,6 +420,8 @@ contract SettersTest is BaseTest {
             maturity: vm.getBlockTimestamp() + 100 days,
             collateralParams: collateralParams,
             
+            maxStrike: type(uint256).max,
+            penaltyPct: 5e16,
             enterGate: address(0)
         });
         awakening.touchMarket(market);
@@ -444,6 +454,8 @@ contract SettersTest is BaseTest {
             maturity: vm.getBlockTimestamp() + 100 days,
             collateralParams: collateralParams,
             
+            maxStrike: type(uint256).max,
+            penaltyPct: 5e16,
             enterGate: address(0)
         });
         awakening.touchMarket(market);
