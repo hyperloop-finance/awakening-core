@@ -11,7 +11,8 @@ import "./libraries/ConstantsLib.sol"; // forge-lint: disable-line(unaliased-pla
 import "./interfaces/ICallbacks.sol"; // forge-lint: disable-line(unaliased-plain-import)
 import {IRatifier} from "./interfaces/IRatifier.sol";
 import {IEnterGate} from "./interfaces/IGate.sol";
-import {IAwakening, Market, Offer, MarketState, Position} from "./interfaces/IAwakening.sol";
+import {IAwakening, Market, Offer, MarketState, Position, PendingTake, Loan} from "./interfaces/IAwakening.sol";
+import {IOptionVault} from "./interfaces/IOptionVault.sol";
 
 /// MARKETS
 /// @dev The maximum time to maturity is 100 years.
@@ -140,6 +141,10 @@ contract Awakening is IAwakening {
     address public feeClaimer;
     address public tickSpacingSetter;
     address public optionKeeper;
+    address public optionVault;
+    mapping(bytes32 pendingId => PendingTake) internal _pendingTakes;
+    mapping(bytes32 loanId => Loan) internal _loans;
+    uint256 public pendingNonce;
 
     /// CONSTRUCTOR ///
 
@@ -192,6 +197,12 @@ contract Awakening is IAwakening {
         require(msg.sender == roleSetter, OnlyRoleSetter());
         optionKeeper = newOptionKeeper;
         emit EventsLib.SetOptionKeeper(newOptionKeeper);
+    }
+
+    function setOptionVault(address newOptionVault) external {
+        require(msg.sender == roleSetter, OnlyRoleSetter());
+        optionVault = newOptionVault;
+        emit EventsLib.SetOptionVault(newOptionVault);
     }
 
     /// @dev Refines the tick spacing of a market. Can not increase (more ticks become accessible).
@@ -426,6 +437,191 @@ contract Awakening is IAwakening {
         return (buyerAssets, sellerAssets);
     }
 
+    /// TWO-STEP TAKE ///
+    /// @dev A two-step take is used for any take that increases the seller's debt (i.e. a new borrow). Phase 1 locks
+    /// the borrower's collateral and the lender's loan tokens in escrow (the loan tokens in the option vault) without
+    /// writing credit/debt. Phase 2 is either completeTake (the option keeper reports the put it bought off-chain) or
+    /// cancelTake (rollback on failure / timeout).
+
+    /// @dev Phase 1: escrow the collateral and loan tokens, reserve the offer, and return a pending id.
+    /// @dev The borrower is always the seller; the lender is always the buyer.
+    function takeInit(Offer memory offer, bytes memory ratifierData, uint256 units, uint256 collateral, address taker)
+        external
+        returns (bytes32 pendingId)
+    {
+        require(taker == msg.sender || isAuthorized[taker][msg.sender], TakerUnauthorized());
+        require(collateral > 0, ZeroCollateral());
+        require(units <= type(uint128).max, UtilsLib.CastOverflow());
+
+        bytes32 id = touchMarket(offer.market);
+        MarketState storage _marketState = marketState[id];
+
+        require((offer.maxAssets == 0) != (offer.maxUnits == 0), InvalidOfferCaps());
+        require(offer.tick % _marketState.tickSpacing == 0, TickNotAccessible());
+        require(block.timestamp >= offer.start, OfferNotStarted());
+        require(block.timestamp <= offer.expiry, OfferExpired());
+        require(offer.maker != taker, SelfTake());
+        require(isAuthorized[offer.maker][offer.ratifier], RatifierUnauthorized());
+        require(IRatifier(offer.ratifier).isRatified(offer, ratifierData) == CALLBACK_SUCCESS, RatifierFail());
+
+        uint256 offerPrice = TickLib.tickToPrice(offer.tick);
+        uint256 timeToMaturity = UtilsLib.zeroFloorSub(offer.market.maturity, block.timestamp);
+        uint256 _settlementFee = settlementFee(id, timeToMaturity);
+        uint256 sellerPrice = offer.buy ? offerPrice - _settlementFee : offerPrice;
+        uint256 buyerPrice = sellerPrice + _settlementFee;
+        uint256 buyerAssets = offer.buy ? units.mulDivDown(buyerPrice, WAD) : units.mulDivUp(buyerPrice, WAD);
+        uint256 sellerAssets = offer.buy ? units.mulDivDown(sellerPrice, WAD) : units.mulDivUp(sellerPrice, WAD);
+
+        uint256 newConsumed;
+        if (offer.maxAssets > 0) {
+            newConsumed = consumed[offer.maker][offer.group] + (offer.buy ? buyerAssets : sellerAssets);
+            require(newConsumed <= offer.maxAssets, ConsumedAssets());
+        } else {
+            newConsumed = consumed[offer.maker][offer.group] + units;
+            require(newConsumed <= offer.maxUnits, ConsumedUnits());
+        }
+        consumed[offer.maker][offer.group] = newConsumed;
+
+        (address buyer, address seller) = offer.buy ? (offer.maker, taker) : (taker, offer.maker);
+
+        // LTV cap (D5): strike = principal / collateral must not exceed the market's maxStrike.
+        uint256 strike = units.mulDivDown(ORACLE_PRICE_SCALE, collateral);
+        require(strike <= offer.market.maxStrike, StrikeExceedsMax());
+
+        require(optionVault != address(0), ZeroOptionVault());
+        address loanToken = offer.market.loanToken;
+        address collateralToken = offer.market.collateralParams[0].token;
+
+        // Escrow the lender's loan tokens into the option vault.
+        address payer = offer.buy ? buyer : msg.sender;
+        SafeTransferLib.safeTransferFrom(loanToken, payer, address(this), buyerAssets);
+        SafeTransferLib.safeApprove(loanToken, optionVault, buyerAssets);
+        IOptionVault(optionVault).deposit(loanToken, buyerAssets);
+
+        // Escrow the borrower's collateral (locked until completion or cancellation).
+        SafeTransferLib.safeTransferFrom(collateralToken, seller, address(this), collateral);
+
+        uint256 settlementFeeAmount = buyerAssets - sellerAssets;
+        uint256 deadline = block.timestamp + TWO_STEP_TAKE_WINDOW;
+        pendingId = bytes32(++pendingNonce);
+        _pendingTakes[pendingId] = PendingTake({
+            id: id,
+            offer: offer,
+            units: units,
+            borrower: seller,
+            lender: buyer,
+            collateral: collateral,
+            escrowed: buyerAssets,
+            settlementFee: settlementFeeAmount,
+            premiumQuote: 0,
+            deadline: deadline
+        });
+
+        emit EventsLib.TakeInitiated(
+            pendingId, id, seller, buyer, units, collateral, buyerAssets, settlementFeeAmount, deadline
+        );
+    }
+
+    /// @dev Phase 2 success: the option keeper reports the premium it paid and the resulting PAT, finalizing the loan.
+    function completeTake(bytes32 pendingId, uint256 premium, address pat, uint256 patTokenId) external {
+        require(msg.sender == optionKeeper, NotOptionKeeper());
+        PendingTake storage pending = _pendingTakes[pendingId];
+        require(pending.lender != address(0), PendingTakeNotFound());
+        require(block.timestamp <= pending.deadline, PendingTakeExpired());
+
+        uint256 net = pending.escrowed - pending.settlementFee;
+        require(premium <= net, PremiumTooHigh());
+        net -= premium;
+
+        // Copy to memory and clear storage before any external call (checks-effects-interactions).
+        bytes32 id = pending.id;
+        address borrower = pending.borrower;
+        address lender = pending.lender;
+        uint256 units = pending.units;
+        uint256 collateral = pending.collateral;
+        uint256 settlementFeeAmount = pending.settlementFee;
+        uint256 maturity = pending.offer.market.maturity;
+        address loanToken = pending.offer.market.loanToken;
+
+        delete _pendingTakes[pendingId];
+
+        // Finalize credit/debt accounting.
+        Position storage borrowerPos = position[id][borrower];
+        Position storage lenderPos = position[id][lender];
+        uint128 units128 = UtilsLib.toUint128(units);
+        borrowerPos.debt += units128;
+        lenderPos.credit += units128;
+        marketState[id].totalUnits = UtilsLib.toUint128(marketState[id].totalUnits + units);
+
+        // Activate the borrower's collateral (single-BTC, index 0).
+        uint128 oldCollateral = borrowerPos.collateral[0];
+        borrowerPos.collateral[0] = UtilsLib.toUint128(oldCollateral + collateral);
+        if (oldCollateral == 0) {
+            borrowerPos.collateralBitmap = borrowerPos.collateralBitmap.setBit(0);
+            require(
+                UtilsLib.countBits(borrowerPos.collateralBitmap) <= MAX_COLLATERALS_PER_BORROWER, TooManyActivatedCollaterals()
+            );
+        }
+
+        claimableSettlementFee[loanToken] += settlementFeeAmount;
+
+        uint256 strike = units.mulDivDown(ORACLE_PRICE_SCALE, collateral);
+        _loans[pendingId] = Loan({
+            id: id,
+            borrower: borrower,
+            principal: units,
+            collateral: collateral,
+            strike: strike,
+            premium: premium,
+            expiry: maturity,
+            pat: pat,
+            patTokenId: patTokenId,
+            lastRepaid: 0,
+            claimablePutProceeds: 0
+        });
+
+        emit EventsLib.TakeCompleted(pendingId, premium, pat, patTokenId);
+        emit EventsLib.LoanCreated(
+            pendingId, id, borrower, units, collateral, strike, premium, maturity, pat, patTokenId
+        );
+
+        // Disburse the escrowed loan tokens (external calls last).
+        IOptionVault(optionVault).refund(loanToken, address(this), settlementFeeAmount);
+        IOptionVault(optionVault).refund(loanToken, optionKeeper, premium);
+        IOptionVault(optionVault).refund(loanToken, borrower, net);
+    }
+
+    /// @dev Phase 2 rollback: refunds the lender's loan tokens and the borrower's collateral, restoring the offer.
+    function cancelTake(bytes32 pendingId) external {
+        PendingTake storage pending = _pendingTakes[pendingId];
+        require(pending.lender != address(0), PendingTakeNotFound());
+        require(msg.sender == optionKeeper || block.timestamp >= pending.deadline, NotOptionKeeper());
+
+        Offer memory offer = pending.offer;
+        address borrower = pending.borrower;
+        address lender = pending.lender;
+        uint256 units = pending.units;
+        uint256 collateral = pending.collateral;
+        uint256 escrowed = pending.escrowed;
+        uint256 settlementFeeAmount = pending.settlementFee;
+
+        delete _pendingTakes[pendingId];
+
+        // Restore the offer's consumed reservation.
+        if (offer.maxAssets > 0) {
+            uint256 consumedAmount = offer.buy ? escrowed : escrowed - settlementFeeAmount;
+            consumed[offer.maker][offer.group] -= consumedAmount;
+        } else {
+            consumed[offer.maker][offer.group] -= units;
+        }
+
+        // Refund (external calls last).
+        IOptionVault(optionVault).refund(offer.market.loanToken, lender, escrowed);
+        SafeTransferLib.safeTransfer(offer.market.collateralParams[0].token, borrower, collateral);
+
+        emit EventsLib.TakeCancelled(pendingId);
+    }
+
     function withdraw(Market memory market, uint256 units, address onBehalf, address receiver) external {
         require(onBehalf == msg.sender || isAuthorized[onBehalf][msg.sender], Unauthorized());
         bytes32 id = touchMarket(market);
@@ -644,6 +840,14 @@ contract Awakening is IAwakening {
 
     function collateral(bytes32 id, address user, uint256 index) external view returns (uint128) {
         return position[id][user].collateral[index];
+    }
+
+    function pendingTakes(bytes32 pendingId) external view returns (PendingTake memory) {
+        return _pendingTakes[pendingId];
+    }
+
+    function loans(bytes32 loanId) external view returns (Loan memory) {
+        return _loans[loanId];
     }
 
     function toId(Market memory market) public view returns (bytes32) {

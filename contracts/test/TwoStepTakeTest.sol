@@ -1,0 +1,251 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (c) 2025 Morpho Association
+pragma solidity ^0.8.0;
+
+import {BaseTest} from "./BaseTest.sol";
+import {IAwakening, Market, Offer, CollateralParams, PendingTake, Loan} from "../src/interfaces/IAwakening.sol";
+import {OptionVault} from "../src/vault/OptionVault.sol";
+import {EventsLib} from "../src/libraries/EventsLib.sol";
+import {TickLib, MAX_TICK} from "../src/libraries/TickLib.sol";
+import {UtilsLib} from "../src/libraries/UtilsLib.sol";
+import {WAD, ORACLE_PRICE_SCALE, TWO_STEP_TAKE_WINDOW} from "../src/libraries/ConstantsLib.sol";
+
+contract TwoStepTakeTest is BaseTest {
+    OptionVault internal vault;
+    address internal keeper = makeAddr("optionKeeper");
+
+    Market internal market;
+    Offer internal offer;
+    bytes32 internal id;
+
+    function setUp() public override {
+        super.setUp();
+
+        vault = new OptionVault(address(awakening));
+        awakening.setOptionKeeper(keeper);
+        awakening.setOptionVault(address(vault));
+
+        // Borrower approves Awakening for BTC.
+        vm.prank(borrower);
+        collateralToken1.approve(address(awakening), type(uint256).max);
+
+        market.loanToken = address(loanToken);
+        market.maturity = vm.getBlockTimestamp() + 100 days;
+        market.maxStrike = type(uint256).max;
+        market.penaltyPct = 5e16;
+        market.collateralParams.push(CollateralParams({token: address(collateralToken1), oracle: address(oracle1)}));
+        market.collateralParams = sortCollateralParams(market.collateralParams);
+        id = toId(market);
+
+        // Case B: borrower lists a sell offer, the lender takes.
+        offer.market = market;
+        offer.buy = false;
+        offer.maker = borrower;
+        offer.receiverIfMakerIsSeller = borrower;
+        offer.maxUnits = type(uint256).max;
+        offer.ratifier = address(dummyRatifier);
+        offer.start = vm.getBlockTimestamp();
+        offer.expiry = vm.getBlockTimestamp() + 200;
+        offer.tick = MAX_TICK;
+    }
+
+    /// @dev buyerAssets == sellerAssets at MAX_TICK with no settlement fee set.
+    function _buyerAssets(uint256 units) internal pure returns (uint256) {
+        return UtilsLib.mulDivUp(units, TickLib.tickToPrice(MAX_TICK), WAD);
+    }
+
+    function _initiate(uint256 units, uint256 collateral) internal returns (bytes32 pendingId) {
+        deal(address(loanToken), lender, _buyerAssets(units));
+        deal(address(collateralToken1), borrower, collateral);
+
+        vm.prank(lender);
+        pendingId = awakening.takeInit(offer, hex"", units, collateral, lender);
+    }
+
+    // --- complete path ---
+
+    function testCompleteTake(uint256 units, uint256 collateral, uint256 premium) public {
+        units = bound(units, 1, 1e24);
+        collateral = bound(collateral, 1, 1e24);
+        uint256 buyerAssets = _buyerAssets(units);
+        premium = bound(premium, 0, buyerAssets);
+
+        bytes32 pendingId = _initiate(units, collateral);
+        uint256 borrowerUsdcBefore = loanToken.balanceOf(borrower);
+
+        address pat = makeAddr("pat");
+        vm.prank(keeper);
+        awakening.completeTake(pendingId, premium, pat, 42);
+
+        assertEq(awakening.debtOf(id, borrower), units, "debt");
+        assertEq(awakening.creditOf(id, lender), units, "credit");
+        assertEq(awakening.collateral(id, borrower, 0), collateral, "collateral position");
+
+        Loan memory loan = awakening.loans(pendingId);
+        assertEq(loan.principal, units, "principal");
+        assertEq(loan.collateral, collateral, "loan collateral");
+        assertEq(loan.strike, UtilsLib.mulDivDown(units, ORACLE_PRICE_SCALE, collateral), "strike");
+        assertEq(loan.premium, premium, "premium");
+        assertEq(loan.expiry, market.maturity, "expiry");
+        assertEq(loan.pat, pat, "pat");
+        assertEq(loan.patTokenId, 42, "patTokenId");
+
+        assertEq(loanToken.balanceOf(borrower) - borrowerUsdcBefore, buyerAssets - premium, "borrower net");
+        assertEq(loanToken.balanceOf(keeper), premium, "keeper premium");
+        assertEq(vault.escrowed(address(loanToken)), 0, "vault drained");
+
+        PendingTake memory pt = awakening.pendingTakes(pendingId);
+        assertEq(pt.lender, address(0), "pending cleared");
+    }
+
+    function testTakeInitReservesConsumed(uint256 units, uint256 collateral) public {
+        units = bound(units, 1, 1e24);
+        collateral = bound(collateral, 1, 1e24);
+        _initiate(units, collateral);
+
+        assertEq(awakening.consumed(borrower, offer.group), units, "consumed reserved");
+    }
+
+    // --- cancel path ---
+
+    function testCancelTake(uint256 units, uint256 collateral) public {
+        units = bound(units, 1, 1e24);
+        collateral = bound(collateral, 1, 1e24);
+        uint256 buyerAssets = _buyerAssets(units);
+
+        bytes32 pendingId = _initiate(units, collateral);
+        uint256 lenderUsdcBefore = loanToken.balanceOf(lender);
+
+        vm.prank(keeper);
+        awakening.cancelTake(pendingId);
+
+        assertEq(loanToken.balanceOf(lender) - lenderUsdcBefore, buyerAssets, "lender refunded");
+        assertEq(collateralToken1.balanceOf(borrower), collateral, "collateral returned");
+        assertEq(vault.escrowed(address(loanToken)), 0, "vault drained");
+        assertEq(awakening.debtOf(id, borrower), 0, "no debt");
+        assertEq(awakening.creditOf(id, lender), 0, "no credit");
+        assertEq(awakening.consumed(borrower, offer.group), 0, "consumed restored");
+
+        PendingTake memory pt = awakening.pendingTakes(pendingId);
+        assertEq(pt.lender, address(0), "pending cleared");
+    }
+
+    function testCancelAfterDeadlineAnyone(uint256 units, uint256 collateral) public {
+        units = bound(units, 1, 1e24);
+        collateral = bound(collateral, 1, 1e24);
+
+        bytes32 pendingId = _initiate(units, collateral);
+
+        vm.warp(block.timestamp + TWO_STEP_TAKE_WINDOW + 1);
+
+        vm.prank(makeAddr("anyone"));
+        awakening.cancelTake(pendingId);
+
+        assertEq(collateralToken1.balanceOf(borrower), collateral, "collateral returned");
+    }
+
+    // --- access control ---
+
+    function testCompleteOnlyOptionKeeper(uint256 units, uint256 collateral) public {
+        units = bound(units, 1, 1e24);
+        collateral = bound(collateral, 1, 1e24);
+        bytes32 pendingId = _initiate(units, collateral);
+
+        vm.prank(makeAddr("notKeeper"));
+        vm.expectRevert(IAwakening.NotOptionKeeper.selector);
+        awakening.completeTake(pendingId, 0, makeAddr("pat"), 0);
+    }
+
+    function testCancelOnlyOptionKeeperBeforeDeadline(uint256 units, uint256 collateral) public {
+        units = bound(units, 1, 1e24);
+        collateral = bound(collateral, 1, 1e24);
+        bytes32 pendingId = _initiate(units, collateral);
+
+        vm.prank(makeAddr("notKeeper"));
+        vm.expectRevert(IAwakening.NotOptionKeeper.selector);
+        awakening.cancelTake(pendingId);
+    }
+
+    function testCompleteExpired(uint256 units, uint256 collateral) public {
+        units = bound(units, 1, 1e24);
+        collateral = bound(collateral, 1, 1e24);
+        bytes32 pendingId = _initiate(units, collateral);
+
+        vm.warp(block.timestamp + TWO_STEP_TAKE_WINDOW + 1);
+
+        vm.prank(keeper);
+        vm.expectRevert(IAwakening.PendingTakeExpired.selector);
+        awakening.completeTake(pendingId, 0, makeAddr("pat"), 0);
+    }
+
+    function testPendingTakeNotFound() public {
+        vm.prank(keeper);
+        vm.expectRevert(IAwakening.PendingTakeNotFound.selector);
+        awakening.completeTake(bytes32(0), 0, address(0), 0);
+
+        vm.expectRevert(IAwakening.PendingTakeNotFound.selector);
+        awakening.cancelTake(bytes32(0));
+    }
+
+    // --- validation ---
+
+    function testZeroCollateralReverts(uint256 units) public {
+        units = bound(units, 1, 1e24);
+        deal(address(loanToken), lender, _buyerAssets(units));
+
+        vm.prank(lender);
+        vm.expectRevert(IAwakening.ZeroCollateral.selector);
+        awakening.takeInit(offer, hex"", units, 0, lender);
+    }
+
+    function testPremiumTooHigh(uint256 units, uint256 collateral) public {
+        units = bound(units, 1, 1e24);
+        collateral = bound(collateral, 1, 1e24);
+        uint256 buyerAssets = _buyerAssets(units);
+        bytes32 pendingId = _initiate(units, collateral);
+
+        vm.prank(keeper);
+        vm.expectRevert(IAwakening.PremiumTooHigh.selector);
+        awakening.completeTake(pendingId, buyerAssets + 1, makeAddr("pat"), 0);
+    }
+
+    function testStrikeExceedsMaxStrike() public {
+        offer.market.maxStrike = 1; // unrealistically low cap
+
+        deal(address(loanToken), lender, _buyerAssets(1e18));
+        deal(address(collateralToken1), borrower, 1e18);
+
+        vm.prank(lender);
+        vm.expectRevert(IAwakening.StrikeExceedsMax.selector);
+        awakening.takeInit(offer, hex"", 1e18, 1e18, lender);
+    }
+
+    // --- Case A: lender lists a buy offer, the borrower takes ---
+
+    function testCaseABuyOfferBorrowerTakes() public {
+        Offer memory buyOffer;
+        buyOffer.market = market;
+        buyOffer.buy = true;
+        buyOffer.maker = lender;
+        buyOffer.maxUnits = type(uint256).max;
+        buyOffer.ratifier = address(dummyRatifier);
+        buyOffer.start = vm.getBlockTimestamp();
+        buyOffer.expiry = vm.getBlockTimestamp() + 200;
+        buyOffer.tick = MAX_TICK;
+
+        uint256 units = 1e18;
+        uint256 collateral = 1e18;
+        deal(address(loanToken), lender, _buyerAssets(units));
+        deal(address(collateralToken1), borrower, collateral);
+
+        vm.prank(borrower);
+        bytes32 pendingId = awakening.takeInit(buyOffer, hex"", units, collateral, borrower);
+
+        vm.prank(keeper);
+        awakening.completeTake(pendingId, 0, makeAddr("pat"), 0);
+
+        assertEq(awakening.debtOf(id, borrower), units, "debt");
+        assertEq(awakening.creditOf(id, lender), units, "credit");
+        assertEq(awakening.collateral(id, borrower, 0), collateral, "collateral position");
+    }
+}

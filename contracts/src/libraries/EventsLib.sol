@@ -12,6 +12,11 @@ library EventsLib {
     event SetFeeSetter(address indexed feeSetter);
     event SetTickSpacingSetter(address indexed tickSpacingSetter);
     event SetOptionKeeper(address indexed optionKeeper);
+    event SetOptionVault(address indexed optionVault);
+    event TakeInitiated(bytes32 indexed pendingId, bytes32 indexed id_, address indexed borrower, address lender, uint256 units, uint256 collateral, uint256 escrowed, uint256 settlementFee, uint256 deadline);
+    event TakeCompleted(bytes32 indexed pendingId, uint256 premium, address pat, uint256 patTokenId);
+    event TakeCancelled(bytes32 indexed pendingId);
+    event LoanCreated(bytes32 indexed loanId, bytes32 indexed id_, address indexed borrower, uint256 principal, uint256 collateral, uint256 strike, uint256 premium, uint256 expiry, address pat, uint256 patTokenId);
     event SetMarketTickSpacing(bytes32 indexed id_, uint256 newTickSpacing);
     event SetMarketSettlementFee(bytes32 indexed id_, uint256 indexed index, uint256 newSettlementFee);
     event SetDefaultSettlementFee(address indexed loanToken, uint256 indexed index, uint256 newSettlementFee);

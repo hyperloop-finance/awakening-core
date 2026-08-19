@@ -231,6 +231,21 @@ contract SettersTest is BaseTest {
         awakening.setOptionKeeper(makeAddr("newOptionKeeper"));
     }
 
+    function testSetOptionVaultSuccess(address optionVault) public {
+        vm.expectEmit();
+        emit EventsLib.SetOptionVault(optionVault);
+
+        awakening.setOptionVault(optionVault);
+        assertEq(awakening.optionVault(), optionVault, "option vault set");
+    }
+
+    function testSetOptionVaultOnlyRoleSetter(address rdm) public {
+        vm.assume(rdm != address(this));
+        vm.prank(rdm);
+        vm.expectRevert(IAwakening.OnlyRoleSetter.selector);
+        awakening.setOptionVault(makeAddr("newOptionVault"));
+    }
+
     // Default settlement fee tests
 
     function testSettlementFeeRevertsWhenNotCreated() public {

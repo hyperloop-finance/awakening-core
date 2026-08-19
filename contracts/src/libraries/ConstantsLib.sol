@@ -18,6 +18,7 @@ uint256 constant MAX_COLLATERALS = 128;
 uint256 constant MAX_COLLATERALS_PER_BORROWER = 16;
 bytes32 constant CALLBACK_SUCCESS = keccak256("hyperloop.awakening.callbackSuccess");
 uint8 constant DEFAULT_TICK_SPACING = 4;
+uint256 constant TWO_STEP_TAKE_WINDOW = 1 hours;
 
 /// @dev Returns the max settlement fee for the given index.
 function maxSettlementFee(uint256 index) pure returns (uint256) {

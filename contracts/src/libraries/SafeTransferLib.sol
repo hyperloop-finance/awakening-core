@@ -6,8 +6,21 @@ import {IERC20} from "../interfaces/IERC20.sol";
 
 library SafeTransferLib {
     error NoCode();
+    error ApproveReturnedFalse();
     error TransferFromReturnedFalse();
     error TransferReturnedFalse();
+
+    function safeApprove(address token, address spender, uint256 value) internal {
+        require(token.code.length > 0, NoCode());
+
+        (bool success, bytes memory returndata) = token.call(abi.encodeCall(IERC20.approve, (spender, value)));
+        if (!success) {
+            assembly ("memory-safe") {
+                revert(add(returndata, 0x20), mload(returndata))
+            }
+        }
+        require(returndata.length == 0 || abi.decode(returndata, (bool)), ApproveReturnedFalse());
+    }
 
     function safeTransfer(address token, address to, uint256 value) internal {
         require(token.code.length > 0, NoCode());

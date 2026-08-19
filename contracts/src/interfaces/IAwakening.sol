@@ -69,7 +69,10 @@ struct PendingTake {
     address borrower;
     address lender;
     uint256 collateral;
+    /// @dev Loan tokens locked in the option vault (= buyerAssets).
     uint256 escrowed;
+    /// @dev Settlement fee frozen at phase 1 (buyerAssets - sellerAssets).
+    uint256 settlementFee;
     uint256 premiumQuote;
     uint256 deadline;
 }
@@ -120,6 +123,13 @@ interface IAwakening {
     error OnlyFeeSetter();
     error OnlyRoleSetter();
     error OnlyTickSpacingSetter();
+    error NotOptionKeeper();
+    error PendingTakeExpired();
+    error PendingTakeNotFound();
+    error PremiumTooHigh();
+    error StrikeExceedsMax();
+    error ZeroCollateral();
+    error ZeroOptionVault();
     error RatifierFail();
     error RatifierUnauthorized();
     error SelfTake();
@@ -148,6 +158,10 @@ interface IAwakening {
     function feeClaimer() external view returns (address);
     function tickSpacingSetter() external view returns (address);
     function optionKeeper() external view returns (address);
+    function optionVault() external view returns (address);
+    function pendingTakes(bytes32 pendingId) external view returns (PendingTake memory);
+    function loans(bytes32 loanId) external view returns (Loan memory);
+    function pendingNonce() external view returns (uint256);
 
     /// MULTICALL ///
     function multicall(bytes[] memory calls) external;
@@ -158,6 +172,7 @@ interface IAwakening {
     function setFeeClaimer(address newFeeClaimer) external;
     function setTickSpacingSetter(address newTickSpacingSetter) external;
     function setOptionKeeper(address newOptionKeeper) external;
+    function setOptionVault(address newOptionVault) external;
     function setMarketTickSpacing(bytes32 id, uint256 newTickSpacing) external;
     function setMarketSettlementFee(bytes32 id, uint256 index, uint256 newSettlementFee) external;
     function setDefaultSettlementFee(address loanToken, uint256 index, uint256 newSettlementFee) external;
@@ -168,6 +183,9 @@ interface IAwakening {
 
     /// ENTRY-POINTS ///
     function take(Offer memory offer, bytes memory ratifierData, uint256 units, address taker, address receiverIfTakerIsSeller, address takerCallback, bytes memory takerCallbackData) external returns (uint256, uint256);
+    function takeInit(Offer memory offer, bytes memory ratifierData, uint256 units, uint256 collateral, address taker) external returns (bytes32 pendingId);
+    function completeTake(bytes32 pendingId, uint256 premium, address pat, uint256 patTokenId) external;
+    function cancelTake(bytes32 pendingId) external;
     function withdraw(Market memory market, uint256 units, address onBehalf, address receiver) external;
     function repay(Market memory market, uint256 units, address onBehalf, address callback, bytes memory data) external;
     function supplyCollateral(Market memory market, uint256 collateralIndex, uint256 assets, address onBehalf) external;
