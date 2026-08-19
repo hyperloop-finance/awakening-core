@@ -128,6 +128,7 @@ interface IAwakening {
     error PendingTakeNotFound();
     error PremiumTooHigh();
     error StrikeExceedsMax();
+    error HasOutstandingDebt();
     error ZeroCollateral();
     error ZeroOptionVault();
     error ZeroPat();

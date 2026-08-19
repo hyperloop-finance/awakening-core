@@ -501,6 +501,17 @@ contract Awakening is IAwakening {
 
         (address buyer, address seller) = offer.buy ? (offer.maker, taker) : (taker, offer.maker);
 
+        // A two-step take always increases the seller's debt (new borrow): block it at/after maturity and enforce gates.
+        require(block.timestamp <= offer.market.maturity, CannotIncreaseDebtPostMaturity());
+        require(
+            offer.market.enterGate == address(0) || IEnterGate(offer.market.enterGate).canIncreaseCredit(buyer),
+            BuyerGatedFromIncreasingCredit()
+        );
+        require(
+            offer.market.enterGate == address(0) || IEnterGate(offer.market.enterGate).canIncreaseDebt(seller),
+            SellerGatedFromIncreasingDebt()
+        );
+
         // LTV cap (D5): strike = principal / collateral must not exceed the market's maxStrike.
         uint256 strike = units.mulDivUp(ORACLE_PRICE_SCALE, collateral);
         require(strike <= offer.market.maxStrike, StrikeExceedsMax());
@@ -689,6 +700,11 @@ contract Awakening is IAwakening {
             uint256 collateral = loan.collateral;
             _borrowerLoan[id][borrower] = 0;
             delete _loans[loanId];
+
+            Position storage _position = position[id][borrower];
+            _position.collateral[0] = UtilsLib.toUint128(uint256(_position.collateral[0]) - collateral);
+            if (_position.collateral[0] == 0) _position.collateralBitmap = _position.collateralBitmap.clearBit(0);
+
             SafeTransferLib.safeTransfer(market.collateralParams[0].token, borrower, collateral);
         }
     }
@@ -712,6 +728,10 @@ contract Awakening is IAwakening {
 
         _borrowerLoan[id][borrower] = 0;
         delete _loans[loanId];
+
+        Position storage _position = position[id][borrower];
+        _position.collateral[0] = UtilsLib.toUint128(uint256(_position.collateral[0]) - collateral);
+        if (_position.collateral[0] == 0) _position.collateralBitmap = _position.collateralBitmap.clearBit(0);
 
         SafeTransferLib.safeTransfer(collateralToken, collateralReceiver, collateral);
 
@@ -804,6 +824,7 @@ contract Awakening is IAwakening {
         address collateralToken = market.collateralParams[collateralIndex].token;
 
         Position storage _position = position[id][onBehalf];
+        require(assets == 0 || _position.debt == 0, HasOutstandingDebt());
         uint256 newCollateral = _position.collateral[collateralIndex] - assets;
         _position.collateral[collateralIndex] = UtilsLib.toUint128(newCollateral);
 

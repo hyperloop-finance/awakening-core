@@ -241,6 +241,43 @@ contract SettlementTest is BaseTest {
         assertEq(awakening.loans(loanId).borrower, address(0), "loan deleted");
     }
 
+    // --- collateral accounting: no phantom collateral after repay/settle ---
+
+    function testNoPhantomCollateralAfterRepay(uint256 units, uint256 collateral) public {
+        units = bound(units, 1e18, 1e24);
+        collateral = bound(collateral, 1e6, 1e8);
+        _borrow(units, collateral);
+        assertEq(awakening.collateral(id, borrower, 0), collateral, "collateral recorded");
+
+        _mature();
+        vm.prank(borrower);
+        settlement.repay(id, units);
+
+        assertEq(awakening.collateral(id, borrower, 0), 0, "no phantom collateral after repay");
+        assertEq(awakening.collateralBitmap(id, borrower), 0, "bitmap cleared");
+    }
+
+    function testNoPhantomCollateralAfterSettle(uint256 units, uint256 collateral) public {
+        units = bound(units, 1e18, 1e24);
+        collateral = bound(collateral, 1e6, 1e8);
+        _borrow(units, collateral);
+        assertEq(awakening.collateral(id, borrower, 0), collateral, "collateral recorded");
+
+        _mature();
+        vm.prank(keeper);
+        settlement.redeemPATs(id);
+
+        uint256 proceeds = units + units / 10;
+        deal(address(loanToken), keeper, proceeds);
+        vm.prank(keeper);
+        loanToken.approve(address(settlement), type(uint256).max);
+        vm.prank(keeper);
+        settlement.settle(id, proceeds);
+
+        assertEq(awakening.collateral(id, borrower, 0), 0, "no phantom collateral after settle");
+        assertEq(awakening.collateralBitmap(id, borrower), 0, "bitmap cleared");
+    }
+
     // --- access control / validation ---
 
     function testRedeemPATsOnlyOptionKeeper() public {

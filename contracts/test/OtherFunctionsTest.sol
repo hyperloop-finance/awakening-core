@@ -54,11 +54,11 @@ contract OtherFunctionsTest is BaseTest {
         id = toId(market);
     }
 
-    function testWithdrawCollateralWithBorrowHealthy(uint256 additionalCollateral, uint256 withdraw, uint256 units)
+    function testWithdrawCollateralWithDebtReverts(uint256 additionalCollateral, uint256 withdraw, uint256 units)
         public
     {
-        units = bound(units, 0, MAX_UNITS);
-        additionalCollateral = bound(additionalCollateral, 0, MAX_UNITS);
+        units = bound(units, 1, MAX_UNITS);
+        additionalCollateral = bound(additionalCollateral, 1, MAX_UNITS);
         address collateralToken = market.collateralParams[0].token;
         collateralize(market, borrower, units);
         setupMarket(market, units);
@@ -68,20 +68,12 @@ contract OtherFunctionsTest is BaseTest {
         emit EventsLib.SupplyCollateral(address(this), id, collateralToken, additionalCollateral, borrower);
 
         awakening.supplyCollateral(market, 0, additionalCollateral, borrower);
-        withdraw = bound(withdraw, 0, additionalCollateral);
-        uint256 initialCollateral = awakening.collateral(id, borrower, 0);
+        withdraw = bound(withdraw, 1, additionalCollateral);
 
-        vm.expectEmit();
-        emit EventsLib.WithdrawCollateral(borrower, id, collateralToken, withdraw, borrower, borrower);
-
+        // Non-liquidative: collateral cannot be withdrawn while the borrower has debt.
         vm.prank(borrower);
+        vm.expectRevert(IAwakening.HasOutstandingDebt.selector);
         awakening.withdrawCollateral(market, 0, withdraw, borrower, borrower);
-
-        assertEq(awakening.collateral(id, borrower, 0), initialCollateral - withdraw, "collateral of");
-        assertEq(
-            ERC20(collateralToken).balanceOf(address(awakening)), initialCollateral - withdraw, "balance of awakening"
-        );
-        assertEq(ERC20(collateralToken).balanceOf(borrower), withdraw, "balance of borrower");
     }
 
     function testRepay(uint256 units, uint256 repaid) public {

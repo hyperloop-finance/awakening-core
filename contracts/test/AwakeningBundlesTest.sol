@@ -965,7 +965,8 @@ contract AwakeningBundlesTest is BaseTest {
             units, 0, borrower, borrower, new CollateralSupply[](0), sellTakes, 0, address(0)
         );
 
-        uint256 maxWithdrawable = collateralAmount - _collateralAmount(0, units - repayUnits);
+        // Non-liquidative: collateral is only withdrawable once the debt is fully repaid.
+        uint256 maxWithdrawable = repayUnits == units ? collateralAmount : 0;
         withdrawAssets = bound(withdrawAssets, 0, maxWithdrawable);
         address collateralReceiver = makeAddr("collateralReceiver");
 

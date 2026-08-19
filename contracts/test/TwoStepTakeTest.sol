@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 
 import {BaseTest} from "./BaseTest.sol";
 import {IAwakening, Market, Offer, CollateralParams, PendingTake, Loan} from "../src/interfaces/IAwakening.sol";
+import {IEnterGate} from "../src/interfaces/IGate.sol";
 import {OptionVault} from "../src/vault/OptionVault.sol";
 import {AttestedPAT} from "../src/pat/AttestedPAT.sol";
 import {IPAT, OptionTerms} from "../src/interfaces/IPAT.sol";
@@ -301,5 +302,66 @@ contract TwoStepTakeTest is BaseTest {
         assertEq(awakening.debtOf(id, borrower), units, "debt");
         assertEq(awakening.creditOf(id, lender), units, "credit");
         assertEq(awakening.collateral(id, borrower, 0), collateral, "collateral position");
+    }
+
+    // --- security: collateral withdrawal, post-maturity, gate ---
+
+    function testWithdrawCollateralBlockedWhileDebt(uint256 units, uint256 collateral) public {
+        units = bound(units, 1, 1e24);
+        collateral = bound(collateral, 1, 1e24);
+        bytes32 pendingId = _initiate(units, collateral);
+
+        bytes memory attestation = _attestation(units, collateral);
+        vm.prank(keeper);
+        awakening.completeTake(pendingId, 0, attestation);
+
+        vm.prank(borrower);
+        vm.expectRevert(IAwakening.HasOutstandingDebt.selector);
+        awakening.withdrawCollateral(market, 0, collateral, borrower, borrower);
+    }
+
+    function testTakeInitPostMaturityReverts() public {
+        uint256 units = 1e18;
+        uint256 collateral = 1e18;
+
+        market.maturity = vm.getBlockTimestamp() + 100;
+        offer.market = market;
+        offer.start = vm.getBlockTimestamp();
+        offer.expiry = vm.getBlockTimestamp() + 500;
+
+        vm.warp(vm.getBlockTimestamp() + 200); // past maturity, still before offer expiry
+
+        deal(address(loanToken), lender, _buyerAssets(units));
+        deal(address(collateralToken1), borrower, collateral);
+
+        vm.prank(lender);
+        vm.expectRevert(IAwakening.CannotIncreaseDebtPostMaturity.selector);
+        awakening.takeInit(offer, hex"", units, collateral, lender);
+    }
+
+    function testTakeInitGateBlocksDebt(uint256 units, uint256 collateral) public {
+        units = bound(units, 1, 1e24);
+        collateral = bound(collateral, 1, 1e24);
+
+        BlockDebtGate gate = new BlockDebtGate();
+        market.enterGate = address(gate);
+        offer.market = market;
+
+        deal(address(loanToken), lender, _buyerAssets(units));
+        deal(address(collateralToken1), borrower, collateral);
+
+        vm.prank(lender);
+        vm.expectRevert(IAwakening.SellerGatedFromIncreasingDebt.selector);
+        awakening.takeInit(offer, hex"", units, collateral, lender);
+    }
+}
+
+contract BlockDebtGate is IEnterGate {
+    function canIncreaseCredit(address) external pure returns (bool) {
+        return true;
+    }
+
+    function canIncreaseDebt(address) external pure returns (bool) {
+        return false;
     }
 }
