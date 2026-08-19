@@ -502,7 +502,7 @@ contract Awakening is IAwakening {
         (address buyer, address seller) = offer.buy ? (offer.maker, taker) : (taker, offer.maker);
 
         // LTV cap (D5): strike = principal / collateral must not exceed the market's maxStrike.
-        uint256 strike = units.mulDivDown(ORACLE_PRICE_SCALE, collateral);
+        uint256 strike = units.mulDivUp(ORACLE_PRICE_SCALE, collateral);
         require(strike <= offer.market.maxStrike, StrikeExceedsMax());
 
         require(optionVault != address(0), ZeroOptionVault());
@@ -564,7 +564,7 @@ contract Awakening is IAwakening {
 
         // The option terms are derived from the pending take, so the four invariants hold by construction:
         // underlying == collateral token, strike == units / collateral, expiry == maturity, notional == collateral.
-        uint256 strike = units.mulDivDown(ORACLE_PRICE_SCALE, collateral);
+        uint256 strike = units.mulDivUp(ORACLE_PRICE_SCALE, collateral);
         OptionTerms memory terms = OptionTerms({
             underlying: collateralToken,
             quoteToken: loanToken,

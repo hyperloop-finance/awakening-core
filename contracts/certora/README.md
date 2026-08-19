@@ -1,7 +1,9 @@
-This folder contains the verification of the Midnight protocol using CVL, Certora's Verification Language.
+This folder contains the verification of the Midnight protocol (now renamed **Awakening**) using CVL, Certora's Verification Language.
 
-Midnight is a fixed-rate lending protocol, see the repository [`README`](../README.md) and [`src/Midnight.sol`](../src/Midnight.sol) for the protocol itself.
+Awakening is a fixed-rate, non-liquidative lending protocol, see the repository [`README`](../README.md) and [`src/Awakening.sol`](../src/Awakening.sol) for the protocol itself.
 The verified properties are listed below by theme, followed by the verification setup.
+
+> **Status**: the liquidation surface (`liquidate`, `isHealthy`, `lossFactor`, `LLTV`, `LIF`, `maxLif`) was removed from Awakening, so the specs that described it (`Liquidate`, `LossFactor`, `LiquidationBoundedByLIF`, `LiquidationProfitability`, `Healthiness`) and their confs/helper were deleted. A new [`PATCoverage.spec`](specs/PATCoverage.spec) states the non-liquidation guarantee. The remaining specs still reference `Midnight` and need a mechanical `Midnight` → `Awakening` rename plus removal of stale `liquidate`/`isHealthy` references before they can run again — this is tracked as follow-up work.
 
 # Verified properties
 
@@ -17,21 +19,8 @@ Global invariants on positions, markets and accounting.
 - [`BalanceEffects.spec`](specs/BalanceEffects.spec) pins down the exact credit, debt and collateral effect of every entry point.
 - [`WithdrawableMonotonicity.spec`](specs/WithdrawableMonotonicity.spec) checks how withdrawable assets move: up on `repay` and `liquidate`, down by exactly the amount on `withdraw` and `claimContinuousFee`, and unchanged otherwise.
   It checks the claimable settlement fee the same way: up on `take`, down on `claimSettlementFee`, and unchanged otherwise.
-- [`CreatedMarkets.spec`](specs/CreatedMarkets.spec) checks the well-formedness invariants of a created market: a non-empty collateral list, strictly sorted by token, with no zero token, and every entry with an `LLTV <= WAD` from an allowed tier and an allowed `maxLif`.
-  Rules add that a market is created by the first interaction of each entry point, can only be created that way, and can never be deleted.
 - [`NotCreatedMarket.spec`](specs/NotCreatedMarket.spec) checks the converse: every state field of a market that was never created is empty.
-- [`LossFactor.spec`](specs/LossFactor.spec) checks that only `liquidate` changes a market's loss factor, and only when bad debt is realized (total units decrease), and that `updatePosition` syncs the user's `lastLossFactor` to the market's.
-  It also checks that the loss-factor arithmetic in `updatePosition` and `liquidate` does not revert on a created market.
 - [`UpdateBeforeCredit.spec`](specs/UpdateBeforeCredit.spec) checks that credit is never loaded or stored before `_updatePosition` has run for that position.
-
-## Positions health and liquidation
-
-Healthy positions stay healthy, and liquidations only touch liquidatable positions within the incentive bound.
-
-- [`Healthiness.spec`](specs/Healthiness.spec) checks that no action (except oracle update) can turn a healthy borrower unhealthy.
-- [`Liquidate.spec`](specs/Liquidate.spec) checks that `liquidate` can only act on a liquidatable position, leaves credit unchanged, and can only decrease the borrower's debt and the seized collateral.
-- [`LiquidationProfitability.spec`](specs/LiquidationProfitability.spec) shows that the liquidation is profitable.
-- [`LiquidationBoundedByLIF.spec`](specs/LiquidationBoundedByLIF.spec) checks the upper side: liquidation profit is bounded by `maxLif`.
 
 ## Offers and consumption
 

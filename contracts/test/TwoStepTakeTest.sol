@@ -76,7 +76,7 @@ contract TwoStepTakeTest is BaseTest {
         OptionTerms memory terms = OptionTerms({
             underlying: address(collateralToken1),
             quoteToken: address(loanToken),
-            strike: UtilsLib.mulDivDown(units, ORACLE_PRICE_SCALE, collateral),
+            strike: UtilsLib.mulDivUp(units, ORACLE_PRICE_SCALE, collateral),
             notional: collateral,
             expiry: market.maturity,
             isPut: true
@@ -119,7 +119,7 @@ contract TwoStepTakeTest is BaseTest {
         Loan memory loan = awakening.loans(pendingId);
         assertEq(loan.principal, units, "principal");
         assertEq(loan.collateral, collateral, "loan collateral");
-        assertEq(loan.strike, UtilsLib.mulDivDown(units, ORACLE_PRICE_SCALE, collateral), "strike");
+        assertEq(loan.strike, UtilsLib.mulDivUp(units, ORACLE_PRICE_SCALE, collateral), "strike");
         assertEq(loan.premium, premium, "premium");
         assertEq(loan.expiry, market.maturity, "expiry");
         assertEq(loan.pat, address(pat), "pat");
