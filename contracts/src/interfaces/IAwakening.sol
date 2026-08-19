@@ -130,6 +130,7 @@ interface IAwakening {
     error StrikeExceedsMax();
     error ZeroCollateral();
     error ZeroOptionVault();
+    error ZeroPat();
     error RatifierFail();
     error RatifierUnauthorized();
     error SelfTake();
@@ -159,6 +160,7 @@ interface IAwakening {
     function tickSpacingSetter() external view returns (address);
     function optionKeeper() external view returns (address);
     function optionVault() external view returns (address);
+    function pat() external view returns (address);
     function pendingTakes(bytes32 pendingId) external view returns (PendingTake memory);
     function loans(bytes32 loanId) external view returns (Loan memory);
     function pendingNonce() external view returns (uint256);
@@ -173,6 +175,7 @@ interface IAwakening {
     function setTickSpacingSetter(address newTickSpacingSetter) external;
     function setOptionKeeper(address newOptionKeeper) external;
     function setOptionVault(address newOptionVault) external;
+    function setPat(address newPat) external;
     function setMarketTickSpacing(bytes32 id, uint256 newTickSpacing) external;
     function setMarketSettlementFee(bytes32 id, uint256 index, uint256 newSettlementFee) external;
     function setDefaultSettlementFee(address loanToken, uint256 index, uint256 newSettlementFee) external;
@@ -184,7 +187,7 @@ interface IAwakening {
     /// ENTRY-POINTS ///
     function take(Offer memory offer, bytes memory ratifierData, uint256 units, address taker, address receiverIfTakerIsSeller, address takerCallback, bytes memory takerCallbackData) external returns (uint256, uint256);
     function takeInit(Offer memory offer, bytes memory ratifierData, uint256 units, uint256 collateral, address taker) external returns (bytes32 pendingId);
-    function completeTake(bytes32 pendingId, uint256 premium, address pat, uint256 patTokenId) external;
+    function completeTake(bytes32 pendingId, uint256 premium, bytes memory attestation) external;
     function cancelTake(bytes32 pendingId) external;
     function withdraw(Market memory market, uint256 units, address onBehalf, address receiver) external;
     function repay(Market memory market, uint256 units, address onBehalf, address callback, bytes memory data) external;

@@ -13,6 +13,7 @@ import {IRatifier} from "./interfaces/IRatifier.sol";
 import {IEnterGate} from "./interfaces/IGate.sol";
 import {IAwakening, Market, Offer, MarketState, Position, PendingTake, Loan} from "./interfaces/IAwakening.sol";
 import {IOptionVault} from "./interfaces/IOptionVault.sol";
+import {IPAT, OptionTerms} from "./interfaces/IPAT.sol";
 
 /// MARKETS
 /// @dev The maximum time to maturity is 100 years.
@@ -142,6 +143,7 @@ contract Awakening is IAwakening {
     address public tickSpacingSetter;
     address public optionKeeper;
     address public optionVault;
+    address public pat;
     mapping(bytes32 pendingId => PendingTake) internal _pendingTakes;
     mapping(bytes32 loanId => Loan) internal _loans;
     uint256 public pendingNonce;
@@ -203,6 +205,12 @@ contract Awakening is IAwakening {
         require(msg.sender == roleSetter, OnlyRoleSetter());
         optionVault = newOptionVault;
         emit EventsLib.SetOptionVault(newOptionVault);
+    }
+
+    function setPat(address newPat) external {
+        require(msg.sender == roleSetter, OnlyRoleSetter());
+        pat = newPat;
+        emit EventsLib.SetPat(newPat);
     }
 
     /// @dev Refines the tick spacing of a market. Can not increase (more ticks become accessible).
@@ -522,8 +530,9 @@ contract Awakening is IAwakening {
         );
     }
 
-    /// @dev Phase 2 success: the option keeper reports the premium it paid and the resulting PAT, finalizing the loan.
-    function completeTake(bytes32 pendingId, uint256 premium, address pat, uint256 patTokenId) external {
+    /// @dev Phase 2 success: the option keeper reports the premium it paid and the custodian's attestation for the put
+    /// it bought off-chain, minting the PAT on-chain and finalizing the loan.
+    function completeTake(bytes32 pendingId, uint256 premium, bytes memory attestation) external {
         require(msg.sender == optionKeeper, NotOptionKeeper());
         PendingTake storage pending = _pendingTakes[pendingId];
         require(pending.lender != address(0), PendingTakeNotFound());
@@ -542,8 +551,25 @@ contract Awakening is IAwakening {
         uint256 settlementFeeAmount = pending.settlementFee;
         uint256 maturity = pending.offer.market.maturity;
         address loanToken = pending.offer.market.loanToken;
+        address collateralToken = pending.offer.market.collateralParams[0].token;
+
+        // The option terms are derived from the pending take, so the four invariants hold by construction:
+        // underlying == collateral token, strike == units / collateral, expiry == maturity, notional == collateral.
+        uint256 strike = units.mulDivDown(ORACLE_PRICE_SCALE, collateral);
+        OptionTerms memory terms = OptionTerms({
+            underlying: collateralToken,
+            quoteToken: loanToken,
+            strike: strike,
+            notional: collateral,
+            expiry: maturity,
+            isPut: true
+        });
 
         delete _pendingTakes[pendingId];
+
+        // Mint the PAT on-chain, gated by the custodian's attestation over the exact terms (reverts if invalid).
+        require(pat != address(0), ZeroPat());
+        uint256 patTokenId = IPAT(pat).mint(terms, attestation, address(this));
 
         // Finalize credit/debt accounting.
         Position storage borrowerPos = position[id][borrower];
@@ -565,7 +591,6 @@ contract Awakening is IAwakening {
 
         claimableSettlementFee[loanToken] += settlementFeeAmount;
 
-        uint256 strike = units.mulDivDown(ORACLE_PRICE_SCALE, collateral);
         _loans[pendingId] = Loan({
             id: id,
             borrower: borrower,

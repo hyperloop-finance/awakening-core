@@ -5,6 +5,8 @@ pragma solidity ^0.8.0;
 import {BaseTest} from "./BaseTest.sol";
 import {IAwakening, Market, Offer, CollateralParams, PendingTake, Loan} from "../src/interfaces/IAwakening.sol";
 import {OptionVault} from "../src/vault/OptionVault.sol";
+import {AttestedPAT} from "../src/pat/AttestedPAT.sol";
+import {IPAT, OptionTerms} from "../src/interfaces/IPAT.sol";
 import {EventsLib} from "../src/libraries/EventsLib.sol";
 import {TickLib, MAX_TICK} from "../src/libraries/TickLib.sol";
 import {UtilsLib} from "../src/libraries/UtilsLib.sol";
@@ -12,7 +14,9 @@ import {WAD, ORACLE_PRICE_SCALE, TWO_STEP_TAKE_WINDOW} from "../src/libraries/Co
 
 contract TwoStepTakeTest is BaseTest {
     OptionVault internal vault;
+    AttestedPAT internal pat;
     address internal keeper = makeAddr("optionKeeper");
+    uint256 internal custodianPk;
 
     Market internal market;
     Offer internal offer;
@@ -24,6 +28,11 @@ contract TwoStepTakeTest is BaseTest {
         vault = new OptionVault(address(awakening));
         awakening.setOptionKeeper(keeper);
         awakening.setOptionVault(address(vault));
+
+        (address custodian, uint256 pk) = makeAddrAndKey("custodian");
+        custodianPk = pk;
+        pat = new AttestedPAT(custodian);
+        awakening.setPat(address(pat));
 
         // Borrower approves Awakening for BTC.
         vm.prank(borrower);
@@ -62,6 +71,32 @@ contract TwoStepTakeTest is BaseTest {
         pendingId = awakening.takeInit(offer, hex"", units, collateral, lender);
     }
 
+    /// @dev Custodian attestation over the terms that completeTake derives from the pending take.
+    function _attestation(uint256 units, uint256 collateral) internal view returns (bytes memory) {
+        OptionTerms memory terms = OptionTerms({
+            underlying: address(collateralToken1),
+            quoteToken: address(loanToken),
+            strike: UtilsLib.mulDivDown(units, ORACLE_PRICE_SCALE, collateral),
+            notional: collateral,
+            expiry: market.maturity,
+            isPut: true
+        });
+        bytes32 structHash = keccak256(
+            abi.encode(
+                pat.OPTION_TERMS_TYPEHASH(),
+                terms.underlying,
+                terms.quoteToken,
+                terms.strike,
+                terms.notional,
+                terms.expiry,
+                terms.isPut
+            )
+        );
+        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", pat.CUSTODIAN_DOMAIN_SEPARATOR(), structHash));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(custodianPk, digest);
+        return abi.encode(v, r, s);
+    }
+
     // --- complete path ---
 
     function testCompleteTake(uint256 units, uint256 collateral, uint256 premium) public {
@@ -73,9 +108,9 @@ contract TwoStepTakeTest is BaseTest {
         bytes32 pendingId = _initiate(units, collateral);
         uint256 borrowerUsdcBefore = loanToken.balanceOf(borrower);
 
-        address pat = makeAddr("pat");
+        bytes memory attestation = _attestation(units, collateral);
         vm.prank(keeper);
-        awakening.completeTake(pendingId, premium, pat, 42);
+        awakening.completeTake(pendingId, premium, attestation);
 
         assertEq(awakening.debtOf(id, borrower), units, "debt");
         assertEq(awakening.creditOf(id, lender), units, "credit");
@@ -87,8 +122,16 @@ contract TwoStepTakeTest is BaseTest {
         assertEq(loan.strike, UtilsLib.mulDivDown(units, ORACLE_PRICE_SCALE, collateral), "strike");
         assertEq(loan.premium, premium, "premium");
         assertEq(loan.expiry, market.maturity, "expiry");
-        assertEq(loan.pat, pat, "pat");
-        assertEq(loan.patTokenId, 42, "patTokenId");
+        assertEq(loan.pat, address(pat), "pat");
+        assertEq(loan.patTokenId, 1, "patTokenId");
+
+        OptionTerms memory terms = pat.terms(loan.patTokenId);
+        assertEq(terms.underlying, address(collateralToken1), "terms underlying");
+        assertEq(terms.quoteToken, address(loanToken), "terms quote");
+        assertEq(terms.strike, loan.strike, "terms strike");
+        assertEq(terms.notional, collateral, "terms notional");
+        assertEq(terms.expiry, market.maturity, "terms expiry");
+        assertEq(terms.isPut, true, "terms isPut");
 
         assertEq(loanToken.balanceOf(borrower) - borrowerUsdcBefore, buyerAssets - premium, "borrower net");
         assertEq(loanToken.balanceOf(keeper), premium, "keeper premium");
@@ -96,6 +139,16 @@ contract TwoStepTakeTest is BaseTest {
 
         PendingTake memory pt = awakening.pendingTakes(pendingId);
         assertEq(pt.lender, address(0), "pending cleared");
+    }
+
+    function testCompleteTakeInvalidAttestation(uint256 units, uint256 collateral) public {
+        units = bound(units, 1, 1e24);
+        collateral = bound(collateral, 1, 1e24);
+        bytes32 pendingId = _initiate(units, collateral);
+
+        vm.prank(keeper);
+        vm.expectRevert(IPAT.InvalidAttestation.selector);
+        awakening.completeTake(pendingId, 0, abi.encode(uint8(0), bytes32(0), bytes32(0)));
     }
 
     function testTakeInitReservesConsumed(uint256 units, uint256 collateral) public {
@@ -153,7 +206,7 @@ contract TwoStepTakeTest is BaseTest {
 
         vm.prank(makeAddr("notKeeper"));
         vm.expectRevert(IAwakening.NotOptionKeeper.selector);
-        awakening.completeTake(pendingId, 0, makeAddr("pat"), 0);
+        awakening.completeTake(pendingId, 0, hex"");
     }
 
     function testCancelOnlyOptionKeeperBeforeDeadline(uint256 units, uint256 collateral) public {
@@ -175,13 +228,13 @@ contract TwoStepTakeTest is BaseTest {
 
         vm.prank(keeper);
         vm.expectRevert(IAwakening.PendingTakeExpired.selector);
-        awakening.completeTake(pendingId, 0, makeAddr("pat"), 0);
+        awakening.completeTake(pendingId, 0, hex"");
     }
 
     function testPendingTakeNotFound() public {
         vm.prank(keeper);
         vm.expectRevert(IAwakening.PendingTakeNotFound.selector);
-        awakening.completeTake(bytes32(0), 0, address(0), 0);
+        awakening.completeTake(bytes32(0), 0, hex"");
 
         vm.expectRevert(IAwakening.PendingTakeNotFound.selector);
         awakening.cancelTake(bytes32(0));
@@ -206,7 +259,7 @@ contract TwoStepTakeTest is BaseTest {
 
         vm.prank(keeper);
         vm.expectRevert(IAwakening.PremiumTooHigh.selector);
-        awakening.completeTake(pendingId, buyerAssets + 1, makeAddr("pat"), 0);
+        awakening.completeTake(pendingId, buyerAssets + 1, hex"");
     }
 
     function testStrikeExceedsMaxStrike() public {
@@ -241,8 +294,9 @@ contract TwoStepTakeTest is BaseTest {
         vm.prank(borrower);
         bytes32 pendingId = awakening.takeInit(buyOffer, hex"", units, collateral, borrower);
 
+        bytes memory attestation = _attestation(units, collateral);
         vm.prank(keeper);
-        awakening.completeTake(pendingId, 0, makeAddr("pat"), 0);
+        awakening.completeTake(pendingId, 0, attestation);
 
         assertEq(awakening.debtOf(id, borrower), units, "debt");
         assertEq(awakening.creditOf(id, lender), units, "credit");
