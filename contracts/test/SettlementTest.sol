@@ -173,11 +173,16 @@ contract SettlementTest is BaseTest {
         assertEq(collateralToken1.balanceOf(borrower), 0, "collateral still locked");
     }
 
-    function testRepayBeforeOracleReadReverts(uint256 units, uint256 collateral) public {
+    function testRepayAfterRedeemPATsReverts(uint256 units, uint256 collateral) public {
         units = bound(units, 1e18, 1e24);
         collateral = bound(collateral, 1e6, 1e8);
         _borrow(units, collateral);
 
+        _mature();
+        vm.prank(keeper);
+        settlement.redeemPATs(id);
+
+        deal(address(loanToken), borrower, units);
         vm.prank(borrower);
         vm.expectRevert(IAwakeningSettlement.InvalidState.selector);
         settlement.repay(id, units);

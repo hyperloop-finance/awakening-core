@@ -699,14 +699,21 @@ contract Awakening is IAwakening {
             address borrower = loan.borrower;
             bytes32 id = loan.id;
             uint256 collateral = loan.collateral;
-            _borrowerLoan[id][borrower] = 0;
-            delete _loans[loanId];
+            bool early = block.timestamp < loan.expiry;
 
             Position storage _position = position[id][borrower];
             _position.collateral[0] = UtilsLib.toUint128(uint256(_position.collateral[0]) - collateral);
             if (_position.collateral[0] == 0) _position.collateralBitmap = _position.collateralBitmap.clearBit(0);
 
             SafeTransferLib.safeTransfer(market.collateralParams[0].token, borrower, collateral);
+
+            if (!early) {
+                // Post-maturity: the put has expired and the loan is fully resolved.
+                _borrowerLoan[id][borrower] = 0;
+                delete _loans[loanId];
+            }
+            // Early repayment: keep the loan (lastRepaid == principal) so the keeper can resell the put at maturity
+            // and credit the borrower's claimablePutProceeds.
         }
     }
 
@@ -743,6 +750,38 @@ contract Awakening is IAwakening {
     function accrueSettlementFee(address loanToken, uint256 amount) external {
         require(msg.sender == settlement, OnlySettlement());
         claimableSettlementFee[loanToken] += amount;
+    }
+
+    /// @dev Credits the resale proceeds of an early-repaid loan's put. The settlement contract pulls the proceeds
+    /// into Awakening first, then reports them here (D8).
+    function reportPutResale(bytes32 loanId, uint256 proceeds) external {
+        require(msg.sender == settlement, OnlySettlement());
+        Loan storage loan = _loans[loanId];
+        require(loan.borrower != address(0), LoanNotFound());
+        require(loan.lastRepaid == loan.principal, LoanNotFullyRepaid());
+
+        loan.claimablePutProceeds += proceeds;
+        emit EventsLib.PutResaleReported(loanId, loan.id, proceeds);
+    }
+
+    /// @dev Lets a borrower claim the put resale proceeds credited after an early full repayment (D8).
+    function claimPutProceeds(bytes32 loanId, address receiver) external {
+        Loan storage loan = _loans[loanId];
+        require(loan.borrower != address(0), LoanNotFound());
+        require(msg.sender == loan.borrower, OnlyBorrower());
+
+        uint256 proceeds = loan.claimablePutProceeds;
+        require(proceeds > 0, NothingToClaim());
+
+        bytes32 id = loan.id;
+        address borrower = loan.borrower;
+        address loanToken = toMarket(id).loanToken;
+
+        _borrowerLoan[id][borrower] = 0;
+        delete _loans[loanId];
+
+        emit EventsLib.PutProceedsClaimed(loanId, id, borrower, receiver, proceeds);
+        SafeTransferLib.safeTransfer(loanToken, receiver, proceeds);
     }
 
     function withdraw(Market memory market, uint256 units, address onBehalf, address receiver) external {

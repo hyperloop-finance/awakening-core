@@ -17,6 +17,8 @@ library EventsLib {
     event SetSettlement(address indexed settlement);
     event LoanRepaid(bytes32 indexed loanId, bytes32 indexed id_, address indexed borrower, uint256 units, uint256 remaining);
     event LoanSettled(bytes32 indexed loanId, bytes32 indexed id_, address indexed borrower, uint256 principal, address collateralReceiver);
+    event PutResaleReported(bytes32 indexed loanId, bytes32 indexed id_, uint256 proceeds);
+    event PutProceedsClaimed(bytes32 indexed loanId, bytes32 indexed id_, address indexed borrower, address receiver, uint256 proceeds);
     event TakeInitiated(bytes32 indexed pendingId, bytes32 indexed id_, address indexed borrower, address lender, uint256 units, uint256 collateral, uint256 escrowed, uint256 settlementFee, uint256 deadline);
     event TakeCompleted(bytes32 indexed pendingId, uint256 premium, address pat, uint256 patTokenId);
     event TakeCancelled(bytes32 indexed pendingId);

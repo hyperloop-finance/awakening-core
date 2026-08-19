@@ -49,9 +49,12 @@ contract AwakeningSettlement is IAwakeningSettlement {
         emit OracleRead(id, price);
     }
 
-    /// @dev Borrower repays principal and reclaims collateral once fully repaid, during the repayment window.
+    /// @dev Borrower repays principal and reclaims collateral once fully repaid. Repayment is allowed before maturity
+    /// (early repayment, D8 — the put is kept for resale) and after the oracle read (normal repayment).
     function repay(bytes32 id, uint256 units) external {
-        require(_state[id] == SettlementState.ORACLE_READ, InvalidState());
+        require(
+            _state[id] == SettlementState.PRE_MATURITY || _state[id] == SettlementState.ORACLE_READ, InvalidState()
+        );
 
         bytes32 loanId = IAwakening(AWAKENING).borrowerLoan(id, msg.sender);
         IAwakening(AWAKENING).repayLoan(loanId, units, msg.sender);
@@ -85,6 +88,7 @@ contract AwakeningSettlement is IAwakeningSettlement {
             Loan memory loan = IAwakening(AWAKENING).loans(loanId);
             if (loan.borrower == address(0)) continue;
             uint256 remaining = loan.principal - loan.lastRepaid;
+            if (remaining == 0) continue; // early-repaid loan; its put is handled via reportPutResale
             loanIds[n] = loanId;
             borrowers[n] = loan.borrower;
             remainings[n] = remaining;
@@ -121,5 +125,17 @@ contract AwakeningSettlement is IAwakeningSettlement {
         _state[id] = SettlementState.FINAL;
 
         emit Settled(id, proceeds, penalty);
+    }
+
+    /// @dev Option keeper reports the resale proceeds of an early-repaid loan's put (D8). The proceeds are pulled
+    /// from the keeper into Awakening and credited to the borrower for later claim.
+    function reportPutResale(bytes32 id, bytes32 loanId, uint256 proceeds) external {
+        require(msg.sender == IAwakening(AWAKENING).optionKeeper(), NotOptionKeeper());
+
+        Market memory market = IAwakening(AWAKENING).toMarket(id);
+        address loanToken = market.loanToken;
+
+        SafeTransferLib.safeTransferFrom(loanToken, msg.sender, AWAKENING, proceeds);
+        IAwakening(AWAKENING).reportPutResale(loanId, proceeds);
     }
 }

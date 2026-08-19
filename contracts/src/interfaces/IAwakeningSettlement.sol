@@ -26,6 +26,9 @@ interface IAwakeningSettlement {
     /// @dev Settles a defaulted loan: the option keeper sells the put + BTC off-chain and reports net proceeds.
     function settle(bytes32 id, uint256 proceeds) external;
 
+    /// @dev Reports the resale proceeds of an early-repaid loan's put, credited to the borrower for later claim.
+    function reportPutResale(bytes32 id, bytes32 loanId, uint256 proceeds) external;
+
     /// @dev Returns the current settlement state of a market.
     function state(bytes32 id) external view returns (SettlementState);
 

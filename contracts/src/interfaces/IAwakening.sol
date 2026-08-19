@@ -134,6 +134,9 @@ interface IAwakening {
     error ZeroPat();
     error LoanAlreadyExists();
     error LoanNotFound();
+    error LoanNotFullyRepaid();
+    error NothingToClaim();
+    error OnlyBorrower();
     error OnlySettlement();
     error RepayExceedsRemaining();
     error RatifierFail();
@@ -202,6 +205,8 @@ interface IAwakening {
     function repayLoan(bytes32 loanId, uint256 units, address payer) external;
     function settleLoan(bytes32 loanId, address collateralReceiver) external;
     function accrueSettlementFee(address loanToken, uint256 amount) external;
+    function reportPutResale(bytes32 loanId, uint256 proceeds) external;
+    function claimPutProceeds(bytes32 loanId, address receiver) external;
     function withdraw(Market memory market, uint256 units, address onBehalf, address receiver) external;
     function repay(Market memory market, uint256 units, address onBehalf, address callback, bytes memory data) external;
     function supplyCollateral(Market memory market, uint256 collateralIndex, uint256 assets, address onBehalf) external;
