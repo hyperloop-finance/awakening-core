@@ -25,7 +25,8 @@ contract AttestedPATTest is Test {
             strike: 1e36,
             notional: 1e18,
             expiry: block.timestamp + 100 days,
-            isPut: true
+            isPut: true,
+            tradeId: bytes32(uint256(1))
         });
     }
 
@@ -38,7 +39,8 @@ contract AttestedPATTest is Test {
                 terms.strike,
                 terms.notional,
                 terms.expiry,
-                terms.isPut
+                terms.isPut,
+                terms.tradeId
             )
         );
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", pat.CUSTODIAN_DOMAIN_SEPARATOR(), structHash));
@@ -60,6 +62,7 @@ contract AttestedPATTest is Test {
         assertEq(stored.notional, terms.notional, "notional");
         assertEq(stored.expiry, terms.expiry, "expiry");
         assertEq(stored.isPut, terms.isPut, "isPut");
+        assertEq(stored.tradeId, terms.tradeId, "tradeId");
     }
 
     function testMintWithWrongSigner() public {
@@ -73,7 +76,8 @@ contract AttestedPATTest is Test {
                 terms.strike,
                 terms.notional,
                 terms.expiry,
-                terms.isPut
+                terms.isPut,
+                terms.tradeId
             )
         );
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", pat.CUSTODIAN_DOMAIN_SEPARATOR(), structHash));
@@ -134,5 +138,25 @@ contract AttestedPATTest is Test {
         vm.prank(makeAddr("notOwner"));
         vm.expectRevert(IPAT.NotOwner.selector);
         pat.settle(tokenId, alice, 100);
+    }
+
+    function testMintTradeIdReplayReverts() public {
+        OptionTerms memory terms = _terms();
+        pat.mint(terms, _attestation(terms), alice);
+
+        OptionTerms memory terms2 = _terms();
+        bytes memory attestation2 = _attestation(terms2);
+
+        vm.expectRevert(IPAT.TradeIdAlreadyUsed.selector);
+        pat.mint(terms2, attestation2, alice);
+    }
+
+    function testMintZeroTradeIdReverts() public {
+        OptionTerms memory terms = _terms();
+        terms.tradeId = bytes32(0);
+        bytes memory attestation = _attestation(terms);
+
+        vm.expectRevert(IPAT.ZeroTradeId.selector);
+        pat.mint(terms, attestation, alice);
     }
 }

@@ -3,13 +3,12 @@
 pragma solidity 0.8.34;
 
 import {IOptionVault} from "../interfaces/IOptionVault.sol";
-import {IAwakening} from "../interfaces/IAwakening.sol";
 import {SafeTransferLib} from "../libraries/SafeTransferLib.sol";
 
 /// @dev Dedicated escrow for loan tokens during the two-step take window (phase 1 → phase 2).
-/// @dev Only Awakening can deposit and refund; only the option keeper (read live from Awakening) can withdraw.
+/// @dev Only Awakening can deposit and refund.
 /// @dev Escrowed balances are tracked per token so they are isolated from Awakening's own working balance and can
-/// never be over-withdrawn (withdraw/refund revert on underflow).
+/// never be over-withdrawn (refund reverts on underflow).
 contract OptionVault is IOptionVault {
     address public immutable AWAKENING;
 
@@ -25,13 +24,6 @@ contract OptionVault is IOptionVault {
         require(msg.sender == AWAKENING, OnlyAwakening());
         escrowed[token] += amount;
         SafeTransferLib.safeTransferFrom(token, msg.sender, address(this), amount);
-    }
-
-    /// @dev Sends `amount` of `token` to `to`, used by the option keeper to buy the put off-chain.
-    function withdrawTo(address token, address to, uint256 amount) external {
-        require(msg.sender == IAwakening(AWAKENING).optionKeeper(), OnlyOptionKeeper());
-        escrowed[token] -= amount;
-        SafeTransferLib.safeTransfer(token, to, amount);
     }
 
     /// @dev Refunds `amount` of `token` to `to` on take cancellation / timeout.

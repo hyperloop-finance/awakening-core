@@ -15,7 +15,6 @@ contract OptionVaultTest is Test {
     ERC20 internal token;
 
     address internal optionKeeper = makeAddr("optionKeeper");
-    address internal newOptionKeeper = makeAddr("newOptionKeeper");
     address internal rdm = makeAddr("rdm");
 
     function setUp() public {
@@ -49,52 +48,6 @@ contract OptionVaultTest is Test {
 
         assertEq(vault.escrowed(address(token)), amount, "escrowed");
         assertEq(token.balanceOf(address(vault)), amount, "vault balance");
-    }
-
-    // --- withdrawTo ---
-
-    function testWithdrawToOnlyOptionKeeper(uint256 amount) public {
-        amount = bound(amount, 1, type(uint128).max);
-        _deposit(amount);
-
-        vm.prank(rdm);
-        vm.expectRevert(IOptionVault.OnlyOptionKeeper.selector);
-        vault.withdrawTo(address(token), rdm, amount);
-    }
-
-    function testWithdrawToSuccess(uint256 amount) public {
-        amount = bound(amount, 1, type(uint128).max);
-        _deposit(amount);
-
-        vm.prank(optionKeeper);
-        vault.withdrawTo(address(token), rdm, amount);
-
-        assertEq(vault.escrowed(address(token)), 0, "escrowed drained");
-        assertEq(token.balanceOf(rdm), amount, "receiver balance");
-    }
-
-    function testWithdrawToUsesUpdatedOptionKeeper(uint256 amount) public {
-        amount = bound(amount, 1, type(uint128).max);
-        _deposit(amount);
-
-        awakening.setOptionKeeper(newOptionKeeper);
-
-        vm.prank(optionKeeper);
-        vm.expectRevert(IOptionVault.OnlyOptionKeeper.selector);
-        vault.withdrawTo(address(token), rdm, amount);
-
-        vm.prank(newOptionKeeper);
-        vault.withdrawTo(address(token), rdm, amount);
-        assertEq(token.balanceOf(rdm), amount, "receiver balance");
-    }
-
-    function testWithdrawToExceedsEscrowReverts(uint256 amount) public {
-        amount = bound(amount, 1, type(uint128).max);
-        _deposit(amount);
-
-        vm.prank(optionKeeper);
-        vm.expectRevert(stdError.arithmeticError);
-        vault.withdrawTo(address(token), rdm, amount + 1);
     }
 
     // --- refund ---

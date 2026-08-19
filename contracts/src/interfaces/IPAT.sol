@@ -16,6 +16,8 @@ struct OptionTerms {
     uint256 expiry;
     /// @dev Always true in Awakening.
     bool isPut;
+    /// @dev Unique trade id (Deribit order id) binding this attestation to a single put purchase.
+    bytes32 tradeId;
 }
 
 /// @dev Minimal interface for a put-attribution token (PAT) — a non-fungible record of an off-chain put option
@@ -24,6 +26,8 @@ interface IPAT {
     error InvalidAttestation();
     error NotOwner();
     error AlreadySettled();
+    error TradeIdAlreadyUsed();
+    error ZeroTradeId();
 
     /// @dev Mints a PAT for `to` after verifying `attestation` is the custodian's signature over `terms`.
     function mint(OptionTerms memory terms, bytes memory attestation, address to) external returns (uint256 tokenId);

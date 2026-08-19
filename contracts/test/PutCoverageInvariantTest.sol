@@ -57,14 +57,15 @@ contract PutCoverageInvariantTest is BaseTest {
         offer.tick = MAX_TICK;
     }
 
-    function _attestation(uint256 units, uint256 collateral) internal view returns (bytes memory) {
+    function _attestation(uint256 units, uint256 collateral, bytes32 tradeId) internal view returns (bytes memory) {
         OptionTerms memory terms = OptionTerms({
             underlying: address(collateralToken1),
             quoteToken: address(loanToken),
             strike: UtilsLib.mulDivUp(units, ORACLE_PRICE_SCALE, collateral),
             notional: collateral,
             expiry: market.maturity,
-            isPut: true
+            isPut: true,
+            tradeId: tradeId
         });
         bytes32 structHash = keccak256(
             abi.encode(
@@ -74,7 +75,8 @@ contract PutCoverageInvariantTest is BaseTest {
                 terms.strike,
                 terms.notional,
                 terms.expiry,
-                terms.isPut
+                terms.isPut,
+                terms.tradeId
             )
         );
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", pat.CUSTODIAN_DOMAIN_SEPARATOR(), structHash));
@@ -89,9 +91,10 @@ contract PutCoverageInvariantTest is BaseTest {
         vm.prank(lender);
         bytes32 loanId = awakening.takeInit(offer, hex"", units, collateral, lender);
 
-        bytes memory attestation = _attestation(units, collateral);
+        bytes32 tradeId = bytes32(uint256(1));
+        bytes memory attestation = _attestation(units, collateral, tradeId);
         vm.prank(keeper);
-        awakening.completeTake(loanId, 0, attestation);
+        awakening.completeTake(loanId, 0, tradeId, attestation);
 
         loan = awakening.loans(loanId);
     }

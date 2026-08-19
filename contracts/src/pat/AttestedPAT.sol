@@ -9,7 +9,7 @@ import {IPAT, OptionTerms} from "../interfaces/IPAT.sol";
 /// matches the signed terms.
 contract AttestedPAT is IPAT {
     bytes32 public constant OPTION_TERMS_TYPEHASH =
-        keccak256("OptionTerms(address underlying,address quoteToken,uint256 strike,uint256 notional,uint256 expiry,bool isPut)");
+        keccak256("OptionTerms(address underlying,address quoteToken,uint256 strike,uint256 notional,uint256 expiry,bool isPut,bytes32 tradeId)");
 
     address public immutable CUSTODIAN;
     bytes32 public immutable CUSTODIAN_DOMAIN_SEPARATOR;
@@ -18,6 +18,7 @@ contract AttestedPAT is IPAT {
     mapping(uint256 tokenId => address) public ownerOf;
     mapping(uint256 tokenId => uint256) public payout;
     mapping(uint256 tokenId => bool) public settled;
+    mapping(bytes32 tradeId => bool) public usedTradeIds;
     uint256 public totalSupply;
 
     event Minted(uint256 indexed tokenId, address indexed to, OptionTerms terms);
@@ -32,8 +33,11 @@ contract AttestedPAT is IPAT {
 
     /// @dev Mints a PAT to `to`, gated by the custodian's ECDSA attestation over the exact `terms`.
     function mint(OptionTerms memory terms, bytes memory attestation, address to) external returns (uint256 tokenId) {
+        require(terms.tradeId != 0, ZeroTradeId());
+        require(!usedTradeIds[terms.tradeId], TradeIdAlreadyUsed());
         require(_isValidAttestation(terms, attestation), InvalidAttestation());
 
+        usedTradeIds[terms.tradeId] = true;
         tokenId = ++totalSupply;
         _terms[tokenId] = terms;
         ownerOf[tokenId] = to;
@@ -73,7 +77,8 @@ contract AttestedPAT is IPAT {
                 terms.strike,
                 terms.notional,
                 terms.expiry,
-                terms.isPut
+                terms.isPut,
+                terms.tradeId
             )
         );
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", CUSTODIAN_DOMAIN_SEPARATOR, structHash));

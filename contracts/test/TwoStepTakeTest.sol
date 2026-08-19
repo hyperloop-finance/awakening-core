@@ -64,6 +64,11 @@ contract TwoStepTakeTest is BaseTest {
         return UtilsLib.mulDivUp(units, TickLib.tickToPrice(MAX_TICK), WAD);
     }
 
+    /// @dev A fixed, non-zero trade id used by all single-borrow tests (anti-replay is tested separately).
+    function _tradeId() internal pure returns (bytes32) {
+        return bytes32(uint256(1));
+    }
+
     function _initiate(uint256 units, uint256 collateral) internal returns (bytes32 pendingId) {
         deal(address(loanToken), lender, _buyerAssets(units));
         deal(address(collateralToken1), borrower, collateral);
@@ -73,14 +78,15 @@ contract TwoStepTakeTest is BaseTest {
     }
 
     /// @dev Custodian attestation over the terms that completeTake derives from the pending take.
-    function _attestation(uint256 units, uint256 collateral) internal view returns (bytes memory) {
+    function _attestation(uint256 units, uint256 collateral, bytes32 tradeId) internal view returns (bytes memory) {
         OptionTerms memory terms = OptionTerms({
             underlying: address(collateralToken1),
             quoteToken: address(loanToken),
             strike: UtilsLib.mulDivUp(units, ORACLE_PRICE_SCALE, collateral),
             notional: collateral,
             expiry: market.maturity,
-            isPut: true
+            isPut: true,
+            tradeId: tradeId
         });
         bytes32 structHash = keccak256(
             abi.encode(
@@ -90,7 +96,8 @@ contract TwoStepTakeTest is BaseTest {
                 terms.strike,
                 terms.notional,
                 terms.expiry,
-                terms.isPut
+                terms.isPut,
+                terms.tradeId
             )
         );
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", pat.CUSTODIAN_DOMAIN_SEPARATOR(), structHash));
@@ -109,9 +116,9 @@ contract TwoStepTakeTest is BaseTest {
         bytes32 pendingId = _initiate(units, collateral);
         uint256 borrowerUsdcBefore = loanToken.balanceOf(borrower);
 
-        bytes memory attestation = _attestation(units, collateral);
+        bytes memory attestation = _attestation(units, collateral, _tradeId());
         vm.prank(keeper);
-        awakening.completeTake(pendingId, premium, attestation);
+        awakening.completeTake(pendingId, premium, _tradeId(), attestation);
 
         assertEq(awakening.debtOf(id, borrower), units, "debt");
         assertEq(awakening.creditOf(id, lender), units, "credit");
@@ -149,7 +156,7 @@ contract TwoStepTakeTest is BaseTest {
 
         vm.prank(keeper);
         vm.expectRevert(IPAT.InvalidAttestation.selector);
-        awakening.completeTake(pendingId, 0, abi.encode(uint8(0), bytes32(0), bytes32(0)));
+        awakening.completeTake(pendingId, 0, _tradeId(), abi.encode(uint8(0), bytes32(0), bytes32(0)));
     }
 
     function testTakeInitReservesConsumed(uint256 units, uint256 collateral) public {
@@ -207,7 +214,7 @@ contract TwoStepTakeTest is BaseTest {
 
         vm.prank(makeAddr("notKeeper"));
         vm.expectRevert(IAwakening.NotOptionKeeper.selector);
-        awakening.completeTake(pendingId, 0, hex"");
+        awakening.completeTake(pendingId, 0, _tradeId(), hex"");
     }
 
     function testCancelOnlyOptionKeeperBeforeDeadline(uint256 units, uint256 collateral) public {
@@ -229,13 +236,13 @@ contract TwoStepTakeTest is BaseTest {
 
         vm.prank(keeper);
         vm.expectRevert(IAwakening.PendingTakeExpired.selector);
-        awakening.completeTake(pendingId, 0, hex"");
+        awakening.completeTake(pendingId, 0, _tradeId(), hex"");
     }
 
     function testPendingTakeNotFound() public {
         vm.prank(keeper);
         vm.expectRevert(IAwakening.PendingTakeNotFound.selector);
-        awakening.completeTake(bytes32(0), 0, hex"");
+        awakening.completeTake(bytes32(0), 0, _tradeId(), hex"");
 
         vm.expectRevert(IAwakening.PendingTakeNotFound.selector);
         awakening.cancelTake(bytes32(0));
@@ -260,7 +267,7 @@ contract TwoStepTakeTest is BaseTest {
 
         vm.prank(keeper);
         vm.expectRevert(IAwakening.PremiumTooHigh.selector);
-        awakening.completeTake(pendingId, buyerAssets + 1, hex"");
+        awakening.completeTake(pendingId, buyerAssets + 1, _tradeId(), hex"");
     }
 
     function testStrikeExceedsMaxStrike() public {
@@ -295,9 +302,9 @@ contract TwoStepTakeTest is BaseTest {
         vm.prank(borrower);
         bytes32 pendingId = awakening.takeInit(buyOffer, hex"", units, collateral, borrower);
 
-        bytes memory attestation = _attestation(units, collateral);
+        bytes memory attestation = _attestation(units, collateral, _tradeId());
         vm.prank(keeper);
-        awakening.completeTake(pendingId, 0, attestation);
+        awakening.completeTake(pendingId, 0, _tradeId(), attestation);
 
         assertEq(awakening.debtOf(id, borrower), units, "debt");
         assertEq(awakening.creditOf(id, lender), units, "credit");
@@ -311,9 +318,9 @@ contract TwoStepTakeTest is BaseTest {
         collateral = bound(collateral, 1, 1e24);
         bytes32 pendingId = _initiate(units, collateral);
 
-        bytes memory attestation = _attestation(units, collateral);
+        bytes memory attestation = _attestation(units, collateral, _tradeId());
         vm.prank(keeper);
-        awakening.completeTake(pendingId, 0, attestation);
+        awakening.completeTake(pendingId, 0, _tradeId(), attestation);
 
         vm.prank(borrower);
         vm.expectRevert(IAwakening.HasOutstandingDebt.selector);
@@ -353,6 +360,26 @@ contract TwoStepTakeTest is BaseTest {
         vm.prank(lender);
         vm.expectRevert(IAwakening.SellerGatedFromIncreasingDebt.selector);
         awakening.takeInit(offer, hex"", units, collateral, lender);
+    }
+
+    function testCompleteTakeTradeIdReplayReverts(uint256 units, uint256 collateral) public {
+        units = bound(units, 1, 1e24);
+        collateral = bound(collateral, 1, 1e24);
+
+        bytes32 tradeId = _tradeId();
+
+        // First borrow mints a PAT for this trade id.
+        bytes32 pendingId1 = _initiate(units, collateral);
+        bytes memory attestation = _attestation(units, collateral, tradeId);
+        vm.prank(keeper);
+        awakening.completeTake(pendingId1, 0, tradeId, attestation);
+
+        // Reusing the same trade id for a second, identical loan must revert.
+        bytes32 pendingId2 = _initiate(units, collateral);
+        bytes memory attestation2 = _attestation(units, collateral, tradeId);
+        vm.prank(keeper);
+        vm.expectRevert(IPAT.TradeIdAlreadyUsed.selector);
+        awakening.completeTake(pendingId2, 0, tradeId, attestation2);
     }
 }
 

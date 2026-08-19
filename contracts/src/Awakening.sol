@@ -552,7 +552,7 @@ contract Awakening is IAwakening {
 
     /// @dev Phase 2 success: the option keeper reports the premium it paid and the custodian's attestation for the put
     /// it bought off-chain, minting the PAT on-chain and finalizing the loan.
-    function completeTake(bytes32 pendingId, uint256 premium, bytes memory attestation) external {
+    function completeTake(bytes32 pendingId, uint256 premium, bytes32 tradeId, bytes memory attestation) external {
         require(msg.sender == optionKeeper, NotOptionKeeper());
         PendingTake storage pending = _pendingTakes[pendingId];
         require(pending.lender != address(0), PendingTakeNotFound());
@@ -582,7 +582,8 @@ contract Awakening is IAwakening {
             strike: strike,
             notional: collateral,
             expiry: maturity,
-            isPut: true
+            isPut: true,
+            tradeId: tradeId
         });
 
         delete _pendingTakes[pendingId];

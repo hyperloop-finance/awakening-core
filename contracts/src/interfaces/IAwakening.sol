@@ -197,7 +197,7 @@ interface IAwakening {
     /// ENTRY-POINTS ///
     function take(Offer memory offer, bytes memory ratifierData, uint256 units, address taker, address receiverIfTakerIsSeller, address takerCallback, bytes memory takerCallbackData) external returns (uint256, uint256);
     function takeInit(Offer memory offer, bytes memory ratifierData, uint256 units, uint256 collateral, address taker) external returns (bytes32 pendingId);
-    function completeTake(bytes32 pendingId, uint256 premium, bytes memory attestation) external;
+    function completeTake(bytes32 pendingId, uint256 premium, bytes32 tradeId, bytes memory attestation) external;
     function cancelTake(bytes32 pendingId) external;
     function repayLoan(bytes32 loanId, uint256 units, address payer) external;
     function settleLoan(bytes32 loanId, address collateralReceiver) external;
