@@ -131,6 +131,10 @@ interface IAwakening {
     error ZeroCollateral();
     error ZeroOptionVault();
     error ZeroPat();
+    error LoanAlreadyExists();
+    error LoanNotFound();
+    error OnlySettlement();
+    error RepayExceedsRemaining();
     error RatifierFail();
     error RatifierUnauthorized();
     error SelfTake();
@@ -161,6 +165,10 @@ interface IAwakening {
     function optionKeeper() external view returns (address);
     function optionVault() external view returns (address);
     function pat() external view returns (address);
+    function settlement() external view returns (address);
+    function borrowerLoan(bytes32 id, address borrower) external view returns (bytes32);
+    function marketLoanCount(bytes32 id) external view returns (uint256);
+    function marketLoanIds(bytes32 id, uint256 index) external view returns (bytes32);
     function pendingTakes(bytes32 pendingId) external view returns (PendingTake memory);
     function loans(bytes32 loanId) external view returns (Loan memory);
     function pendingNonce() external view returns (uint256);
@@ -176,6 +184,7 @@ interface IAwakening {
     function setOptionKeeper(address newOptionKeeper) external;
     function setOptionVault(address newOptionVault) external;
     function setPat(address newPat) external;
+    function setSettlement(address newSettlement) external;
     function setMarketTickSpacing(bytes32 id, uint256 newTickSpacing) external;
     function setMarketSettlementFee(bytes32 id, uint256 index, uint256 newSettlementFee) external;
     function setDefaultSettlementFee(address loanToken, uint256 index, uint256 newSettlementFee) external;
@@ -189,6 +198,9 @@ interface IAwakening {
     function takeInit(Offer memory offer, bytes memory ratifierData, uint256 units, uint256 collateral, address taker) external returns (bytes32 pendingId);
     function completeTake(bytes32 pendingId, uint256 premium, bytes memory attestation) external;
     function cancelTake(bytes32 pendingId) external;
+    function repayLoan(bytes32 loanId, uint256 units, address payer) external;
+    function settleLoan(bytes32 loanId, address collateralReceiver) external;
+    function accrueSettlementFee(address loanToken, uint256 amount) external;
     function withdraw(Market memory market, uint256 units, address onBehalf, address receiver) external;
     function repay(Market memory market, uint256 units, address onBehalf, address callback, bytes memory data) external;
     function supplyCollateral(Market memory market, uint256 collateralIndex, uint256 assets, address onBehalf) external;

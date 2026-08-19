@@ -261,6 +261,21 @@ contract SettersTest is BaseTest {
         awakening.setPat(makeAddr("newPat"));
     }
 
+    function testSetSettlementSuccess(address settlement) public {
+        vm.expectEmit();
+        emit EventsLib.SetSettlement(settlement);
+
+        awakening.setSettlement(settlement);
+        assertEq(awakening.settlement(), settlement, "settlement set");
+    }
+
+    function testSetSettlementOnlyRoleSetter(address rdm) public {
+        vm.assume(rdm != address(this));
+        vm.prank(rdm);
+        vm.expectRevert(IAwakening.OnlyRoleSetter.selector);
+        awakening.setSettlement(makeAddr("newSettlement"));
+    }
+
     // Default settlement fee tests
 
     function testSettlementFeeRevertsWhenNotCreated() public {

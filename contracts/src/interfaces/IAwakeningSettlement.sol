@@ -7,6 +7,13 @@ import {SettlementState} from "./IAwakening.sol";
 /// @dev Maturity settlement state machine for a market.
 /// @dev PRE_MATURITY → ORACLE_READ → PAT_REDEEMED → REPAY_WINDOW_OPEN → REPAY_WINDOW_CLOSED → FINAL.
 interface IAwakeningSettlement {
+    /// ERRORS ///
+    error InsufficientProceeds();
+    error InvalidState();
+    error NoDefaultedLoans();
+    error NotOptionKeeper();
+    error NotMature();
+
     /// @dev Reads the BTC oracle exactly once at maturity and stores the terminal price.
     function readOracleAtMaturity(bytes32 id) external;
 
@@ -21,4 +28,7 @@ interface IAwakeningSettlement {
 
     /// @dev Returns the current settlement state of a market.
     function state(bytes32 id) external view returns (SettlementState);
+
+    /// @dev Returns the terminal oracle price stored at maturity (0 before it is read).
+    function terminalPrice(bytes32 id) external view returns (uint256);
 }

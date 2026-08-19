@@ -144,8 +144,11 @@ contract Awakening is IAwakening {
     address public optionKeeper;
     address public optionVault;
     address public pat;
+    address public settlement;
     mapping(bytes32 pendingId => PendingTake) internal _pendingTakes;
     mapping(bytes32 loanId => Loan) internal _loans;
+    mapping(bytes32 id => mapping(address borrower => bytes32 loanId)) internal _borrowerLoan;
+    mapping(bytes32 id => bytes32[]) internal _marketLoanIds;
     uint256 public pendingNonce;
 
     /// CONSTRUCTOR ///
@@ -211,6 +214,12 @@ contract Awakening is IAwakening {
         require(msg.sender == roleSetter, OnlyRoleSetter());
         pat = newPat;
         emit EventsLib.SetPat(newPat);
+    }
+
+    function setSettlement(address newSettlement) external {
+        require(msg.sender == roleSetter, OnlyRoleSetter());
+        settlement = newSettlement;
+        emit EventsLib.SetSettlement(newSettlement);
     }
 
     /// @dev Refines the tick spacing of a market. Can not increase (more ticks become accessible).
@@ -591,6 +600,9 @@ contract Awakening is IAwakening {
 
         claimableSettlementFee[loanToken] += settlementFeeAmount;
 
+        // One active loan per borrower per market (simplifies maturity settlement).
+        require(_borrowerLoan[id][borrower] == 0, LoanAlreadyExists());
+
         _loans[pendingId] = Loan({
             id: id,
             borrower: borrower,
@@ -604,6 +616,8 @@ contract Awakening is IAwakening {
             lastRepaid: 0,
             claimablePutProceeds: 0
         });
+        _borrowerLoan[id][borrower] = pendingId;
+        _marketLoanIds[id].push(pendingId);
 
         emit EventsLib.TakeCompleted(pendingId, premium, pat, patTokenId);
         emit EventsLib.LoanCreated(
@@ -645,6 +659,69 @@ contract Awakening is IAwakening {
         SafeTransferLib.safeTransfer(offer.market.collateralParams[0].token, borrower, collateral);
 
         emit EventsLib.TakeCancelled(pendingId);
+    }
+
+    /// SETTLEMENT ///
+    /// @dev The following functions are only callable by the settlement contract (set via setSettlement).
+
+    /// @dev Repays part or all of a loan and returns the collateral once fully repaid.
+    function repayLoan(bytes32 loanId, uint256 units, address payer) external {
+        require(msg.sender == settlement, OnlySettlement());
+        Loan storage loan = _loans[loanId];
+        require(loan.borrower != address(0), LoanNotFound());
+        require(units <= loan.principal - loan.lastRepaid, RepayExceedsRemaining());
+
+        Market memory market = toMarket(loan.id);
+        address loanToken = market.loanToken;
+
+        position[loan.id][loan.borrower].debt -= UtilsLib.toUint128(units);
+        marketState[loan.id].withdrawable += UtilsLib.toUint128(units);
+        loan.lastRepaid += units;
+
+        uint256 remaining = loan.principal - loan.lastRepaid;
+        emit EventsLib.LoanRepaid(loanId, loan.id, loan.borrower, units, remaining);
+
+        SafeTransferLib.safeTransferFrom(loanToken, payer, address(this), units);
+
+        if (remaining == 0) {
+            address borrower = loan.borrower;
+            bytes32 id = loan.id;
+            uint256 collateral = loan.collateral;
+            _borrowerLoan[id][borrower] = 0;
+            delete _loans[loanId];
+            SafeTransferLib.safeTransfer(market.collateralParams[0].token, borrower, collateral);
+        }
+    }
+
+    /// @dev Settles a defaulted loan: extinguishes the remaining debt and sends the collateral to the keeper.
+    function settleLoan(bytes32 loanId, address collateralReceiver) external {
+        require(msg.sender == settlement, OnlySettlement());
+        Loan storage loan = _loans[loanId];
+        require(loan.borrower != address(0), LoanNotFound());
+
+        Market memory market = toMarket(loan.id);
+        address collateralToken = market.collateralParams[0].token;
+
+        uint256 remaining = loan.principal - loan.lastRepaid;
+        address borrower = loan.borrower;
+        bytes32 id = loan.id;
+        uint256 collateral = loan.collateral;
+
+        position[id][borrower].debt -= UtilsLib.toUint128(remaining);
+        marketState[id].withdrawable += UtilsLib.toUint128(remaining);
+
+        _borrowerLoan[id][borrower] = 0;
+        delete _loans[loanId];
+
+        SafeTransferLib.safeTransfer(collateralToken, collateralReceiver, collateral);
+
+        emit EventsLib.LoanSettled(loanId, id, borrower, remaining, collateralReceiver);
+    }
+
+    /// @dev Accrues a settlement fee (default penalty) to the protocol's claimable fees.
+    function accrueSettlementFee(address loanToken, uint256 amount) external {
+        require(msg.sender == settlement, OnlySettlement());
+        claimableSettlementFee[loanToken] += amount;
     }
 
     function withdraw(Market memory market, uint256 units, address onBehalf, address receiver) external {
@@ -875,13 +952,25 @@ contract Awakening is IAwakening {
         return _loans[loanId];
     }
 
+    function borrowerLoan(bytes32 id, address borrower) external view returns (bytes32) {
+        return _borrowerLoan[id][borrower];
+    }
+
+    function marketLoanCount(bytes32 id) external view returns (uint256) {
+        return _marketLoanIds[id].length;
+    }
+
+    function marketLoanIds(bytes32 id, uint256 index) external view returns (bytes32) {
+        return _marketLoanIds[id][index];
+    }
+
     function toId(Market memory market) public view returns (bytes32) {
         return IdLib.toId(market, INITIAL_CHAIN_ID, address(this));
     }
 
     /// @dev Reverts if the id is not a valid id of a touched market.
     /// @dev Returns the market corresponding to the given id.
-    function toMarket(bytes32 id) external view returns (Market memory) {
+    function toMarket(bytes32 id) public view returns (Market memory) {
         require(marketState[id].tickSpacing > 0, MarketNotCreated());
         address create2Address = address(uint160(uint256(id)));
         return abi.decode(create2Address.code, (Market));
