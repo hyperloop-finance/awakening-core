@@ -6,14 +6,13 @@ import {UtilsLib} from "./libraries/UtilsLib.sol";
 import {IdLib} from "./libraries/IdLib.sol";
 import {TickLib} from "./libraries/TickLib.sol";
 import {SafeTransferLib} from "./libraries/SafeTransferLib.sol";
+import {AwakeningLoans} from "./libraries/AwakeningLoans.sol";
 import {EventsLib} from "./libraries/EventsLib.sol";
 import "./libraries/ConstantsLib.sol"; // forge-lint: disable-line(unaliased-plain-import)
 import "./interfaces/ICallbacks.sol"; // forge-lint: disable-line(unaliased-plain-import)
 import {IRatifier} from "./interfaces/IRatifier.sol";
 import {IEnterGate} from "./interfaces/IGate.sol";
 import {IAwakening, Market, Offer, MarketState, Position, PendingTake, Loan} from "./interfaces/IAwakening.sol";
-import {IOptionVault} from "./interfaces/IOptionVault.sol";
-import {IPAT, OptionTerms} from "./interfaces/IPAT.sol";
 
 /// MARKETS
 /// @dev The maximum time to maturity is 100 years.
@@ -127,6 +126,7 @@ contract Awakening is IAwakening {
     /// IMMUTABLES ///
 
     uint256 public immutable INITIAL_CHAIN_ID;
+    address public immutable AWAKENING_LOANS;
 
     /// STORAGE ///
 
@@ -154,6 +154,7 @@ contract Awakening is IAwakening {
     /// CONSTRUCTOR ///
 
     constructor() {
+        AWAKENING_LOANS = address(new AwakeningLoans());
         roleSetter = msg.sender;
         INITIAL_CHAIN_ID = block.chainid;
         emit EventsLib.Constructor(msg.sender, INITIAL_CHAIN_ID);
@@ -458,347 +459,75 @@ contract Awakening is IAwakening {
     /// @dev A two-step take is used for any take that increases the seller's debt (i.e. a new borrow). Phase 1 locks
     /// the borrower's collateral and the lender's loan tokens in escrow (the loan tokens in the option vault) without
     /// writing credit/debt. Phase 2 is either completeTake (the option keeper reports the put it bought off-chain) or
-    /// cancelTake (rollback on failure / timeout).
+    /// cancelTake (rollback on failure / timeout). The loan lifecycle logic lives in AwakeningLoans (delegatecall).
 
     /// @dev Phase 1: escrow the collateral and loan tokens, reserve the offer, and return a pending id.
-    /// @dev The borrower is always the seller; the lender is always the buyer.
     function takeInit(Offer memory offer, bytes memory ratifierData, uint256 units, uint256 collateral, address taker)
         external
         returns (bytes32 pendingId)
     {
-        require(taker == msg.sender || isAuthorized[taker][msg.sender], TakerUnauthorized());
-        require(collateral > 0, ZeroCollateral());
-        require(units <= type(uint128).max, UtilsLib.CastOverflow());
-
-        bytes32 id = touchMarket(offer.market);
-        MarketState storage _marketState = marketState[id];
-
-        require((offer.maxAssets == 0) != (offer.maxUnits == 0), InvalidOfferCaps());
-        require(offer.tick % _marketState.tickSpacing == 0, TickNotAccessible());
-        require(block.timestamp >= offer.start, OfferNotStarted());
-        require(block.timestamp <= offer.expiry, OfferExpired());
-        require(offer.maker != taker, SelfTake());
-        require(isAuthorized[offer.maker][offer.ratifier], RatifierUnauthorized());
-        require(IRatifier(offer.ratifier).isRatified(offer, ratifierData) == CALLBACK_SUCCESS, RatifierFail());
-
-        uint256 offerPrice = TickLib.tickToPrice(offer.tick);
-        uint256 timeToMaturity = UtilsLib.zeroFloorSub(offer.market.maturity, block.timestamp);
-        uint256 _settlementFee = settlementFee(id, timeToMaturity);
-        uint256 sellerPrice = offer.buy ? offerPrice - _settlementFee : offerPrice;
-        uint256 buyerPrice = sellerPrice + _settlementFee;
-        uint256 buyerAssets = offer.buy ? units.mulDivDown(buyerPrice, WAD) : units.mulDivUp(buyerPrice, WAD);
-        uint256 sellerAssets = offer.buy ? units.mulDivDown(sellerPrice, WAD) : units.mulDivUp(sellerPrice, WAD);
-
-        uint256 newConsumed;
-        if (offer.maxAssets > 0) {
-            newConsumed = consumed[offer.maker][offer.group] + (offer.buy ? buyerAssets : sellerAssets);
-            require(newConsumed <= offer.maxAssets, ConsumedAssets());
-        } else {
-            newConsumed = consumed[offer.maker][offer.group] + units;
-            require(newConsumed <= offer.maxUnits, ConsumedUnits());
-        }
-        consumed[offer.maker][offer.group] = newConsumed;
-
-        (address buyer, address seller) = offer.buy ? (offer.maker, taker) : (taker, offer.maker);
-
-        // A two-step take always increases the seller's debt (new borrow): block it at/after maturity and enforce gates.
-        require(block.timestamp <= offer.market.maturity, CannotIncreaseDebtPostMaturity());
-        require(
-            offer.market.enterGate == address(0) || IEnterGate(offer.market.enterGate).canIncreaseCredit(buyer),
-            BuyerGatedFromIncreasingCredit()
+        (bool success, bytes memory data) = AWAKENING_LOANS.delegatecall(
+            abi.encodeCall(AwakeningLoans.takeInit, (offer, ratifierData, units, collateral, taker))
         );
-        require(
-            offer.market.enterGate == address(0) || IEnterGate(offer.market.enterGate).canIncreaseDebt(seller),
-            SellerGatedFromIncreasingDebt()
-        );
-
-        // LTV cap (D5): strike = principal / collateral must not exceed the market's maxStrike.
-        uint256 strike = units.mulDivUp(ORACLE_PRICE_SCALE, collateral);
-        require(strike <= offer.market.maxStrike, StrikeExceedsMax());
-
-        require(optionVault != address(0), ZeroOptionVault());
-        address loanToken = offer.market.loanToken;
-        address collateralToken = offer.market.collateralParams[0].token;
-
-        // Escrow the lender's loan tokens into the option vault.
-        address payer = offer.buy ? buyer : msg.sender;
-        SafeTransferLib.safeTransferFrom(loanToken, payer, address(this), buyerAssets);
-        SafeTransferLib.safeApprove(loanToken, optionVault, buyerAssets);
-        IOptionVault(optionVault).deposit(loanToken, buyerAssets);
-
-        // Escrow the borrower's collateral (locked until completion or cancellation).
-        SafeTransferLib.safeTransferFrom(collateralToken, seller, address(this), collateral);
-
-        uint256 settlementFeeAmount = buyerAssets - sellerAssets;
-        uint256 deadline = block.timestamp + TWO_STEP_TAKE_WINDOW;
-        pendingId = bytes32(++pendingNonce);
-        _pendingTakes[pendingId] = PendingTake({
-            id: id,
-            offer: offer,
-            units: units,
-            borrower: seller,
-            lender: buyer,
-            collateral: collateral,
-            escrowed: buyerAssets,
-            settlementFee: settlementFeeAmount,
-            premiumQuote: 0,
-            deadline: deadline
-        });
-
-        emit EventsLib.TakeInitiated(
-            pendingId, id, seller, buyer, units, collateral, buyerAssets, settlementFeeAmount, deadline
-        );
+        if (!success) _revert(data);
+        pendingId = abi.decode(data, (bytes32));
     }
 
-    /// @dev Bundles the values a completed take needs for finalization, so `completeTake` stays shallow on the stack
-    /// under the non-viaIR (coverage) codegen.
-    struct CompletedTake {
-        bytes32 id;
-        address borrower;
-        address lender;
-        uint256 units;
-        uint256 collateral;
-        uint256 settlementFee;
-        uint256 maturity;
-        address loanToken;
-        uint256 strike;
-        uint256 premium;
-        uint256 net;
-        uint256 patTokenId;
-    }
-
-    /// @dev Phase 2 success: the option keeper reports the premium it paid and the custodian's attestation for the put
-    /// it bought off-chain, minting the PAT on-chain and finalizing the loan.
+    /// @dev Phase 2 success: the option keeper reports the premium it paid and the custodian's attestation for the put.
     function completeTake(bytes32 pendingId, uint256 premium, bytes32 tradeId, bytes memory attestation) external {
-        require(msg.sender == optionKeeper, NotOptionKeeper());
-        PendingTake storage pending = _pendingTakes[pendingId];
-        require(pending.lender != address(0), PendingTakeNotFound());
-        require(block.timestamp <= pending.deadline, PendingTakeExpired());
-
-        CompletedTake memory data;
-        data.net = pending.escrowed - pending.settlementFee;
-        require(premium <= data.net, PremiumTooHigh());
-        data.net -= premium;
-
-        // Copy the pending take into memory before clearing storage (checks-effects-interactions).
-        data.id = pending.id;
-        data.borrower = pending.borrower;
-        data.lender = pending.lender;
-        data.units = pending.units;
-        data.collateral = pending.collateral;
-        data.settlementFee = pending.settlementFee;
-        data.maturity = pending.offer.market.maturity;
-        data.loanToken = pending.offer.market.loanToken;
-        data.strike = data.units.mulDivUp(ORACLE_PRICE_SCALE, data.collateral);
-        data.premium = premium;
-
-        // The option terms are derived from the pending take, so the four invariants hold by construction:
-        // underlying == collateral token, strike == units / collateral, expiry == maturity, notional == collateral.
-        OptionTerms memory terms = OptionTerms({
-            underlying: pending.offer.market.collateralParams[0].token,
-            quoteToken: data.loanToken,
-            strike: data.strike,
-            notional: data.collateral,
-            expiry: data.maturity,
-            isPut: true,
-            tradeId: tradeId
-        });
-
-        delete _pendingTakes[pendingId];
-
-        // Mint the PAT on-chain, gated by the custodian's attestation over the exact terms (reverts if invalid).
-        require(pat != address(0), ZeroPat());
-        data.patTokenId = IPAT(pat).mint(terms, attestation, address(this));
-
-        _finalizeLoan(pendingId, data);
-    }
-
-    /// @dev Writes the credit/debt/collateral accounting and the loan, emits the events and disburses the escrowed
-    /// loan tokens (external calls last).
-    function _finalizeLoan(bytes32 pendingId, CompletedTake memory data) internal {
-        Position storage borrowerPos = position[data.id][data.borrower];
-        Position storage lenderPos = position[data.id][data.lender];
-        uint128 units128 = UtilsLib.toUint128(data.units);
-        borrowerPos.debt += units128;
-        lenderPos.credit += units128;
-        marketState[data.id].totalUnits = UtilsLib.toUint128(marketState[data.id].totalUnits + data.units);
-
-        // Activate the borrower's collateral (single-BTC, index 0).
-        uint128 oldCollateral = borrowerPos.collateral[0];
-        borrowerPos.collateral[0] = UtilsLib.toUint128(oldCollateral + data.collateral);
-        if (oldCollateral == 0) {
-            borrowerPos.collateralBitmap = borrowerPos.collateralBitmap.setBit(0);
-            require(
-                UtilsLib.countBits(borrowerPos.collateralBitmap) <= MAX_COLLATERALS_PER_BORROWER, TooManyActivatedCollaterals()
-            );
-        }
-
-        claimableSettlementFee[data.loanToken] += data.settlementFee;
-
-        // One active loan per borrower per market (simplifies maturity settlement).
-        require(_borrowerLoan[data.id][data.borrower] == 0, LoanAlreadyExists());
-
-        _loans[pendingId] = Loan({
-            id: data.id,
-            borrower: data.borrower,
-            principal: data.units,
-            collateral: data.collateral,
-            strike: data.strike,
-            premium: data.premium,
-            expiry: data.maturity,
-            pat: pat,
-            patTokenId: data.patTokenId,
-            lastRepaid: 0,
-            claimablePutProceeds: 0
-        });
-        _borrowerLoan[data.id][data.borrower] = pendingId;
-        _marketLoanIds[data.id].push(pendingId);
-
-        emit EventsLib.TakeCompleted(pendingId, data.premium, pat, data.patTokenId);
-        emit EventsLib.LoanCreated(
-            pendingId, data.id, data.borrower, data.units, data.collateral, data.strike, data.premium, data.maturity, pat, data.patTokenId
+        (bool success, bytes memory data) = AWAKENING_LOANS.delegatecall(
+            abi.encodeCall(AwakeningLoans.completeTake, (pendingId, premium, tradeId, attestation))
         );
-
-        // Disburse the escrowed loan tokens (external calls last).
-        IOptionVault(optionVault).refund(data.loanToken, address(this), data.settlementFee);
-        IOptionVault(optionVault).refund(data.loanToken, optionKeeper, data.premium);
-        IOptionVault(optionVault).refund(data.loanToken, data.borrower, data.net);
+        if (!success) _revert(data);
     }
 
     /// @dev Phase 2 rollback: refunds the lender's loan tokens and the borrower's collateral, restoring the offer.
     function cancelTake(bytes32 pendingId) external {
-        PendingTake storage pending = _pendingTakes[pendingId];
-        require(pending.lender != address(0), PendingTakeNotFound());
-        require(msg.sender == optionKeeper || block.timestamp >= pending.deadline, NotOptionKeeper());
-
-        Offer memory offer = pending.offer;
-        address borrower = pending.borrower;
-        address lender = pending.lender;
-        uint256 units = pending.units;
-        uint256 collateral = pending.collateral;
-        uint256 escrowed = pending.escrowed;
-        uint256 settlementFeeAmount = pending.settlementFee;
-
-        delete _pendingTakes[pendingId];
-
-        // Restore the offer's consumed reservation.
-        if (offer.maxAssets > 0) {
-            uint256 consumedAmount = offer.buy ? escrowed : escrowed - settlementFeeAmount;
-            consumed[offer.maker][offer.group] -= consumedAmount;
-        } else {
-            consumed[offer.maker][offer.group] -= units;
-        }
-
-        // Refund (external calls last).
-        IOptionVault(optionVault).refund(offer.market.loanToken, lender, escrowed);
-        SafeTransferLib.safeTransfer(offer.market.collateralParams[0].token, borrower, collateral);
-
-        emit EventsLib.TakeCancelled(pendingId);
+        (bool success, bytes memory data) =
+            AWAKENING_LOANS.delegatecall(abi.encodeCall(AwakeningLoans.cancelTake, (pendingId)));
+        if (!success) _revert(data);
     }
 
     /// SETTLEMENT ///
-    /// @dev The following functions are only callable by the settlement contract (set via setSettlement).
+    /// @dev The following functions are only callable by the settlement contract (set via setSettlement). Their logic
+    /// lives in AwakeningLoans (delegatecall).
 
-    /// @dev Decrements the borrower's position collateral and returns the loan collateral to the receiver.
-    function _returnLoanCollateral(bytes32 id, address borrower, uint256 collateral, address receiver) internal {
-        Position storage _position = position[id][borrower];
-        _position.collateral[0] = UtilsLib.toUint128(uint256(_position.collateral[0]) - collateral);
-        if (_position.collateral[0] == 0) _position.collateralBitmap = _position.collateralBitmap.clearBit(0);
-        SafeTransferLib.safeTransfer(toMarket(id).collateralParams[0].token, receiver, collateral);
-    }
-
-    /// @dev Repays part or all of a loan and returns the collateral once fully repaid.
     function repayLoan(bytes32 loanId, uint256 units, address payer) external {
-        require(msg.sender == settlement, OnlySettlement());
-        Loan storage loan = _loans[loanId];
-        require(loan.borrower != address(0), LoanNotFound());
-        require(units <= loan.principal - loan.lastRepaid, RepayExceedsRemaining());
-
-        address loanToken = toMarket(loan.id).loanToken;
-
-        position[loan.id][loan.borrower].debt -= UtilsLib.toUint128(units);
-        marketState[loan.id].withdrawable += UtilsLib.toUint128(units);
-        loan.lastRepaid += units;
-
-        uint256 remaining = loan.principal - loan.lastRepaid;
-        emit EventsLib.LoanRepaid(loanId, loan.id, loan.borrower, units, remaining);
-
-        SafeTransferLib.safeTransferFrom(loanToken, payer, address(this), units);
-
-        if (remaining == 0) {
-            bytes32 id = loan.id;
-            address borrower = loan.borrower;
-            uint256 collateral = loan.collateral;
-            _returnLoanCollateral(id, borrower, collateral, borrower);
-
-            // Post-maturity: the put has expired and the loan is fully resolved.
-            // Early repayment: keep the loan (lastRepaid == principal) so the keeper can resell the put at maturity
-            // and credit the borrower's claimablePutProceeds.
-            if (block.timestamp >= loan.expiry) {
-                _borrowerLoan[id][borrower] = 0;
-                delete _loans[loanId];
-            }
-        }
+        (bool success, bytes memory data) =
+            AWAKENING_LOANS.delegatecall(abi.encodeCall(AwakeningLoans.repayLoan, (loanId, units, payer)));
+        if (!success) _revert(data);
     }
 
-    /// @dev Settles a defaulted loan: extinguishes the remaining debt and sends the collateral to the keeper.
     function settleLoan(bytes32 loanId, address collateralReceiver) external {
-        require(msg.sender == settlement, OnlySettlement());
-        Loan storage loan = _loans[loanId];
-        require(loan.borrower != address(0), LoanNotFound());
-
-        uint256 remaining = loan.principal - loan.lastRepaid;
-        bytes32 id = loan.id;
-        address borrower = loan.borrower;
-        uint256 collateral = loan.collateral;
-
-        position[id][borrower].debt -= UtilsLib.toUint128(remaining);
-        marketState[id].withdrawable += UtilsLib.toUint128(remaining);
-
-        _borrowerLoan[id][borrower] = 0;
-        delete _loans[loanId];
-
-        _returnLoanCollateral(id, borrower, collateral, collateralReceiver);
-
-        emit EventsLib.LoanSettled(loanId, id, borrower, remaining, collateralReceiver);
+        (bool success, bytes memory data) =
+            AWAKENING_LOANS.delegatecall(abi.encodeCall(AwakeningLoans.settleLoan, (loanId, collateralReceiver)));
+        if (!success) _revert(data);
     }
 
-    /// @dev Accrues a settlement fee (default penalty) to the protocol's claimable fees.
     function accrueSettlementFee(address loanToken, uint256 amount) external {
-        require(msg.sender == settlement, OnlySettlement());
-        claimableSettlementFee[loanToken] += amount;
+        (bool success, bytes memory data) =
+            AWAKENING_LOANS.delegatecall(abi.encodeCall(AwakeningLoans.accrueSettlementFee, (loanToken, amount)));
+        if (!success) _revert(data);
     }
 
-    /// @dev Credits the resale proceeds of an early-repaid loan's put. The settlement contract pulls the proceeds
-    /// into Awakening first, then reports them here (D8).
     function reportPutResale(bytes32 loanId, uint256 proceeds) external {
-        require(msg.sender == settlement, OnlySettlement());
-        Loan storage loan = _loans[loanId];
-        require(loan.borrower != address(0), LoanNotFound());
-        require(loan.lastRepaid == loan.principal, LoanNotFullyRepaid());
-
-        loan.claimablePutProceeds += proceeds;
-        emit EventsLib.PutResaleReported(loanId, loan.id, proceeds);
+        (bool success, bytes memory data) =
+            AWAKENING_LOANS.delegatecall(abi.encodeCall(AwakeningLoans.reportPutResale, (loanId, proceeds)));
+        if (!success) _revert(data);
     }
 
-    /// @dev Lets a borrower claim the put resale proceeds credited after an early full repayment (D8).
     function claimPutProceeds(bytes32 loanId, address receiver) external {
-        Loan storage loan = _loans[loanId];
-        require(loan.borrower != address(0), LoanNotFound());
-        require(msg.sender == loan.borrower, OnlyBorrower());
+        (bool success, bytes memory data) =
+            AWAKENING_LOANS.delegatecall(abi.encodeCall(AwakeningLoans.claimPutProceeds, (loanId, receiver)));
+        if (!success) _revert(data);
+    }
 
-        uint256 proceeds = loan.claimablePutProceeds;
-        require(proceeds > 0, NothingToClaim());
-
-        bytes32 id = loan.id;
-        address borrower = loan.borrower;
-        address loanToken = toMarket(id).loanToken;
-
-        _borrowerLoan[id][borrower] = 0;
-        delete _loans[loanId];
-
-        emit EventsLib.PutProceedsClaimed(loanId, id, borrower, receiver, proceeds);
-        SafeTransferLib.safeTransfer(loanToken, receiver, proceeds);
+    /// @dev Bubbles up the delegatecall revert reason.
+    function _revert(bytes memory data) private pure {
+        if (data.length == 0) revert();
+        assembly ("memory-safe") {
+            revert(add(data, 0x20), mload(data))
+        }
     }
 
     function withdraw(Market memory market, uint256 units, address onBehalf, address receiver) external {
