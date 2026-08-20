@@ -5,25 +5,23 @@ methods {
 
     function creditOf(bytes32 id, address user) external returns (uint128) envfree;
     function debtOf(bytes32 id, address user) external returns (uint128) envfree;
-    function lastLossFactor(bytes32 id, address user) external returns (uint128) envfree;
     function collateral(bytes32 id, address user, uint256 index) external returns (uint128) envfree;
     function pendingFee(bytes32 id, address user) external returns (uint128) envfree;
     function isAuthorized(address authorizer, address authorized) external returns (bool) envfree;
     function continuousFeeCredit(bytes32 id) external returns (uint128) envfree;
 
     // Summarize internals irrelevant to credit and debt tracking.
-    function IdLib.storeInCode(Midnight.Market memory, uint256) internal returns (address) => NONDET;
+    function IdLib.storeInCode(Awakening.Market memory, uint256) internal returns (address) => NONDET;
     function SafeTransferLib.safeTransfer(address, address, uint256) internal => NONDET;
     function SafeTransferLib.safeTransferFrom(address, address, address, uint256) internal => NONDET;
     function UtilsLib.msb(uint128) internal returns (uint256) => NONDET;
     function TickLib.tickToPrice(uint256) internal returns (uint256) => NONDET;
 
-    // Assume no reentrancy: callbacks and token transfers do not re-enter Midnight.
+    // Assume no reentrancy: callbacks and token transfers do not re-enter Awakening.
     // This is justified because the properties we verify are about the effect of each function's own body on credit and debt, not the effect of the full transaction including callbacks.
-    function _.onBuy(bytes32, Midnight.Market, uint256, uint256, uint256, address, bytes) external => NONDET;
-    function _.onSell(bytes32, Midnight.Market, uint256, uint256, uint256, address, address, bytes) external => NONDET;
-    function _.onLiquidate(address, bytes32, Midnight.Market, uint256, uint256, uint256, address, address, bytes, uint256) external => NONDET;
-    function _.onRepay(bytes32, Midnight.Market, uint256, address, bytes) external => NONDET;
+    function _.onBuy(bytes32, Awakening.Market, uint256, uint256, uint256, address, bytes) external => NONDET;
+    function _.onSell(bytes32, Awakening.Market, uint256, uint256, uint256, address, address, bytes) external => NONDET;
+    function _.onRepay(bytes32, Awakening.Market, uint256, address, bytes) external => NONDET;
     function _.onFlashLoan(address caller, address[] tokens, uint256[] amounts, bytes data) external => NONDET;
     function _.transfer(address, uint256) external => NONDET;
 }
@@ -33,7 +31,7 @@ methods {
 /// updatePosition can only decrease user's credit (through slashing and fee accrual),
 /// sets it to the post-update value, only changes credit of user at the market id,
 /// and accrues fee to continuousFeeCredit.
-rule updatePositionEffects(env e, Midnight.Market market, address user, bytes32 anyId, address anyUser) {
+rule updatePositionEffects(env e, Awakening.Market market, address user, bytes32 anyId, address anyUser) {
     bytes32 id = toId(e, market);
 
     uint256 creditBefore = creditOf(id, user);
@@ -60,7 +58,7 @@ rule updatePositionEffects(env e, Midnight.Market market, address user, bytes32 
 
 /// withdraw decreases onBehalf's post-update credit by exactly units
 /// and only changes credit of onBehalf at the market id.
-rule withdrawEffects(env e, Midnight.Market market, uint256 units, address onBehalf, address receiver, bytes32 anyId, address anyUser) {
+rule withdrawEffects(env e, Awakening.Market market, uint256 units, address onBehalf, address receiver, bytes32 anyId, address anyUser) {
     bytes32 id = toId(e, market);
 
     uint128 updatedUserCredit;
@@ -83,7 +81,7 @@ rule withdrawEffects(env e, Midnight.Market market, uint256 units, address onBeh
 
 /// take changes maker's and taker's net credit-debt by +/- units relative to their post-update values
 /// and only changes credit of maker and taker and debt of maker and taker at the market id.
-rule takeEffects(env e, Midnight.Offer offer, bytes ratifierData, uint256 units, address taker, address receiver, address takerCallback, bytes takerCallbackData, bytes32 anyId, address anyUser) {
+rule takeEffects(env e, Awakening.Offer offer, bytes ratifierData, uint256 units, address taker, address receiver, address takerCallback, bytes takerCallbackData, bytes32 anyId, address anyUser) {
     bytes32 id = toId(e, offer.market);
 
     uint128 makerCreditBefore;
@@ -111,7 +109,7 @@ rule takeEffects(env e, Midnight.Offer offer, bytes ratifierData, uint256 units,
 /// The buyer side cannot newly become a borrower: buyer's debt is non-increasing. If buyer's credit increased, then buyer's debt is zero after the take.
 /// Buyer's credit is non-decreasing relative to its post-update value and can increase by at most take units.
 /// Buyer's debt is non-increasing and can decrease by at most take units.
-rule takeBuyerEffects(env e, Midnight.Offer offer, bytes ratifierData, uint256 units, address taker, address receiver, address takerCallback, bytes takerCallbackData) {
+rule takeBuyerEffects(env e, Awakening.Offer offer, bytes ratifierData, uint256 units, address taker, address receiver, address takerCallback, bytes takerCallbackData) {
     bytes32 id = toId(e, offer.market);
 
     address buyer = offer.buy ? offer.maker : taker;
@@ -131,7 +129,7 @@ rule takeBuyerEffects(env e, Midnight.Offer offer, bytes ratifierData, uint256 u
 /// The seller side cannot newly become a lender: seller's credit is non-increasing relative to its post-update value. If seller's debt increased, then seller's credit is zero after the take.
 /// Seller's debt is non-decreasing, and can increase by at most take units.
 /// Seller's credit is non-increasing relative to its post-update value and can decrease by at most take units.
-rule takeSellerEffects(env e, Midnight.Offer offer, bytes ratifierData, uint256 units, address taker, address receiver, address takerCallback, bytes takerCallbackData) {
+rule takeSellerEffects(env e, Awakening.Offer offer, bytes ratifierData, uint256 units, address taker, address receiver, address takerCallback, bytes takerCallbackData) {
     bytes32 id = toId(e, offer.market);
 
     address seller = offer.buy ? taker : offer.maker;
@@ -151,7 +149,7 @@ rule takeSellerEffects(env e, Midnight.Offer offer, bytes ratifierData, uint256 
 /// REPAY ///
 
 /// Repay decreases onBehalf's debt by exactly units and only changes position[id][onBehalf].debt
-rule repayEffects(env e, Midnight.Market market, uint256 units, address onBehalf, address callback, bytes data, bytes32 anyId, address anyUser) {
+rule repayEffects(env e, Awakening.Market market, uint256 units, address onBehalf, address callback, bytes data, bytes32 anyId, address anyUser) {
     bytes32 id = toId(e, market);
 
     uint256 debtBefore = debtOf(id, onBehalf);
@@ -165,37 +163,16 @@ rule repayEffects(env e, Midnight.Market market, uint256 units, address onBehalf
     assert anyUser != onBehalf || anyId != id => debtOf(anyId, anyUser) == otherDebtBefore;
 }
 
-/// LIQUIDATE ///
-
-/// Liquidate decreases the borrower's debt by at least repaidUnits,
-/// and only changes position[id][borrower].debt.
-rule liquidateEffects(env e, Midnight.Market market, uint256 collateralIndex, uint256 seizedAssets, uint256 repaidUnits, address borrower, address receiver, address callback, bytes data, bytes32 anyId, address anyUser, bool postMaturityMode) {
-    bytes32 id = toId(e, market);
-
-    uint256 debtBefore = debtOf(id, borrower);
-    uint256 otherCreditBefore = creditOf(anyId, anyUser);
-    uint256 otherDebtBefore = debtOf(anyId, anyUser);
-
-    uint256 seizedResult;
-    uint256 repaidResult;
-    seizedResult, repaidResult = liquidate(e, market, collateralIndex, seizedAssets, repaidUnits, borrower, postMaturityMode, receiver, callback, data);
-
-    assert debtOf(id, borrower) <= debtBefore - repaidResult;
-    assert creditOf(anyId, anyUser) == otherCreditBefore;
-    assert anyUser != borrower || anyId != id => debtOf(anyId, anyUser) == otherDebtBefore;
-}
-
 /// ALL OTHER FUNCTIONS ///
 
-/// Functions other than take, withdraw, repay, liquidate, updatePosition, and withdrawCollateral do not change any user's credit or debt.
+/// Functions other than take, withdraw, repay, updatePosition, and withdrawCollateral do not change any user's credit or debt.
 rule creditAndDebtUnchangedByOtherFunctions(method f, env e, calldataarg args, bytes32 id, address user)
 filtered {
     f -> !f.isView
-        && f.selector != sig:take(Midnight.Offer, bytes, uint256, address, address, address, bytes).selector
-        && f.selector != sig:withdraw(Midnight.Market, uint256, address, address).selector
-        && f.selector != sig:repay(Midnight.Market, uint256, address, address, bytes).selector
-        && f.selector != sig:liquidate(Midnight.Market, uint256, uint256, uint256, address, bool, address, address, bytes).selector
-        && f.selector != sig:updatePosition(Midnight.Market, address).selector
+        && f.selector != sig:take(Awakening.Offer, bytes, uint256, address, address, address, bytes).selector
+        && f.selector != sig:withdraw(Awakening.Market, uint256, address, address).selector
+        && f.selector != sig:repay(Awakening.Market, uint256, address, address, bytes).selector
+        && f.selector != sig:updatePosition(Awakening.Market, address).selector
 } {
     uint256 creditBefore = creditOf(id, user);
     uint256 debtBefore = debtOf(id, user);
@@ -208,7 +185,7 @@ filtered {
 
 /// supplyCollateral increases onBehalf's collateral by exactly assets,
 /// and only changes position[id][onBehalf].collateral[collateralIndex].
-rule supplyCollateralEffects(env e, Midnight.Market market, uint256 collateralIndex, uint256 assets, address onBehalf, bytes32 anyId, address anyUser, uint256 anyIndex) {
+rule supplyCollateralEffects(env e, Awakening.Market market, uint256 collateralIndex, uint256 assets, address onBehalf, bytes32 anyId, address anyUser, uint256 anyIndex) {
     bytes32 id = toId(e, market);
 
     uint256 collateralBefore = collateral(id, onBehalf, collateralIndex);
@@ -224,7 +201,7 @@ rule supplyCollateralEffects(env e, Midnight.Market market, uint256 collateralIn
 
 /// withdrawCollateral decreases onBehalf's collateral by exactly assets,
 /// and only changes position[id][onBehalf].collateral[collateralIndex].
-rule withdrawCollateralCollateralEffects(env e, Midnight.Market market, uint256 collateralIndex, uint256 assets, address onBehalf, address receiver, bytes32 anyId, address anyUser, uint256 anyIndex) {
+rule withdrawCollateralCollateralEffects(env e, Awakening.Market market, uint256 collateralIndex, uint256 assets, address onBehalf, address receiver, bytes32 anyId, address anyUser, uint256 anyIndex) {
     bytes32 id = toId(e, market);
 
     uint256 collateralBefore = collateral(id, onBehalf, collateralIndex);
@@ -236,32 +213,14 @@ rule withdrawCollateralCollateralEffects(env e, Midnight.Market market, uint256 
     assert anyUser != onBehalf || anyId != id || anyIndex != collateralIndex => collateral(anyId, anyUser, anyIndex) == otherCollateralBefore;
 }
 
-/// LIQUIDATE (COLLATERAL) ///
-
-/// liquidate decreases the borrower's collateral at collateralIndex by exactly seizedResult,
-/// and only changes position[id][borrower].collateral[collateralIndex].
-rule liquidateCollateralEffects(env e, Midnight.Market market, uint256 collateralIndex, uint256 seizedAssets, uint256 repaidUnits, address borrower, address receiver, address callback, bytes data, bytes32 anyId, address anyUser, uint256 anyIndex, bool postMaturityMode) {
-    bytes32 id = toId(e, market);
-
-    uint256 collateralBefore = collateral(id, borrower, collateralIndex);
-    uint256 otherCollateralBefore = collateral(anyId, anyUser, anyIndex);
-
-    uint256 seizedResult;
-    seizedResult, _ = liquidate(e, market, collateralIndex, seizedAssets, repaidUnits, borrower, postMaturityMode, receiver, callback, data);
-
-    assert collateral(id, borrower, collateralIndex) == collateralBefore - seizedResult;
-    assert anyUser != borrower || anyId != id || anyIndex != collateralIndex => collateral(anyId, anyUser, anyIndex) == otherCollateralBefore;
-}
-
 /// ALL OTHER FUNCTIONS (COLLATERAL) ///
 
-/// Functions other than supplyCollateral, withdrawCollateral, and liquidate do not change any user's collateral.
+/// Functions other than supplyCollateral and withdrawCollateral do not change any user's collateral.
 rule collateralUnchangedByOtherFunctions(method f, env e, calldataarg args, bytes32 id, address user, uint256 colIdx)
 filtered {
     f -> !f.isView
-        && f.selector != sig:supplyCollateral(Midnight.Market, uint256, uint256, address).selector
-        && f.selector != sig:withdrawCollateral(Midnight.Market, uint256, uint256, address, address).selector
-        && f.selector != sig:liquidate(Midnight.Market, uint256, uint256, uint256, address, bool, address, address, bytes).selector
+        && f.selector != sig:supplyCollateral(Awakening.Market, uint256, uint256, address).selector
+        && f.selector != sig:withdrawCollateral(Awakening.Market, uint256, uint256, address, address).selector
 } {
     uint256 collateralBefore = collateral(id, user, colIdx);
     f(e, args);

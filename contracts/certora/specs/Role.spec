@@ -225,7 +225,7 @@ rule onlyFeeClaimerCanClaimSettlementFee(env e, address token, uint256 amount, a
 }
 
 /// Only the fee claimer can successfully call claimContinuousFee.
-rule onlyFeeClaimerCanClaimContinuousFee(env e, Midnight.Market market, uint256 amount, address receiver) {
+rule onlyFeeClaimerCanClaimContinuousFee(env e, Awakening.Market market, uint256 amount, address receiver) {
     claimContinuousFee(e, market, amount, receiver);
     assert e.msg.sender == feeClaimer();
 }
@@ -248,7 +248,7 @@ rule feeClaimerCanClaimSettlementFee(env e, address token, uint256 amount, addre
     assert !reverted => user != currentContract && user != receiver => tokenBalance[token][user] == userBalanceBefore;
 }
 
-rule feeClaimerCanClaimContinuousFee(env e, Midnight.Market market, uint256 amount, address receiver, address user) {
+rule feeClaimerCanClaimContinuousFee(env e, Awakening.Market market, uint256 amount, address receiver, address user) {
     bytes32 id = toId(e, market);
     address feeClaimerBefore = feeClaimer();
     bool marketIsCreated = marketIsCreated(id);

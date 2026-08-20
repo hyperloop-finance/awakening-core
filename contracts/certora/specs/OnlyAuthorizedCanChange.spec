@@ -3,7 +3,7 @@
 methods {
     function multicall(bytes[]) external => HAVOC_ALL DELETE;
 
-    function toId(Midnight.Market market) external returns (bytes32) envfree;
+    function toId(Awakening.Market market) external returns (bytes32) envfree;
     function creditOf(bytes32 id, address user) external returns (uint128) envfree;
     function debtOf(bytes32 id, address user) external returns (uint128) envfree;
     function collateral(bytes32 id, address user, uint256 index) external returns (uint128) envfree;
@@ -11,22 +11,21 @@ methods {
     function isAuthorized(address authorizer, address authorized) external returns (bool) envfree;
 
     // Summarize internal functions that use opcodes causing HAVOC (CREATE2, low-level calls).
-    function IdLib.storeInCode(Midnight.Market memory, uint256) internal returns (address) => NONDET;
+    function IdLib.storeInCode(Awakening.Market memory, uint256) internal returns (address) => NONDET;
 
     // Over-approximate view functions for prover performance.
     function settlementFee(bytes32, uint256) internal returns (uint256) => NONDET;
-    function isHealthy(Midnight.Market memory, bytes32, address) internal returns (bool) => NONDET;
     function TickLib.tickToPrice(uint256) internal returns (uint256) => NONDET;
     function UtilsLib.msb(uint128) internal returns (uint256) => NONDET;
     function UtilsLib.countBits(uint128) internal returns (uint256) => NONDET;
     function UtilsLib.mulDivDown(uint256, uint256, uint256) internal returns (uint256) => NONDET;
     function UtilsLib.mulDivUp(uint256, uint256, uint256) internal returns (uint256) => NONDET;
 
-    // Assume no reentrancy: callbacks and tokens do not re-enter Midnight.
+    // Assume no reentrancy: callbacks and tokens do not re-enter Awakening.
     // This is justified because the properties we verify are about the effect of each function's own body on the state, not the effect of the full transaction including callbacks.
-    function _.onBuy(bytes32, Midnight.Market, uint256, uint256, uint256, address, bytes) external => NONDET;
-    function _.onSell(bytes32, Midnight.Market, uint256, uint256, uint256, address, address, bytes) external => NONDET;
-    function _.isRatified(Midnight.Offer offer, bytes) external => CVL_isRatified(offer) expect(bytes32);
+    function _.onBuy(bytes32, Awakening.Market, uint256, uint256, uint256, address, bytes) external => NONDET;
+    function _.onSell(bytes32, Awakening.Market, uint256, uint256, uint256, address, address, bytes) external => NONDET;
+    function _.isRatified(Awakening.Offer offer, bytes) external => CVL_isRatified(offer) expect(bytes32);
     function _.onFlashLoan(address, address[], uint256[], bytes) external => NONDET;
     function SafeTransferLib.safeTransferFrom(address, address, address, uint256) internal => NONDET;
     function SafeTransferLib.safeTransfer(address, address, uint256) internal => NONDET;
@@ -38,7 +37,7 @@ ghost mapping(address => bool) makerRatified {
     init_state axiom forall address a. makerRatified[a] == false;
 }
 
-function CVL_isRatified(Midnight.Offer offer) returns bytes32 {
+function CVL_isRatified(Awakening.Offer offer) returns bytes32 {
     bytes32 result;
     makerRatified[offer.maker] = true;
     return result;
@@ -47,8 +46,8 @@ function CVL_isRatified(Midnight.Offer offer) returns bytes32 {
 /// CREDIT AND DEBT CHANGE RULES ///
 
 /// An unauthorized caller cannot change a user's credit and debt except via liquidate and updatePosition.
-/// Assumes no reentrancy: callbacks (onBuy, onSell) and token transfers are not modeled as re-entering Midnight, so re-entrant credit and debt changes are not covered.
-rule onlyAuthorizedCanChangeCreditAndDebtExceptLiquidateAndUpdatePosition(env e, method f, calldataarg args, bytes32 id, address user) filtered { f -> f.selector != sig:liquidate(Midnight.Market, uint256, uint256, uint256, address, bool, address, address, bytes).selector && f.selector != sig:updatePosition(Midnight.Market, address).selector } {
+/// Assumes no reentrancy: callbacks (onBuy, onSell) and token transfers are not modeled as re-entering Awakening, so re-entrant credit and debt changes are not covered.
+rule onlyAuthorizedCanChangeCreditAndDebtExceptLiquidateAndUpdatePosition(env e, method f, calldataarg args, bytes32 id, address user) filtered { f -> f.selector != sig:updatePosition(Awakening.Market, address).selector } {
     bool userIsAuthorized = user == e.msg.sender || isAuthorized(user, e.msg.sender);
 
     uint256 creditBefore = creditOf(id, user);
@@ -63,8 +62,8 @@ rule onlyAuthorizedCanChangeCreditAndDebtExceptLiquidateAndUpdatePosition(env e,
 /// COLLATERAL CHANGE RULES ///
 
 /// An unauthorized caller cannot change a user's collateral except via liquidate.
-/// Assumes no reentrancy: callbacks and token transfers are not modeled as re-entering Midnight, so re-entrant collateral changes are not covered.
-rule onlyAuthorizedCanChangeCollateralExceptLiquidate(env e, method f, calldataarg args, bytes32 id, address user, uint256 collateralIndex) filtered { f -> f.selector != sig:liquidate(Midnight.Market, uint256, uint256, uint256, address, bool, address, address, bytes).selector } {
+/// Assumes no reentrancy: callbacks and token transfers are not modeled as re-entering Awakening, so re-entrant collateral changes are not covered.
+rule onlyAuthorizedCanChangeCollateralExceptLiquidate(env e, method f, calldataarg args, bytes32 id, address user, uint256 collateralIndex) filtered { f -> !f.isView } {
     bool userIsAuthorized = user == e.msg.sender || isAuthorized(user, e.msg.sender);
 
     uint256 collateralBefore = collateral(id, user, collateralIndex);
@@ -78,8 +77,8 @@ rule onlyAuthorizedCanChangeCollateralExceptLiquidate(env e, method f, calldataa
 
 /// An unauthorized caller cannot change a user's consumed except via take.
 /// For take, unauthorizedTakeFails, takeRequiresMakerConsent, and takeOnlyAuthorizedCanChangeDebt show that take can only change this consumed: consumed[offer.maker][offer.group], only with the right authorizations.
-/// Assumes no reentrancy: callbacks and token transfers are not modeled as re-entering Midnight, so re-entrant consumed changes are not covered.
-rule onlyAuthorizedCanChangeConsumedExceptTake(env e, method f, calldataarg args, address user, bytes32 group) filtered { f -> !f.isView && f.selector != sig:take(Midnight.Offer, bytes, uint256, address, address, address, bytes).selector } {
+/// Assumes no reentrancy: callbacks and token transfers are not modeled as re-entering Awakening, so re-entrant consumed changes are not covered.
+rule onlyAuthorizedCanChangeConsumedExceptTake(env e, method f, calldataarg args, address user, bytes32 group) filtered { f -> !f.isView && f.selector != sig:take(Awakening.Offer, bytes, uint256, address, address, address, bytes).selector } {
     bool userIsAuthorized = user == e.msg.sender || isAuthorized(user, e.msg.sender);
 
     uint256 consumedBefore = consumed(user, group);
@@ -105,7 +104,7 @@ rule onlyAuthorizedCanChangeIsAuthorized(env e, method f, calldataarg args, addr
 /// ACCESS CONTROL ///
 
 /// take requires the caller to be the taker or authorized by the taker
-rule unauthorizedTakeFails(env e, Midnight.Offer offer, bytes ratifierData, uint256 units, address taker, address receiverIfTakerIsSeller, address takerCallback, bytes takerCallbackData) {
+rule unauthorizedTakeFails(env e, Awakening.Offer offer, bytes ratifierData, uint256 units, address taker, address receiverIfTakerIsSeller, address takerCallback, bytes takerCallbackData) {
     bool senderAuthorized = isAuthorized(taker, e.msg.sender);
     take(e, offer, ratifierData, units, taker, receiverIfTakerIsSeller, takerCallback, takerCallbackData);
 

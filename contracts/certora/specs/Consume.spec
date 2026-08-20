@@ -7,18 +7,17 @@ methods {
     function totalUnits(bytes32 id) external returns (uint128) envfree;
 
     // Summaries for complex internals irrelevant to consumed-mapping properties.
-    function IdLib.toId(Midnight.Market memory, uint256, address) internal returns (bytes32) => NONDET;
+    function IdLib.toId(Awakening.Market memory, uint256, address) internal returns (bytes32) => NONDET;
     function UtilsLib.mulDivDown(uint256, uint256, uint256) internal returns (uint256) => NONDET;
     function UtilsLib.mulDivUp(uint256, uint256, uint256) internal returns (uint256) => NONDET;
     function UtilsLib.msb(uint128) internal returns (uint256) => NONDET;
     function TickLib.tickToPrice(uint256) internal returns (uint256) => NONDET;
     function TickLib.wExp(int256) internal returns (uint256) => NONDET;
-    function isHealthy(Midnight.Market memory, bytes32, address) internal returns (bool) => NONDET;
     function settlementFee(bytes32, uint256) internal returns (uint256) => NONDET;
 }
 
 ///  Only setConsumed and take can modify the consumed mapping.
-rule onlySetConsumedAndTakeChangeConsumed(env e, method f, calldataarg args, address user, bytes32 group) filtered { f -> f.selector != sig:setConsumed(bytes32, uint256, address).selector && f.selector != sig:take(Midnight.Offer, bytes, uint256, address, address, address, bytes).selector } {
+rule onlySetConsumedAndTakeChangeConsumed(env e, method f, calldataarg args, address user, bytes32 group) filtered { f -> f.selector != sig:setConsumed(bytes32, uint256, address).selector && f.selector != sig:take(Awakening.Offer, bytes, uint256, address, address, address, bytes).selector } {
     uint256 consumedBefore = consumed(user, group);
 
     f(e, args);
@@ -37,7 +36,7 @@ rule setConsumedOnlyAffectsOnBehalf(env e, bytes32 group, uint256 amount, addres
 }
 
 /// Calling take only affects the maker's consumed value for the offer's group. No other (user, group) pair is modified.
-rule takeOnlyAffectsMakerConsumed(env e, Midnight.Offer offer, bytes ratifierData, uint256 units, address taker, address receiver, address takerCallback, bytes takerCallbackData, address user, bytes32 group) {
+rule takeOnlyAffectsMakerConsumed(env e, Awakening.Offer offer, bytes ratifierData, uint256 units, address taker, address receiver, address takerCallback, bytes takerCallbackData, address user, bytes32 group) {
     uint256 consumedBefore = consumed(user, group);
 
     take(e, offer, ratifierData, units, taker, receiver, takerCallback, takerCallbackData);
@@ -56,7 +55,7 @@ rule consumeNonDecreasing(env e, method f, calldataarg args, address user, bytes
 }
 
 /// After a successful take, consumed[offer.maker][offer.group] does not exceed the effective max.
-rule takeConsumedBoundedByMax(env e, Midnight.Offer offer, bytes ratifierData, uint256 units, address taker, address receiver, address takerCallback, bytes takerCallbackData) {
+rule takeConsumedBoundedByMax(env e, Awakening.Offer offer, bytes ratifierData, uint256 units, address taker, address receiver, address takerCallback, bytes takerCallbackData) {
     take(e, offer, ratifierData, units, taker, receiver, takerCallback, takerCallbackData);
 
     assert offer.maxAssets > 0 => consumed(offer.maker, offer.group) <= offer.maxAssets;
@@ -64,7 +63,7 @@ rule takeConsumedBoundedByMax(env e, Midnight.Offer offer, bytes ratifierData, u
 }
 
 /// After a successful take in units mode, the change in consumed equals the units taken.
-rule takeConsumedDelta(env e, Midnight.Offer offer, bytes ratifierData, uint256 units, address taker, address receiver, address takerCallback, bytes takerCallbackData) {
+rule takeConsumedDelta(env e, Awakening.Offer offer, bytes ratifierData, uint256 units, address taker, address receiver, address takerCallback, bytes takerCallbackData) {
     require offer.maxAssets == 0;
 
     uint256 consumedBefore = consumed(offer.maker, offer.group);
@@ -75,7 +74,7 @@ rule takeConsumedDelta(env e, Midnight.Offer offer, bytes ratifierData, uint256 
 }
 
 /// If consumed[offer.maker][offer.group] is already at or above maxUnits before a take in units mode, it remains unchanged.
-rule takeConsumedAtMaxUnchangedUnits(env e, Midnight.Offer offer, bytes ratifierData, uint256 units, address taker, address receiver, address takerCallback, bytes takerCallbackData) {
+rule takeConsumedAtMaxUnchangedUnits(env e, Awakening.Offer offer, bytes ratifierData, uint256 units, address taker, address receiver, address takerCallback, bytes takerCallbackData) {
     require offer.maxAssets == 0;
 
     uint256 consumedBefore = consumed(offer.maker, offer.group);
@@ -86,7 +85,7 @@ rule takeConsumedAtMaxUnchangedUnits(env e, Midnight.Offer offer, bytes ratifier
 }
 
 /// If consumed is already at or above maxAssets before a take in assets mode, it remains unchanged.
-rule takeConsumedAtMaxUnchangedAssets(env e, Midnight.Offer offer, bytes ratifierData, uint256 units, address taker, address receiver, address takerCallback, bytes takerCallbackData) {
+rule takeConsumedAtMaxUnchangedAssets(env e, Awakening.Offer offer, bytes ratifierData, uint256 units, address taker, address receiver, address takerCallback, bytes takerCallbackData) {
     require offer.maxUnits == 0;
 
     uint256 consumedBefore = consumed(offer.maker, offer.group);
@@ -97,7 +96,7 @@ rule takeConsumedAtMaxUnchangedAssets(env e, Midnight.Offer offer, bytes ratifie
 }
 
 /// A fully-consumed offer in units mode only allows no-op takes.
-rule fullyConsumedOfferRevertsOnNonTrivialTake(env e, Midnight.Offer offer, bytes ratifierData, uint256 units, address taker, address receiver, address takerCallback, bytes takerCallbackData) {
+rule fullyConsumedOfferRevertsOnNonTrivialTake(env e, Awakening.Offer offer, bytes ratifierData, uint256 units, address taker, address receiver, address takerCallback, bytes takerCallbackData) {
     require offer.maxAssets == 0;
 
     uint256 consumedBefore = consumed(offer.maker, offer.group);

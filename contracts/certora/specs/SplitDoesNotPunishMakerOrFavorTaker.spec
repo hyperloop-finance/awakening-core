@@ -5,7 +5,7 @@ using Utils as Utils;
 methods {
     function multicall(bytes[]) external => HAVOC_ALL DELETE;
 
-    function Utils.hashMarket(Midnight.Market) external returns (bytes32) envfree;
+    function Utils.hashMarket(Awakening.Market) external returns (bytes32) envfree;
 
     // Ghost summaries for mulDivDown/mulDivUp: replaces nonlinear 256-bit arithmetic with axiomatic reasoning.
     // Axioms are discharged by rules in MulDiv.spec (see references on the ghosts below).
@@ -13,17 +13,16 @@ methods {
     function UtilsLib.mulDivUp(uint256 a, uint256 b, uint256 d) internal returns (uint256) => ghostMulDivUp(a, b, d);
 
     // Summarize toId: deterministic hash preserves market-to-id relationship without adding assumptions.
-    function IdLib.toId(Midnight.Market memory market, uint256, address) internal returns (bytes32) => summaryToId(market);
+    function IdLib.toId(Awakening.Market memory market, uint256, address) internal returns (bytes32) => summaryToId(market);
 
     // Assume that the markets are already created.
-    function touchMarket(Midnight.Market memory market) internal returns (bytes32) => summaryToId(market);
+    function touchMarket(Awakening.Market memory market) internal returns (bytes32) => summaryToId(market);
 
     // Pure helper called with identical args across the three takes; CONSTANT collapses
     // its bit / hashing / arithmetic complexity (no behavioral abstraction).
     function TickLib.tickToPrice(uint256) internal returns (uint256) => CONSTANT;
 
     // Over-approximate view functions.
-    function isHealthy(Midnight.Market memory, bytes32, address) internal returns (bool) => NONDET;
 
     // Over-approximate transient storage.
     function UtilsLib.tExchange(uint256, bytes32, address, bool) internal returns (bool) => NONDET;
@@ -48,14 +47,14 @@ persistent ghost ghostMulDivUp(uint256, uint256, uint256) returns uint256 {
 
 /// SUMMARY FUNCTIONS ///
 
-function summaryToId(Midnight.Market market) returns (bytes32) {
+function summaryToId(Awakening.Market market) returns (bytes32) {
     return Utils.hashMarket(market);
 }
 
 /// Splitting an offer does not punish the maker or favor the taker on asset amounts.
 /// When offer.buy (maker=buyer, taker=seller): Maker pays less or equal (within 1 wei) when split, taker receives less or equal when split.
 /// When !offer.buy (maker=seller, taker=buyer): Maker receives more or equal (within 1 wei) when split, taker pays more or equal when split.
-rule splitDoesNotPunishMakerOrFavorTaker(env e, uint256 unitsA, uint256 unitsB, uint256 unitsC, address taker, address receiverIfTakerIsSeller, address takerCallback, bytes takerCallbackData, Midnight.Offer offer, bytes ratifierData) {
+rule splitDoesNotPunishMakerOrFavorTaker(env e, uint256 unitsA, uint256 unitsB, uint256 unitsC, address taker, address receiverIfTakerIsSeller, address takerCallback, bytes takerCallbackData, Awakening.Offer offer, bytes ratifierData) {
     require unitsA == require_uint256(unitsB + unitsC), "unitsA must be equal to unitsB + unitsC";
 
     require e.block.timestamp <= max_uint128, "block.timestamp must fit in uint128";

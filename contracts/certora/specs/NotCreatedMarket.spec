@@ -14,7 +14,6 @@ methods {
     function tickSpacing(bytes32) external returns (uint8) envfree;
 
     // Over-approximate view functions.
-    function isHealthy(Midnight.Market memory, bytes32, address) internal returns (bool) => NONDET;
     function UtilsLib.mulDivDown(uint256, uint256, uint256) internal returns (uint256) => NONDET;
     function UtilsLib.mulDivUp(uint256, uint256, uint256) internal returns (uint256) => NONDET;
     function UtilsLib.msb(uint128) internal returns (uint256) => NONDET;
@@ -59,9 +58,6 @@ strong invariant marketContinuousFeeIsEmptyIfNotCreated(bytes32 id)
 strong invariant marketContinuousFeeCreditIsEmptyIfNotCreated(bytes32 id)
     !marketIsCreated(id) => currentContract.marketState[id].continuousFeeCredit == 0;
 
-strong invariant marketLossFactorIsEmptyIfNotCreated(bytes32 id)
-    !marketIsCreated(id) => currentContract.marketState[id].lossFactor == 0;
-
 strong invariant marketCreditIsEmptyIfNotCreated(bytes32 id, address user)
     !marketIsCreated(id) => creditOf(id, user) == 0;
 
@@ -79,6 +75,3 @@ strong invariant marketLastContinuousFeeAccrualIsEmptyIfNotCreated(bytes32 id, a
 
 strong invariant marketCollateralIsEmptyIfNotCreated(bytes32 id, address user, uint256 collateralIndex)
     !marketIsCreated(id) => userHasNoCollateral(id, user, collateralIndex);
-
-strong invariant positionLastLossFactorIsEmptyIfNotCreated(bytes32 id, address user)
-    !marketIsCreated(id) => currentContract.position[id][user].lastLossFactor == 0;

@@ -8,14 +8,13 @@ methods {
     function settlementFee(bytes32 id, uint256 timeToMaturity) external returns (uint256) envfree;
     function feeSetter() external returns (address) envfree;
     function tickSpacing(bytes32 id) external returns (uint8) envfree;
-    function toId(Midnight.Market) external returns (bytes32) envfree;
+    function toId(Awakening.Market) external returns (bytes32) envfree;
     function Utils.maxSettlementFee(uint256 index) external returns (uint256) envfree;
 
     // Over-approximate view functions.
-    function isHealthy(Midnight.Market memory, bytes32, address) internal returns (bool) => NONDET;
 }
 
-/// Breakpoint time in seconds for index 0..6, mirroring the settlementFee intervals in Midnight.sol.
+/// Breakpoint time in seconds for index 0..6, mirroring the settlementFee intervals in Awakening.sol.
 definition breakpointTime(uint256 index) returns uint256 = index == 0 ? 0 : index == 1 ? 86400 : index == 2 ? 7 * 86400 : index == 3 ? 30 * 86400 : index == 4 ? 90 * 86400 : index == 5 ? 180 * 86400 : index == 6 ? 360 * 86400 : 0;
 
 /// Lower enclosing breakpoint index for a given time-to-maturity.
@@ -40,31 +39,28 @@ invariant defaultSettlementFeePerIndexBound(address loanToken, uint256 index)
 invariant marketSettlementFeePerIndexBound(bytes32 id, uint256 index)
     index <= 6 => marketSettlementFee(id, index) <= Utils.maxSettlementFee(index)
     {
-        preserved touchMarket(Midnight.Market market) with (env e) {
+        preserved touchMarket(Awakening.Market market) with (env e) {
             requireInvariant defaultSettlementFeePerIndexBound(market.loanToken, index);
         }
-        preserved withdraw(Midnight.Market market, uint256 units, address onBehalf, address receiver) with (env e) {
+        preserved withdraw(Awakening.Market market, uint256 units, address onBehalf, address receiver) with (env e) {
             requireInvariant defaultSettlementFeePerIndexBound(market.loanToken, index);
         }
-        preserved repay(Midnight.Market market, uint256 units, address onBehalf, address callback, bytes data) with (env e) {
+        preserved repay(Awakening.Market market, uint256 units, address onBehalf, address callback, bytes data) with (env e) {
             requireInvariant defaultSettlementFeePerIndexBound(market.loanToken, index);
         }
-        preserved supplyCollateral(Midnight.Market market, uint256 collateralIndex, uint256 assets, address onBehalf) with (env e) {
+        preserved supplyCollateral(Awakening.Market market, uint256 collateralIndex, uint256 assets, address onBehalf) with (env e) {
             requireInvariant defaultSettlementFeePerIndexBound(market.loanToken, index);
         }
-        preserved withdrawCollateral(Midnight.Market market, uint256 collateralIndex, uint256 assets, address onBehalf, address receiver) with (env e) {
+        preserved withdrawCollateral(Awakening.Market market, uint256 collateralIndex, uint256 assets, address onBehalf, address receiver) with (env e) {
             requireInvariant defaultSettlementFeePerIndexBound(market.loanToken, index);
         }
-        preserved liquidate(Midnight.Market market, uint256 collateralIndex, uint256 seizedAssets, uint256 repaidUnits, address borrower, bool postMaturityMode, address receiver, address callback, bytes data) with (env e) {
-            requireInvariant defaultSettlementFeePerIndexBound(market.loanToken, index);
-        }
-        preserved take(Midnight.Offer offer, bytes ratifierData, uint256 units, address taker, address receiverIfTakerIsSeller, address takerCallback, bytes takerCallbackData) with (env e) {
+        preserved take(Awakening.Offer offer, bytes ratifierData, uint256 units, address taker, address receiverIfTakerIsSeller, address takerCallback, bytes takerCallbackData) with (env e) {
             requireInvariant defaultSettlementFeePerIndexBound(offer.market.loanToken, index);
         }
     }
 
 /// When a market is created, its settlement fees are set to the default settlement fees of its loan token.
-rule newMarketSettlementFeesMatchDefault(env e, Midnight.Market market, uint256 index) {
+rule newMarketSettlementFeesMatchDefault(env e, Awakening.Market market, uint256 index) {
     require index <= 6, "index out of bounds";
     bytes32 id = toId(e, market);
     require tickSpacing(id) == 0, "market not yet created";
