@@ -68,6 +68,16 @@ contract AwakeningSettlement is IAwakeningSettlement {
         _state[id] = SettlementState.PAT_REDEEMED;
     }
 
+    /// @dev Bundles the snapshot of defaulted loans to keep `settle` shallow on the stack under the non-viaIR
+    /// (coverage) codegen.
+    struct DefaultedLoans {
+        bytes32[] loanIds;
+        address[] borrowers;
+        uint256[] remainings;
+        uint256 n;
+        uint256 totalRemaining;
+    }
+
     /// @dev Option keeper settles defaulted loans: it sells each put + collateral off-chain and reports net proceeds.
     function settle(bytes32 id, uint256 proceeds) external {
         require(msg.sender == IAwakening(AWAKENING).optionKeeper(), NotOptionKeeper());
@@ -76,55 +86,61 @@ contract AwakeningSettlement is IAwakeningSettlement {
         Market memory market = IAwakening(AWAKENING).toMarket(id);
         address loanToken = market.loanToken;
 
-        // Snapshot the defaulted loans (a loan is defaulted if it has not been fully repaid yet).
+        DefaultedLoans memory loans = _snapshotDefaultedLoans(id);
+        require(loans.n > 0, NoDefaultedLoans());
+        require(proceeds >= loans.totalRemaining, InsufficientProceeds());
+
+        // Pull proceeds from the keeper.
+        SafeTransferLib.safeTransferFrom(loanToken, msg.sender, address(this), proceeds);
+
+        uint256 excess = proceeds - loans.totalRemaining;
+        uint256 penalty = UtilsLib.min(loans.totalRemaining.mulDivDown(market.penaltyPct, WAD), excess);
+        uint256 remainder = excess - penalty;
+
+        // Principal + penalty back Awakening, then settle each loan (collateral → keeper).
+        SafeTransferLib.safeTransfer(loanToken, AWAKENING, loans.totalRemaining + penalty);
+        IAwakening(AWAKENING).accrueSettlementFee(loanToken, penalty);
+        for (uint256 i; i < loans.n; i++) {
+            IAwakening(AWAKENING).settleLoan(loans.loanIds[i], msg.sender);
+        }
+
+        // Remainder → borrowers, proportional to each loan's remaining principal.
+        _distributeRemainder(loans, loanToken, remainder);
+
+        _state[id] = SettlementState.FINAL;
+
+        emit Settled(id, proceeds, penalty);
+    }
+
+    /// @dev Snapshots the defaulted loans (a loan is defaulted if it has not been fully repaid yet).
+    function _snapshotDefaultedLoans(bytes32 id) internal view returns (DefaultedLoans memory result) {
         uint256 count = IAwakening(AWAKENING).marketLoanCount(id);
-        bytes32[] memory loanIds = new bytes32[](count);
-        address[] memory borrowers = new address[](count);
-        uint256[] memory remainings = new uint256[](count);
-        uint256 n;
-        uint256 totalRemaining;
+        result.loanIds = new bytes32[](count);
+        result.borrowers = new address[](count);
+        result.remainings = new uint256[](count);
         for (uint256 i; i < count; i++) {
             bytes32 loanId = IAwakening(AWAKENING).marketLoanIds(id, i);
             Loan memory loan = IAwakening(AWAKENING).loans(loanId);
             if (loan.borrower == address(0)) continue;
             uint256 remaining = loan.principal - loan.lastRepaid;
             if (remaining == 0) continue; // early-repaid loan; its put is handled via reportPutResale
-            loanIds[n] = loanId;
-            borrowers[n] = loan.borrower;
-            remainings[n] = remaining;
-            totalRemaining += remaining;
-            n++;
+            result.loanIds[result.n] = loanId;
+            result.borrowers[result.n] = loan.borrower;
+            result.remainings[result.n] = remaining;
+            result.totalRemaining += remaining;
+            result.n++;
         }
-        require(n > 0, NoDefaultedLoans());
-        require(proceeds >= totalRemaining, InsufficientProceeds());
+    }
 
-        // Pull proceeds from the keeper.
-        SafeTransferLib.safeTransferFrom(loanToken, msg.sender, address(this), proceeds);
-
-        uint256 excess = proceeds - totalRemaining;
-        uint256 penalty = UtilsLib.min(totalRemaining.mulDivDown(market.penaltyPct, WAD), excess);
-        uint256 remainder = excess - penalty;
-
-        // Principal + penalty back Awakening, then settle each loan (collateral → keeper).
-        SafeTransferLib.safeTransfer(loanToken, AWAKENING, totalRemaining + penalty);
-        IAwakening(AWAKENING).accrueSettlementFee(loanToken, penalty);
-        for (uint256 i; i < n; i++) {
-            IAwakening(AWAKENING).settleLoan(loanIds[i], msg.sender);
-        }
-
-        // Remainder → borrowers, proportional to each loan's remaining principal.
+    /// @dev Distributes the remainder to borrowers proportionally; rounding dust goes to the keeper.
+    function _distributeRemainder(DefaultedLoans memory loans, address loanToken, uint256 remainder) internal {
         uint256 paidRemainder;
-        for (uint256 i; i < n; i++) {
-            uint256 share = remainder.mulDivDown(remainings[i], totalRemaining);
-            if (share > 0) SafeTransferLib.safeTransfer(loanToken, borrowers[i], share);
+        for (uint256 i; i < loans.n; i++) {
+            uint256 share = remainder.mulDivDown(loans.remainings[i], loans.totalRemaining);
+            if (share > 0) SafeTransferLib.safeTransfer(loanToken, loans.borrowers[i], share);
             paidRemainder += share;
         }
-        // Rounding dust → keeper.
         if (remainder > paidRemainder) SafeTransferLib.safeTransfer(loanToken, msg.sender, remainder - paidRemainder);
-
-        _state[id] = SettlementState.FINAL;
-
-        emit Settled(id, proceeds, penalty);
     }
 
     /// @dev Option keeper reports the resale proceeds of an early-repaid loan's put (D8). The proceeds are pulled

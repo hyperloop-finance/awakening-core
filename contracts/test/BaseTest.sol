@@ -197,14 +197,16 @@ abstract contract BaseTest is Test {
     function sortCollateralParams(CollateralParams[] memory arr) internal pure returns (CollateralParams[] memory) {
         for (uint256 i = 1; i < arr.length; i++) {
             uint256 j = i;
-            while (j > 0 && bytes20(arr[j].token) < bytes20(arr[j - 1].token)) {
-                CollateralParams memory temp = arr[j];
-                arr[j] = arr[j - 1];
-                arr[j - 1] = temp;
+            while (j > 0 && _tokenLessThan(arr[j].token, arr[j - 1].token)) {
+                (arr[j], arr[j - 1]) = (arr[j - 1], arr[j]);
                 j--;
             }
         }
         return arr;
+    }
+
+    function _tokenLessThan(address a, address b) internal pure returns (bool) {
+        return bytes20(a) < bytes20(b);
     }
 
     /// @dev Returns a market with a single non-zero collateral token and a creatable TTM.
