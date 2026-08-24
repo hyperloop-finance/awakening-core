@@ -45,6 +45,7 @@ class PortfolioApiTest {
 		mockMvc.perform(get("/api/v1/portfolio/not-a-wallet"))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.status").value(400))
+				.andExpect(jsonPath("$.type").value("https://awakening.xyz/problems/400"))
 				.andExpect(jsonPath("$.title").value("Validation failed"));
 	}
 }

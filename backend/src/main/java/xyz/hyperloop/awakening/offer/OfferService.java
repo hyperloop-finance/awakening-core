@@ -111,12 +111,12 @@ public class OfferService {
 	}
 
 	private String mockMessage(String wallet, String marketId, String amount, String apr, Instant expiry) {
-		return "Awakening Mock Offer\\n"
-				+ "chainId:" + properties.rpc().chainId() + "\\n"
-				+ "wallet:" + wallet.toLowerCase(Locale.ROOT) + "\\n"
-				+ "marketId:" + marketId + "\\n"
-				+ "amount:" + amount + "\\n"
-				+ "apr:" + apr + "\\n"
+		return "Awakening Mock Offer\n"
+				+ "chainId:" + properties.rpc().chainId() + "\n"
+				+ "wallet:" + wallet.toLowerCase(Locale.ROOT) + "\n"
+				+ "marketId:" + marketId + "\n"
+				+ "amount:" + amount + "\n"
+				+ "apr:" + apr + "\n"
 				+ "expiry:" + expiry;
 	}
 

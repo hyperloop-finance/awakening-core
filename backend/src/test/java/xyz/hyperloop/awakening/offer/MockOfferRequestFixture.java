@@ -44,12 +44,12 @@ final class MockOfferRequestFixture {
 	}
 
 	static String message(String wallet, String amount, String apr, Instant expiry) {
-		return "Awakening Mock Offer\\n"
-				+ "chainId:31337\\n"
-				+ "wallet:" + wallet.toLowerCase() + "\\n"
-				+ "marketId:" + MARKET_ID + "\\n"
-				+ "amount:" + canonicalDecimal(amount) + "\\n"
-				+ "apr:" + canonicalDecimal(apr) + "\\n"
+		return "Awakening Mock Offer\n"
+				+ "chainId:31337\n"
+				+ "wallet:" + wallet.toLowerCase() + "\n"
+				+ "marketId:" + MARKET_ID + "\n"
+				+ "amount:" + canonicalDecimal(amount) + "\n"
+				+ "apr:" + canonicalDecimal(apr) + "\n"
 				+ "expiry:" + expiry;
 	}
 

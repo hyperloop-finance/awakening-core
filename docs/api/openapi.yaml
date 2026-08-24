@@ -62,8 +62,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/Portfolio' }
         '400': { $ref: '#/components/responses/Problem' }
-        '404': { $ref: '#/components/responses/Problem' }
-        '409': { $ref: '#/components/responses/Problem' }
+        '503': { $ref: '#/components/responses/Problem' }
   /api/v1/offers:
     post:
       operationId: createOffer
@@ -79,6 +78,9 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/Offer' }
         '400': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '503': { $ref: '#/components/responses/Problem' }
   /api/v1/config:
     get:
       operationId: getRuntimeConfig
@@ -164,12 +166,23 @@ components:
         executionSteps: { type: array, items: { type: string } }
     Portfolio:
       type: object
-      required: [wallet, totals, borrowPositions, lendPositions]
+      required: [wallet, totals, borrowPositions, lendPositions, meta]
       properties:
         wallet: { type: string }
         totals: { $ref: '#/components/schemas/PortfolioTotals' }
         borrowPositions: { type: array, items: { $ref: '#/components/schemas/Position' } }
         lendPositions: { type: array, items: { $ref: '#/components/schemas/Position' } }
+        meta: { $ref: '#/components/schemas/PortfolioMeta' }
+    PortfolioMeta:
+      type: object
+      required: [profile, generatedAt, dataSource]
+      properties:
+        profile: { type: string }
+        generatedAt: { type: string, format: date-time }
+        dataSource:
+          type: string
+          enum: [MOCK_CATALOG]
+          description: Deterministic fixture data; it is never indexed on-chain state.
     PortfolioTotals:
       type: object
       required: [borrowedPrincipal, lentPrincipal, collateralLocked]
@@ -190,10 +203,16 @@ components:
         settlementState: { type: string, enum: [OPEN, MATURED, SETTLED] }
     SignedOffer:
       type: object
-      description: >-
-        While contractsReady is false, only EIP191_MOCK is accepted. Its EIP-191 personal-sign
-        payload is the exact UTF-8 lines `Awakening Mock Offer`, chainId, lowercased wallet,
-        marketId, normalized plain amount, normalized plain apr, and ISO expiry in that order.
+      description: |-
+        While contractsReady is false, only EIP191_MOCK is accepted. Sign the UTF-8 payload below
+        with EIP-191 personal_sign. Lines are joined by exactly one LF byte (0x0A), with no trailing LF:
+        Awakening Mock Offer
+        chainId:<configured chainId>
+        wallet:<lowercase wallet>
+        marketId:<lowercase marketId>
+        amount:<BigDecimal.stripTrailingZeros().toPlainString()>
+        apr:<BigDecimal.stripTrailingZeros().toPlainString()>
+        expiry:<Instant.toString() UTC Z form>
         EIP-712 is not accepted without a deployed verifier; its future domain is
         {name: Awakening, version: '1', chainId, verifyingContract} and its Offer message is
         {wallet, marketId, amount, apr, expiry}.
@@ -223,15 +242,14 @@ components:
         chainId: { type: integer }
         rpcUrlConfigured: { type: boolean }
         contractsReady: { type: boolean }
-        awakeningAddress: { type: [string, 'null'], pattern: '^0x[a-fA-F0-9]{40}$', description: Non-zero EVM address when configured. }
-        settlementAddress: { type: [string, 'null'], pattern: '^0x[a-fA-F0-9]{40}$', description: Non-zero EVM address when configured. }
-        patAddress: { type: [string, 'null'], pattern: '^0x[a-fA-F0-9]{40}$', description: Non-zero EVM address when configured. }
-        optionVaultAddress: { type: [string, 'null'], pattern: '^0x[a-fA-F0-9]{40}$', description: Non-zero EVM address when configured. }
+        awakeningAddress: { type: [string, 'null'], pattern: '^0x[a-fA-F0-9]{40}$', description: Missing, malformed, or zero address is normalized to null; a string is non-zero. }
+        settlementAddress: { type: [string, 'null'], pattern: '^0x[a-fA-F0-9]{40}$', description: Missing, malformed, or zero address is normalized to null; a string is non-zero. }
+        patAddress: { type: [string, 'null'], pattern: '^0x[a-fA-F0-9]{40}$', description: Missing, malformed, or zero address is normalized to null; a string is non-zero. }
+        optionVaultAddress: { type: [string, 'null'], pattern: '^0x[a-fA-F0-9]{40}$', description: Missing, malformed, or zero address is normalized to null; a string is non-zero. }
     PlainDecimal:
       type: string
       pattern: '^\\d+(\\.\\d+)?$'
-      maxLength: 17
-      description: Plain non-negative decimal without exponent notation; at most 8 fractional digits and 1000000 maximum.
+      description: Plain positive decimal without exponent notation; accepted request fields must be > 0, at most 8 fractional digits, and at most 1000000. Leading zeros are accepted and normalized by value, so no maxLength is imposed.
     Problem:
       type: object
       required: [type, title, status, detail]
