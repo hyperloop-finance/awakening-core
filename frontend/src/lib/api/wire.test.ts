@@ -10,7 +10,7 @@ describe("OpenAPI wire adapters", () => {
   });
   it("accepts quote, portfolio and config OpenAPI fixtures", () => {
     expect(parseQuote({ marketId: market.id, side: "BORROW", principal: "100", collateralRequirement: "0.01", interest: "2", protocolFee: "1", totalDueOrPayout: "103", apr: "12", maturity: "2026-12-15T00:00:00Z", expiresAt: "2026-08-24T01:00:00Z", executionSteps: ["preview"] }).totalDueOrPayout).toBe("103");
-    expect(parsePortfolio({ wallet: "0x1111111111111111111111111111111111111111", totals: { borrowedPrincipal: "1", lentPrincipal: "2", collateralLocked: "0.1" }, borrowPositions: [], lendPositions: [] }).totals.lentPrincipal).toBe("2");
+    expect(parsePortfolio({ wallet: "0x1111111111111111111111111111111111111111", meta:{profile:"mock",generatedAt:"2026-01-01T00:00:00Z",dataSource:"MOCK_CATALOG"}, totals: { borrowedPrincipal: "1", lentPrincipal: "2", collateralLocked: "0.1" }, borrowPositions: [], lendPositions: [] }).totals.lentPrincipal).toBe("2");
     expect(parseRuntimeConfig({ profile: "mock", chainId: 31337, rpcUrlConfigured: false, contractsReady: false }).rpcUrlConfigured).toBe(false);
   });
 });
