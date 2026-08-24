@@ -92,6 +92,10 @@ describe("CreditFlow", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(await screen.findByText("1,000 USDC")).toBeInTheDocument();
+    expect(screen.getByText("Interest").nextElementSibling).toHaveTextContent(
+      "24.657534 USDC",
+    );
+    expect(screen.getByText("Protocol fee").nextElementSibling).toHaveTextContent("2.5 USDC");
     expect(quoteRequest).toHaveBeenCalledTimes(2);
   });
 

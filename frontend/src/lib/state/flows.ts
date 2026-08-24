@@ -1,5 +1,6 @@
 import type { MarketSummary, PortfolioPayload, PortfolioPosition, Quote } from "../api/types";
 import { formatDecimal } from "../format";
+import { formatFixedDecimal, parseFixedDecimal } from "../fixed-decimal";
 
 export function filterMarkets(markets: MarketSummary[], query: string) {
   if (!query.trim()) return markets;
@@ -9,6 +10,31 @@ export function filterMarkets(markets: MarketSummary[], query: string) {
       .toLowerCase()
       .includes(normalized),
   );
+}
+
+export function deriveMarketsOverview(markets: MarketSummary[]) {
+  const totalLiquidity = markets.reduce(
+    (total, market) => total + parseFixedDecimal(market.availableLiquidity),
+    BigInt(0),
+  );
+  const totalApr = markets.reduce(
+    (total, market) => total + parseFixedDecimal(market.fixedApr),
+    BigInt(0),
+  );
+  const nextMaturity = markets.reduce<string | undefined>(
+    (next, market) => (!next || market.maturity < next ? market.maturity : next),
+    undefined,
+  );
+
+  return {
+    totalLiquidity: formatFixedDecimal(totalLiquidity),
+    marketCount: markets.length,
+    averageApr:
+      markets.length > 0
+        ? formatFixedDecimal(totalApr / BigInt(markets.length))
+        : undefined,
+    nextMaturity,
+  };
 }
 
 export function canSimulateSubmit({
@@ -26,6 +52,8 @@ export function quoteSummary(quote: Quote): [string, string][] {
     ["Principal", `${formatDecimal(quote.principal)} USDC`],
     ["BTC collateral", `${formatDecimal(quote.collateralRequirement, 8)} BTC`],
     ["Fixed APR", `${quote.apr}%`],
+    ["Interest", `${formatDecimal(quote.interest)} USDC`],
+    ["Protocol fee", `${formatDecimal(quote.protocolFee)} USDC`],
     [
       quote.side === "BORROW" ? "Total due at maturity" : "Total payout",
       `${formatDecimal(quote.totalDueOrPayout)} USDC`,

@@ -1,4 +1,5 @@
 import type { MarketDetail, PortfolioPayload, Quote, QuoteSide, RuntimeConfig } from "./types";
+import { buildQuote } from "./quotes";
 
 export const DEMO_WALLET = "0xde00000000000000000000000000000000000001";
 
@@ -108,16 +109,4 @@ export const mockQuote = (
   market: MarketDetail,
   side: QuoteSide,
   amount: string,
-): Quote => ({
-  marketId: market.id,
-  side,
-  principal: amount,
-  collateralRequirement: "0.01666667",
-  interest: "24.657534",
-  protocolFee: "2.500000",
-  totalDueOrPayout: side === "BORROW" ? "1027.157534" : "1022.157534",
-  apr: market.fixedApr,
-  maturity: market.maturity,
-  expiresAt: new Date(Date.now() + 600_000).toISOString(),
-  executionSteps: ["Review preview", "No on-chain transaction will be sent"],
-});
+): Quote => buildQuote({ market, side, amount });

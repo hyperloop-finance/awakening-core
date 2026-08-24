@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { awakeningApi, normalizeApiError } from "@/lib/api/client";
 import type { MarketSummary } from "@/lib/api/types";
 import { formatDecimal } from "@/lib/format";
-import { filterMarkets } from "@/lib/state/flows";
+import { deriveMarketsOverview, filterMarkets } from "@/lib/state/flows";
 import { EmptyState, ErrorState, LoadingState } from "@/components/shell/states";
 
 type MarketsState =
@@ -41,6 +41,8 @@ export function MarketsScreen() {
   }, [load]);
 
   const filtered = state.kind === "ready" ? filterMarkets(state.markets, query) : [];
+  const overview =
+    state.kind === "ready" ? deriveMarketsOverview(state.markets) : undefined;
 
   return (
     <>
@@ -50,6 +52,30 @@ export function MarketsScreen() {
         Explore BTC / USDC markets. Positions remain previews until contract addresses are
         configured.
       </p>
+      {overview && (
+        <section className="overview-grid" aria-label="Market overview">
+          <div className="glass-card metric">
+            <span>Total available</span>
+            <strong>{formatDecimal(overview.totalLiquidity)} USDC</strong>
+          </div>
+          <div className="glass-card metric">
+            <span>Market count</span>
+            <strong>{overview.marketCount}</strong>
+          </div>
+          <div className="glass-card metric">
+            <span>Average fixed APR</span>
+            <strong>{overview.averageApr ? `${overview.averageApr}%` : "—"}</strong>
+          </div>
+          <div className="glass-card metric">
+            <span>Next maturity</span>
+            <strong>
+              {overview.nextMaturity
+                ? `${overview.nextMaturity.slice(0, 10)} UTC`
+                : "—"}
+            </strong>
+          </div>
+        </section>
+      )}
       <section>
         <div className="section-heading">
           <div>

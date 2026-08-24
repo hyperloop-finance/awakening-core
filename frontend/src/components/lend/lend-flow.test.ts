@@ -1,20 +1,47 @@
 import { describe, expect, it } from "vitest";
-import { canPreviewOffer, offerSummary, validateOfferInput } from "./lend-flow";
+import type { MarketDetail, Quote } from "@/lib/api/types";
+import { buildUnsignedOfferPayload, canPreviewOffer, lendDetails } from "./lend-flow";
+
+const market = {
+  minimumAmount: "100.000000",
+  fixedApr: "12.00",
+  patCoverage: "100.20",
+} as MarketDetail;
+
+const quote = {
+  principal: "1000.000000",
+  apr: "12.00",
+  expiresAt: "2026-09-01T00:10:00Z",
+} as Quote;
 
 describe("lend offer flow", () => {
-  it("validates plain positive amount and APR", () => {
-    expect(validateOfferInput("0", "12")).toBe("Enter an amount greater than zero.");
-    expect(validateOfferInput("100", "0")).toBe("Enter an APR greater than zero.");
-    expect(validateOfferInput("100.000000001", "12")).toBe("Use at most 8 decimal places.");
-    expect(validateOfferInput("1000001", "12")).toBe("Values must be at most 1000000.");
-    expect(validateOfferInput("000000000000000000000100", "12")).toBeUndefined();
-    expect(validateOfferInput("0.1", "0.1")).toBeUndefined();
-  });
   it("requires validation and preview before a simulated offer", () => {
-    expect(canPreviewOffer({ error: undefined, previewed: false })).toBe(false);
-    expect(canPreviewOffer({ error: undefined, previewed: true })).toBe(true);
+    expect(canPreviewOffer({ hasQuote: true, previewed: false })).toBe(false);
+    expect(canPreviewOffer({ hasQuote: true, previewed: true })).toBe(true);
+    expect(canPreviewOffer({ hasQuote: false, previewed: true })).toBe(false);
   });
-  it("maps PAT and offer details without enabling live signing", () => {
-    expect(offerSummary({ amount: "1000", apr: "12", patCoverage: "100.00" })).toContainEqual(["PAT coverage", "100.00%"]);
+  it("maps API market terms", () => {
+    expect(lendDetails(market)).toContainEqual(["PAT coverage", "100.20%"]);
+    expect(lendDetails(market)).toContainEqual(["Fixed APR", "12.00%"]);
+  });
+  it("builds the documented unsigned payload without inventing a signature", () => {
+    expect(
+      buildUnsignedOfferPayload({
+        quote,
+        marketId: `0x${"A".repeat(64)}`,
+        chainId: 31337,
+        wallet: `0x${"D".repeat(40)}`,
+      }),
+    ).toBe(
+      [
+        "Awakening Mock Offer",
+        "chainId:31337",
+        `wallet:0x${"d".repeat(40)}`,
+        `marketId:0x${"a".repeat(64)}`,
+        "amount:1000",
+        "apr:12",
+        "expiry:2026-09-01T00:10:00Z",
+      ].join("\n"),
+    );
   });
 });

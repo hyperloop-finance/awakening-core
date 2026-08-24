@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { awakeningApi } from "@/lib/api/client";
 import type { MarketSummary } from "@/lib/api/types";
@@ -15,6 +15,14 @@ const market: MarketSummary = {
   offerDepth: "18",
   settlementState: "OPEN",
   contractsReady: false,
+};
+
+const nextMarket: MarketSummary = {
+  ...market,
+  id: `0x${"b".repeat(64)}`,
+  maturity: "2026-10-01T00:00:00Z",
+  fixedApr: "18.00",
+  availableLiquidity: "7.250000",
 };
 
 function deferred<T>() {
@@ -41,7 +49,9 @@ describe("MarketsScreen", () => {
 
     expect(await screen.findByRole("table", { name: "Available markets" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "MARKET" })).toBeInTheDocument();
-    expect(screen.getByText("9,007,199,254,740,993 USDC")).toBeInTheDocument();
+    expect(
+      within(screen.getByRole("table")).getByText("9,007,199,254,740,993 USDC"),
+    ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Borrow" })).toHaveAttribute(
       "href",
       `/borrow/${market.id}`,
@@ -62,12 +72,30 @@ describe("MarketsScreen", () => {
     expect(screen.getByRole("table")).toBeInTheDocument();
   });
 
+  it("derives overview metrics from the full API catalog", async () => {
+    vi.spyOn(awakeningApi, "markets").mockResolvedValue([market, nextMarket]);
+    render(<MarketsScreen />);
+
+    await screen.findByRole("table");
+    expect(screen.getByText("Total available").nextElementSibling).toHaveTextContent(
+      "9,007,199,254,741,000.25 USDC",
+    );
+    expect(screen.getByText("Market count").nextElementSibling).toHaveTextContent("2");
+    expect(screen.getByText("Average fixed APR").nextElementSibling).toHaveTextContent("15%");
+    expect(screen.getByText("Next maturity").nextElementSibling).toHaveTextContent(
+      "2026-10-01 UTC",
+    );
+  });
+
   it("renders the API empty state when the catalog has no markets", async () => {
     vi.spyOn(awakeningApi, "markets").mockResolvedValue([]);
     render(<MarketsScreen />);
 
     expect(await screen.findByText("No markets available")).toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    expect(screen.getByText("Total available").nextElementSibling).toHaveTextContent("0 USDC");
+    expect(screen.getByText("Market count").nextElementSibling).toHaveTextContent("0");
+    expect(screen.getByText("Average fixed APR").nextElementSibling).toHaveTextContent("—");
   });
 
   it("renders an API error and retries the catalog request", async () => {
