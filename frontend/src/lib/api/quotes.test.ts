@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { MarketDetail } from "./types";
+import { describe, expect, it } from "vitest";
+import type { MarketDetail, Quote } from "./types";
 import { mockQuote } from "./mock";
 import { buildQuote } from "./quotes";
 
@@ -26,56 +26,99 @@ const market: MarketDetail = {
   minimumAmount: "1.000000",
 };
 
-beforeEach(() => vi.setSystemTime(new Date("2026-09-01T00:00:00Z")));
-afterEach(() => vi.useRealTimers());
+function accountingFields(quote: Quote) {
+  return {
+    principal: quote.principal,
+    collateralRequirement: quote.collateralRequirement,
+    interest: quote.interest,
+    protocolFee: quote.protocolFee,
+    totalDueOrPayout: quote.totalDueOrPayout,
+  };
+}
 
-describe("buildQuote", () => {
-  it.each([
-    ["1000", "0.015", "120", "2.5", "1122.5"],
-    ["2000", "0.03", "240", "5", "2245"],
-  ])(
-    "derives a BORROW quote for %s from market terms",
-    (amount, collateral, interest, fee, total) => {
-      const quote = buildQuote({ side: "BORROW", amount, market });
+describe("buildQuote backend parity", () => {
+  it("matches the QuoteService BORROW literal fixture at 1000 USDC and 12%", () => {
+    const quote = buildQuote({ side: "BORROW", amount: "1000", market });
 
-      expect(quote).toMatchObject({
-        principal: amount,
-        collateralRequirement: collateral,
-        interest,
-        protocolFee: fee,
-        totalDueOrPayout: total,
-      });
-      expect(scaled(quote.totalDueOrPayout)).toBe(
-        scaled(quote.principal) + scaled(quote.interest) + scaled(quote.protocolFee),
-      );
-    },
-  );
+    expect(accountingFields(quote)).toEqual({
+      principal: "1000",
+      collateralRequirement: "0.02500000",
+      interest: "29.589041",
+      protocolFee: "3.000000",
+      totalDueOrPayout: "1032.589041",
+    });
+    expect(scaled(quote.totalDueOrPayout)).toBe(
+      scaled(quote.principal) + scaled(quote.interest) + scaled(quote.protocolFee),
+    );
+  });
 
-  it("derives LEND payout and responds to market APR and collateral ratio", () => {
+  it("matches the QuoteService LEND literal fixture for the same principal", () => {
     const quote = buildQuote({ side: "LEND", amount: "1000", market });
-    const changedMarket = { ...market, fixedApr: "18.00", collateralRatio: "2.000000" };
-    const changed = buildQuote({ side: "LEND", amount: "1000", market: changedMarket });
 
-    expect(quote.totalDueOrPayout).toBe("1117.5");
+    expect(accountingFields(quote)).toEqual({
+      principal: "1000",
+      collateralRequirement: "0.00000000",
+      interest: "29.589041",
+      protocolFee: "3.000000",
+      totalDueOrPayout: "1026.589041",
+    });
     expect(scaled(quote.totalDueOrPayout)).toBe(
       scaled(quote.principal) + scaled(quote.interest) - scaled(quote.protocolFee),
     );
-    expect(changed.interest).toBe("180");
-    expect(changed.collateralRequirement).toBe("0.02");
-    expect(changed.totalDueOrPayout).toBe("1177.5");
   });
 
-  it("keeps the default mock quote on the same calculation path", () => {
-    const first = mockQuote(market, "BORROW", "1000");
-    const second = mockQuote(market, "BORROW", "2000");
+  it("scales every accounting field for a second amount with literal rounding", () => {
+    expect(accountingFields(buildQuote({ side: "BORROW", amount: "2000", market }))).toEqual({
+      principal: "2000",
+      collateralRequirement: "0.05000000",
+      interest: "59.178082",
+      protocolFee: "6.000000",
+      totalDueOrPayout: "2065.178082",
+    });
+  });
 
-    expect(second).toMatchObject(buildQuote({ side: "BORROW", amount: "2000", market }));
-    expect(second.collateralRequirement).not.toBe(first.collateralRequirement);
-    expect(second.interest).not.toBe(first.interest);
-    expect(second.protocolFee).not.toBe(first.protocolFee);
-    expect(second.totalDueOrPayout).not.toBe(first.totalDueOrPayout);
-    expect(scaled(second.totalDueOrPayout)).toBe(
-      scaled(second.principal) + scaled(second.interest) + scaled(second.protocolFee),
-    );
+  it("keeps numeric quote terms independent of the wall clock", () => {
+    const early = buildQuote({
+      side: "BORROW",
+      amount: "1000",
+      market,
+      now: new Date("2025-01-01T00:00:00Z"),
+    });
+    const late = buildQuote({
+      side: "BORROW",
+      amount: "1000",
+      market,
+      now: new Date("2030-01-01T00:00:00Z"),
+    });
+
+    expect(accountingFields(late)).toEqual(accountingFields(early));
+  });
+
+  it("matches the backend five-minute expiry and side-specific preview steps", () => {
+    const now = new Date("2026-09-01T00:00:00Z");
+    const borrow = buildQuote({ side: "BORROW", amount: "1000", market, now });
+    const lend = buildQuote({ side: "LEND", amount: "1000", market, now });
+
+    expect(borrow.expiresAt).toBe("2026-09-01T00:05:00.000Z");
+    expect(borrow.executionSteps).toEqual([
+      "Review BTC collateral requirement",
+      "Sign simulated borrow intent",
+      "Receive USDC principal",
+    ]);
+    expect(lend.executionSteps).toEqual([
+      "Review fixed-rate offer",
+      "Sign simulated lend offer",
+      "Reserve USDC liquidity",
+    ]);
+  });
+
+  it("keeps the default mock quote on the parity calculation path", () => {
+    expect(accountingFields(mockQuote(market, "BORROW", "1000"))).toEqual({
+      principal: "1000",
+      collateralRequirement: "0.02500000",
+      interest: "29.589041",
+      protocolFee: "3.000000",
+      totalDueOrPayout: "1032.589041",
+    });
   });
 });

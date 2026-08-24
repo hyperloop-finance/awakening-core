@@ -455,6 +455,12 @@ button {
   text-align: right;
 }
 
+.preview-label {
+  display: block;
+  color: var(--text-soft);
+  font-size: 14px;
+}
+
 .offer-payload {
   margin: 14px 0 0;
   padding: 12px;

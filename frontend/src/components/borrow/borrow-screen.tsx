@@ -144,7 +144,7 @@ export function CreditFlow({ marketId, side }: { marketId: string; side: QuoteSi
             {amountError ? (
               <p className="field-help field-error">{amountError}</p>
             ) : (
-              <p className="field-help">Quotes are indicative and expire after ten minutes.</p>
+              <p className="field-help">Quotes are indicative and expire after five minutes.</p>
             )}
             <div className="action-stack">
               <button

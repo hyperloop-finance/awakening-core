@@ -16,7 +16,7 @@ const market: MarketDetail = {
   offerDepth: "18",
   settlementState: "OPEN",
   contractsReady: false,
-  collateralRatio: "1.666667",
+  collateralRatio: "1.5000",
   patCoverage: "100.20",
   minimumAmount: "100.000000",
 };
@@ -25,10 +25,10 @@ const quote = (principal: string): Quote => ({
   marketId,
   side: "BORROW",
   principal,
-  collateralRequirement: "0.01666667",
-  interest: "24.657534",
-  protocolFee: "2.500000",
-  totalDueOrPayout: "1027.157534",
+  collateralRequirement: "0.02500000",
+  interest: "29.589041",
+  protocolFee: "3.000000",
+  totalDueOrPayout: "1032.589041",
   apr: "12.00",
   maturity: market.maturity,
   expiresAt: "2026-08-24T04:00:00Z",
@@ -70,8 +70,9 @@ describe("CreditFlow", () => {
 
     expect(await screen.findByText("PAT coverage")).toBeInTheDocument();
     expect(screen.getByText("100.20%")).toBeInTheDocument();
-    expect(screen.getByText("1.666667x")).toBeInTheDocument();
+    expect(screen.getByText("1.5000x")).toBeInTheDocument();
     expect(screen.getByText("100.000000 USDC")).toBeInTheDocument();
+    expect(screen.getByText(/expire after five minutes/)).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText("USDC amount"), { target: { value: "99" } });
     expect(screen.getByText("Minimum amount is 100.000000.")).toBeInTheDocument();
@@ -93,9 +94,9 @@ describe("CreditFlow", () => {
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(await screen.findByText("1,000 USDC")).toBeInTheDocument();
     expect(screen.getByText("Interest").nextElementSibling).toHaveTextContent(
-      "24.657534 USDC",
+      "29.589041 USDC",
     );
-    expect(screen.getByText("Protocol fee").nextElementSibling).toHaveTextContent("2.5 USDC");
+    expect(screen.getByText("Protocol fee").nextElementSibling).toHaveTextContent("3 USDC");
     expect(quoteRequest).toHaveBeenCalledTimes(2);
   });
 

@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { MarketDetail, Quote } from "@/lib/api/types";
-import { buildUnsignedOfferPayload, canPreviewOffer, lendDetails } from "./lend-flow";
+import {
+  buildUnsignedOfferPayload,
+  canPreviewOffer,
+  lendDetails,
+} from "./lend-flow";
 
 const market = {
   minimumAmount: "100.000000",
@@ -16,9 +20,18 @@ const quote = {
 
 describe("lend offer flow", () => {
   it("requires validation and preview before a simulated offer", () => {
-    expect(canPreviewOffer({ hasQuote: true, previewed: false })).toBe(false);
-    expect(canPreviewOffer({ hasQuote: true, previewed: true })).toBe(true);
-    expect(canPreviewOffer({ hasQuote: false, previewed: true })).toBe(false);
+    expect(
+      canPreviewOffer({ hasQuote: true, previewed: false, offerAprError: undefined }),
+    ).toBe(false);
+    expect(
+      canPreviewOffer({ hasQuote: true, previewed: true, offerAprError: undefined }),
+    ).toBe(true);
+    expect(
+      canPreviewOffer({ hasQuote: false, previewed: true, offerAprError: undefined }),
+    ).toBe(false);
+    expect(
+      canPreviewOffer({ hasQuote: true, previewed: true, offerAprError: "invalid" }),
+    ).toBe(false);
   });
   it("maps API market terms", () => {
     expect(lendDetails(market)).toContainEqual(["PAT coverage", "100.20%"]);
@@ -31,6 +44,7 @@ describe("lend offer flow", () => {
         marketId: `0x${"A".repeat(64)}`,
         chainId: 31337,
         wallet: `0x${"D".repeat(40)}`,
+        offerApr: "15.500000",
       }),
     ).toBe(
       [
@@ -39,7 +53,7 @@ describe("lend offer flow", () => {
         `wallet:0x${"d".repeat(40)}`,
         `marketId:0x${"a".repeat(64)}`,
         "amount:1000",
-        "apr:12",
+        "apr:15.5",
         "expiry:2026-09-01T00:10:00Z",
       ].join("\n"),
     );

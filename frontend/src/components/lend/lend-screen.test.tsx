@@ -33,10 +33,10 @@ const quote: Quote = {
   marketId,
   side: "LEND",
   principal: "1000",
-  collateralRequirement: "0.015",
-  interest: "120",
-  protocolFee: "2.5",
-  totalDueOrPayout: "1117.5",
+  collateralRequirement: "0.00000000",
+  interest: "29.589041",
+  protocolFee: "3.000000",
+  totalDueOrPayout: "1026.589041",
   apr: "12.00",
   maturity: market.maturity,
   expiresAt: "2026-09-01T00:10:00Z",
@@ -66,6 +66,7 @@ describe("LendScreen", () => {
     expect(screen.getByText("100.20%")).toBeInTheDocument();
     expect(screen.getByText("12.00%")).toBeInTheDocument();
     expect(screen.getByText("100.000000 USDC")).toBeInTheDocument();
+    expect(screen.getByLabelText("Offer APR")).toHaveValue("12.00");
     fireEvent.change(screen.getByLabelText("USDC amount"), { target: { value: "99" } });
     expect(screen.getByText("Minimum amount is 100.000000.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Calculate lend quote" })).toBeDisabled();
@@ -99,11 +100,11 @@ describe("LendScreen", () => {
     expect(screen.getByText("100.20%")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
-    expect(await screen.findByText("1,117.5 USDC")).toBeInTheDocument();
+    expect(await screen.findByText("1,026.589041 USDC")).toBeInTheDocument();
     expect(quoteRequest).toHaveBeenCalledTimes(2);
   });
 
-  it("quotes LEND, previews an unsigned scheme and payload, then simulates locally", async () => {
+  it("keeps the market quote indicative while a custom offer APR drives the payload", async () => {
     vi.spyOn(awakeningApi, "market").mockResolvedValue(market);
     const quoteRequest = vi.spyOn(awakeningApi, "quote").mockResolvedValue(quote);
     const createOffer = vi.spyOn(awakeningApi, "createOffer");
@@ -115,10 +116,13 @@ describe("LendScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: "Calculate lend quote" }));
 
     expect(await screen.findByText("Total payout")).toBeInTheDocument();
-    expect(screen.getByText("Interest").nextElementSibling).toHaveTextContent("120 USDC");
-    expect(screen.getByText("Protocol fee").nextElementSibling).toHaveTextContent("2.5 USDC");
+    expect(screen.getByText("Market indicative quote")).toBeInTheDocument();
+    expect(screen.getByText("Interest").nextElementSibling).toHaveTextContent(
+      "29.589041 USDC",
+    );
+    expect(screen.getByText("Protocol fee").nextElementSibling).toHaveTextContent("3 USDC");
     expect(screen.getByText("Total payout").nextElementSibling).toHaveTextContent(
-      "1,117.5 USDC",
+      "1,026.589041 USDC",
     );
     expect(quoteRequest).toHaveBeenCalledWith(
       marketId,
@@ -126,6 +130,11 @@ describe("LendScreen", () => {
       "1000",
       expect.any(AbortSignal),
     );
+
+    fireEvent.change(screen.getByLabelText("Offer APR"), {
+      target: { value: "15.5" },
+    });
+    expect(screen.getByText("Total payout")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Preview offer" }));
     expect(screen.getByText("Signing scheme").nextElementSibling).toHaveTextContent(
@@ -138,12 +147,37 @@ describe("LendScreen", () => {
     expect(screen.getByLabelText("Unsigned offer payload")).toHaveTextContent(
       `wallet:${walletState.wallet}`,
     );
+    expect(screen.getByLabelText("Unsigned offer payload")).toHaveTextContent("apr:15.5");
     expect(simulate).toBeEnabled();
 
     fireEvent.click(simulate);
     expect(screen.getByText(/No signature or transaction was sent/)).toBeInTheDocument();
     expect(createOffer).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: /Live signature/ })).toBeDisabled();
+  });
+
+  it("rejects non-plain, over-precision, and out-of-range offer APRs", async () => {
+    vi.spyOn(awakeningApi, "market").mockResolvedValue(market);
+    vi.spyOn(awakeningApi, "quote").mockResolvedValue(quote);
+    render(<LendScreen marketId={marketId} side="LEND" />);
+    await screen.findByText("PAT coverage");
+    fireEvent.click(screen.getByRole("button", { name: "Calculate lend quote" }));
+    await screen.findByText("Total payout");
+
+    const offerApr = screen.getByLabelText("Offer APR");
+    fireEvent.change(offerApr, { target: { value: "1e1" } });
+    expect(screen.getByText("Use a plain decimal APR.")).toBeInTheDocument();
+
+    fireEvent.change(offerApr, { target: { value: "12.123456789" } });
+    expect(screen.getByText("Use at most 8 decimal places.")).toBeInTheDocument();
+
+    fireEvent.change(offerApr, {
+      target: { value: "101" },
+    });
+
+    expect(screen.getByText("Offer APR must be at most 100.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Preview offer" })).toBeDisabled();
+    expect(screen.queryByLabelText("Unsigned offer payload")).not.toBeInTheDocument();
   });
 
   it("clears a quote and offer preview when the amount changes", async () => {

@@ -6,11 +6,33 @@ import {
 } from "../fixed-decimal";
 
 const maximum = BigInt(1_000_000) * FIXED_DECIMAL_SCALE;
-const percent = BigInt(100) * FIXED_DECIMAL_SCALE;
-const protocolFeeBasisPoints = BigInt(25);
+const percentDenominator = BigInt(100);
+const protocolFeeBasisPoints = BigInt(30);
 const basisPointDenominator = BigInt(10_000);
-const secondsPerYear = BigInt(365 * 24 * 60 * 60);
-const mockBtcReferencePrice = parseFixedDecimal("100000");
+const quoteTermDays = BigInt(90);
+const daysPerYear = BigInt(365);
+const sixDecimalFactor = BigInt(100);
+
+// Temporary mock-contract parity with backend QuoteService. API quotes replace this path
+// outside the mock profile; keep these terms synchronized until then.
+const mockBtcReferencePrice = parseFixedDecimal("60000");
+const mockCollateralRatio = parseFixedDecimal("1.5");
+
+function divideHalfUp(numerator: bigint, denominator: bigint) {
+  const negative = numerator < BigInt(0);
+  const absolute = negative ? -numerator : numerator;
+  const rounded = (absolute + denominator / BigInt(2)) / denominator;
+  return negative ? -rounded : rounded;
+}
+
+function formatUnits(value: bigint, decimalPlaces: number) {
+  const negative = value < BigInt(0);
+  const absolute = negative ? -value : value;
+  const unit = BigInt(`1${"0".repeat(decimalPlaces)}`);
+  const integer = absolute / unit;
+  const fraction = (absolute % unit).toString().padStart(decimalPlaces, "0");
+  return `${negative ? "-" : ""}${integer}.${fraction}`;
+}
 
 export function validateDecimalInput(
   value: string,
@@ -40,28 +62,55 @@ export function buildQuote({
   if (error) throw new Error(error);
   const principal = parseFixedDecimal(amount);
   const apr = parseFixedDecimal(market.fixedApr);
-  const collateralRatio = parseFixedDecimal(market.collateralRatio);
-  const maturitySeconds = BigInt(Math.floor(Date.parse(market.maturity) / 1000));
-  const nowSeconds = BigInt(Math.floor(now.getTime() / 1000));
-  const termSeconds = maturitySeconds > nowSeconds ? maturitySeconds - nowSeconds : BigInt(0);
-  const collateral = (principal * collateralRatio) / mockBtcReferencePrice;
-  const interest = (principal * apr * termSeconds) / (percent * secondsPerYear);
-  const protocolFee = (principal * protocolFeeBasisPoints) / basisPointDenominator;
-  const total =
+  const interestNumerator = principal * apr * quoteTermDays;
+  const interestDenominator =
+    FIXED_DECIMAL_SCALE * percentDenominator * daysPerYear;
+  const feeNumerator = principal * protocolFeeBasisPoints;
+  const interest = divideHalfUp(
+    interestNumerator,
+    interestDenominator * sixDecimalFactor,
+  );
+  const protocolFee = divideHalfUp(
+    feeNumerator,
+    basisPointDenominator * sixDecimalFactor,
+  );
+  const commonDenominator = interestDenominator * basisPointDenominator;
+  const totalNumerator =
+    principal * commonDenominator +
+    interestNumerator * basisPointDenominator +
+    (side === "BORROW"
+      ? feeNumerator * interestDenominator
+      : -(feeNumerator * interestDenominator));
+  const total = divideHalfUp(
+    totalNumerator,
+    commonDenominator * sixDecimalFactor,
+  );
+  const collateral =
     side === "BORROW"
-      ? principal + interest + protocolFee
-      : principal + interest - protocolFee;
+      ? divideHalfUp(principal * mockCollateralRatio, mockBtcReferencePrice)
+      : BigInt(0);
   return {
     marketId: market.id,
     side,
     principal: formatFixedDecimal(principal),
-    collateralRequirement: formatFixedDecimal(collateral),
-    interest: formatFixedDecimal(interest),
-    protocolFee: formatFixedDecimal(protocolFee),
-    totalDueOrPayout: formatFixedDecimal(total),
+    collateralRequirement: formatUnits(collateral, 8),
+    interest: formatUnits(interest, 6),
+    protocolFee: formatUnits(protocolFee, 6),
+    totalDueOrPayout: formatUnits(total, 6),
     apr: market.fixedApr,
     maturity: market.maturity,
-    expiresAt: new Date(now.getTime() + 600_000).toISOString(),
-    executionSteps: ["Review preview", "No on-chain transaction will be sent"],
+    expiresAt: new Date(now.getTime() + 300_000).toISOString(),
+    executionSteps:
+      side === "BORROW"
+        ? [
+            "Review BTC collateral requirement",
+            "Sign simulated borrow intent",
+            "Receive USDC principal",
+          ]
+        : [
+            "Review fixed-rate offer",
+            "Sign simulated lend offer",
+            "Reserve USDC liquidity",
+          ],
   };
 }

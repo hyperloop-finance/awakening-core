@@ -12,6 +12,7 @@ import {
   buildUnsignedOfferPayload,
   canPreviewOffer,
   lendDetails,
+  validateOfferApr,
 } from "./lend-flow";
 
 type MarketState =
@@ -29,6 +30,7 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
   const [marketState, setMarketState] = useState<MarketState>({ kind: "loading" });
   const [quoteState, setQuoteState] = useState<QuoteState>({ kind: "idle" });
   const [amount, setAmount] = useState("1000");
+  const [offerApr, setOfferApr] = useState("");
   const [previewed, setPreviewed] = useState(false);
   const [simulated, setSimulated] = useState(false);
   const marketController = useRef<AbortController | undefined>(undefined);
@@ -57,6 +59,7 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
       .then((market) => {
         if (generation === marketGeneration.current && !controller.signal.aborted) {
           setMarketState({ kind: "ready", market });
+          setOfferApr(market.fixedApr);
         }
       })
       .catch((reason) => {
@@ -76,6 +79,7 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
 
   const minimum = marketState.kind === "ready" ? marketState.market.minimumAmount : "0";
   const amountError = validateDecimalInput(amount, minimum);
+  const offerAprError = validateOfferApr(offerApr);
 
   const refreshQuote = useCallback(() => {
     if (marketState.kind !== "ready" || amountError) return;
@@ -109,19 +113,19 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
           marketId,
           chainId: runtime.kind === "ready" ? runtime.config.chainId : undefined,
           wallet,
+          offerApr,
         })
       : undefined;
 
   return (
     <>
       <div className="eyebrow">OFF-CHAIN LEND OFFER</div>
-      <h1 className="page-heading">Lend at the market&apos;s fixed APR.</h1>
+      <h1 className="page-heading">Lend at a fixed APR.</h1>
       <p className="page-subtitle">
         {marketState.kind === "ready"
           ? `${marketState.market.collateralAsset} / ${marketState.market.principalAsset}`
           : "Market details pending"}
-        {" · "}the API calculates the payout. This interface never signs or submits an
-        offer.
+        {" · "}compare the market quote, then set the APR for your unsigned offer.
       </p>
 
       {marketState.kind === "loading" && <LoadingState label="Loading market…" />}
@@ -157,7 +161,30 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
             {amountError ? (
               <p className="field-help field-error">{amountError}</p>
             ) : (
-              <p className="field-help">Quotes are indicative and expire after ten minutes.</p>
+              <p className="field-help">
+                Market quotes are indicative and expire after five minutes.
+              </p>
+            )}
+            <label className="form-label" htmlFor="lend-apr">
+              Offer APR
+            </label>
+            <input
+              id="lend-apr"
+              inputMode="decimal"
+              className="amount-input"
+              value={offerApr}
+              onChange={(event) => {
+                setOfferApr(event.target.value);
+                setPreviewed(false);
+                setSimulated(false);
+              }}
+            />
+            {offerAprError ? (
+              <p className="field-help field-error">{offerAprError}</p>
+            ) : (
+              <p className="field-help">
+                Defaults to the market APR. Your rate only changes the unsigned offer.
+              </p>
             )}
             <button
               className="secondary-button standalone-action"
@@ -168,6 +195,11 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
             </button>
             {quote && (
               <div className="preview-box">
+                <strong className="preview-label">Market indicative quote</strong>
+                <p className="field-help">
+                  Calculated by the API at the market&apos;s {quote.apr}% APR; it does not
+                  estimate your custom offer.
+                </p>
                 {quoteSummary(quote).map(([label, value]) => (
                   <div className="preview-row" key={label}>
                     <span>{label}</span>
@@ -193,9 +225,11 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
                 <button
                   className="primary-button standalone-action"
                   onClick={() => {
+                    if (offerAprError) return;
                     setPreviewed(true);
                     setSimulated(false);
                   }}
+                  disabled={Boolean(offerAprError)}
                 >
                   {previewed ? "Offer preview ready" : "Preview offer"}
                 </button>
@@ -221,7 +255,11 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
               <button
                 className="primary-button"
                 disabled={
-                  !canPreviewOffer({ hasQuote: Boolean(quote), previewed })
+                  !canPreviewOffer({
+                    hasQuote: Boolean(quote),
+                    previewed,
+                    offerAprError,
+                  })
                 }
                 onClick={() => setSimulated(true)}
               >
