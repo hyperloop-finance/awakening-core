@@ -6,6 +6,9 @@ describe("lend offer flow", () => {
     expect(validateOfferInput("0", "12")).toBe("Enter an amount greater than zero.");
     expect(validateOfferInput("100", "0")).toBe("Enter an APR greater than zero.");
     expect(validateOfferInput("100.000000001", "12")).toBe("Use at most 8 decimal places.");
+    expect(validateOfferInput("1000001", "12")).toBe("Values must be at most 1000000.");
+    expect(validateOfferInput("000000000000000000000100", "12")).toBeUndefined();
+    expect(validateOfferInput("0.1", "0.1")).toBeUndefined();
   });
   it("requires validation and preview before a simulated offer", () => {
     expect(canPreviewOffer({ error: undefined, previewed: false })).toBe(false);

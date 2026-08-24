@@ -14,7 +14,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = { title: "Awakening — fixed-maturity BTC credit", description: "Fixed-rate BTC credit with deterministic local and testnet-ready profiles." };
+export const metadata: Metadata = {
+  title: "Awakening — fixed-maturity BTC credit",
+  description: "Fixed-rate BTC credit with deterministic local and testnet-ready profiles.",
+};
 
 export default function RootLayout({
   children,
@@ -26,7 +29,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Providers><AppShell>{children}</AppShell></Providers>
+        <Providers>
+          <AppShell>{children}</AppShell>
+        </Providers>
       </body>
     </html>
   );

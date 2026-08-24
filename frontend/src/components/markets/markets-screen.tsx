@@ -1,20 +1,129 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { awakeningApi, normalizeApiError } from "@/lib/api/client";
 import type { MarketSummary } from "@/lib/api/types";
+import { formatDecimal } from "@/lib/format";
 import { filterMarkets } from "@/lib/state/flows";
 import { EmptyState, ErrorState, LoadingState } from "@/components/shell/states";
 
-const money = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+type MarketsState =
+  | { kind: "loading" }
+  | { kind: "error"; message: string }
+  | { kind: "ready"; markets: MarketSummary[] };
 
 export function MarketsScreen() {
-  const [markets, setMarkets] = useState<MarketSummary[]>();
-  const [error, setError] = useState<string>();
+  const [state, setState] = useState<MarketsState>({ kind: "loading" });
   const [query, setQuery] = useState("");
-  const load = useCallback(() => { setMarkets(undefined); setError(undefined); awakeningApi.markets().then(setMarkets).catch((reason) => setError(normalizeApiError(reason).message)); }, []);
-  useEffect(() => { load(); }, [load]);
-  const filtered = markets ? filterMarkets(markets, query) : [];
-  return <><div className="eyebrow">FIXED RATE · FIXED MATURITY · BTC COLLATERAL</div><h1 className="page-heading">BTC credit without interim liquidations.</h1><p className="page-subtitle">Explore BTC / USDC markets. Positions remain previews until contract addresses are configured.</p><section><div className="section-heading"><div><h2>Markets</h2><p>Filter by market identifier or maturity.</p></div><div style={{ width: 240 }}><input className="filter-input" aria-label="Filter markets" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search markets…" /></div></div>{!markets && !error && <LoadingState />}{error && <ErrorState message={error} retry={load} />}{markets && !filtered.length && <EmptyState title="No BTC markets match this filter">Clear the search to see available markets.</EmptyState>}{markets && filtered.length > 0 && <div className="glass-card market-table" role="table"><div className="market-row" role="row"><span role="columnheader">MARKET</span><span role="columnheader">APR</span><span role="columnheader">MATURITY</span><span role="columnheader">AVAILABLE</span><span role="columnheader">UTILIZATION</span><span role="columnheader">OFFERS</span><span /></div>{filtered.map((market) => <div className="market-row" role="row" key={market.id}><span role="cell" className="market-name">{market.collateralAsset} / {market.principalAsset}<span className="market-meta">PAT coverage preview</span></span><span role="cell">{market.fixedApr}%</span><span role="cell">{new Date(market.maturity).toISOString().slice(0,10)} UTC</span><span role="cell">{money.format(Number(market.availableLiquidity))} USDC</span><span role="cell">{market.utilization}%</span><span role="cell">{market.offerDepth}</span><span className="market-actions"><Link className="small-action" href={`/borrow/${market.id}`}>Borrow</Link><Link className="small-action" href={`/lend/${market.id}`}>Lend</Link></span></div>)}</div>}</section></>;
+  const controllerRef = useRef<AbortController | undefined>(undefined);
+
+  const load = useCallback(() => {
+    controllerRef.current?.abort();
+    const controller = new AbortController();
+    controllerRef.current = controller;
+    setState({ kind: "loading" });
+    awakeningApi
+      .markets(controller.signal)
+      .then((markets) => {
+        if (!controller.signal.aborted) setState({ kind: "ready", markets });
+      })
+      .catch((reason) => {
+        if (!controller.signal.aborted) {
+          setState({ kind: "error", message: normalizeApiError(reason).message });
+        }
+      });
+  }, []);
+
+  useEffect(() => {
+    load();
+    return () => controllerRef.current?.abort();
+  }, [load]);
+
+  const filtered = state.kind === "ready" ? filterMarkets(state.markets, query) : [];
+
+  return (
+    <>
+      <div className="eyebrow">FIXED RATE · FIXED MATURITY · BTC COLLATERAL</div>
+      <h1 className="page-heading">BTC credit without interim liquidations.</h1>
+      <p className="page-subtitle">
+        Explore BTC / USDC markets. Positions remain previews until contract addresses are
+        configured.
+      </p>
+      <section>
+        <div className="section-heading">
+          <div>
+            <h2>Markets</h2>
+            <p>Filter by market identifier or maturity.</p>
+          </div>
+          <div className="market-filter">
+            <input
+              className="filter-input"
+              aria-label="Filter markets"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search markets…"
+            />
+          </div>
+        </div>
+
+        {state.kind === "loading" && <LoadingState />}
+        {state.kind === "error" && <ErrorState message={state.message} retry={load} />}
+        {state.kind === "ready" && state.markets.length === 0 && (
+          <EmptyState title="No markets available">
+            The API returned an empty market catalog.
+          </EmptyState>
+        )}
+        {state.kind === "ready" && state.markets.length > 0 && filtered.length === 0 && (
+          <EmptyState title="No BTC markets match this filter">
+            <button className="inline-button" onClick={() => setQuery("")}>
+              Clear search
+            </button>
+          </EmptyState>
+        )}
+        {filtered.length > 0 && (
+          <div className="glass-card market-table">
+            <table aria-label="Available markets">
+              <thead>
+                <tr>
+                  <th scope="col">MARKET</th>
+                  <th scope="col">APR</th>
+                  <th scope="col">MATURITY</th>
+                  <th scope="col">AVAILABLE</th>
+                  <th scope="col">UTILIZATION</th>
+                  <th scope="col">OFFERS</th>
+                  <th scope="col">ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((market) => (
+                  <tr key={market.id}>
+                    <th scope="row" className="market-name">
+                      {market.collateralAsset} / {market.principalAsset}
+                      <span className="market-meta">PAT coverage preview</span>
+                    </th>
+                    <td>{market.fixedApr}%</td>
+                    <td>{market.maturity.slice(0, 10)} UTC</td>
+                    <td>{formatDecimal(market.availableLiquidity)} USDC</td>
+                    <td>{market.utilization}%</td>
+                    <td>{market.offerDepth}</td>
+                    <td>
+                      <span className="market-actions">
+                        <Link className="small-action" href={`/borrow/${market.id}`}>
+                          Borrow
+                        </Link>
+                        <Link className="small-action" href={`/lend/${market.id}`}>
+                          Lend
+                        </Link>
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </>
+  );
 }
