@@ -1,59 +1,13 @@
 export type DataProfile = "mock" | "api";
 export type QuoteSide = "BORROW" | "LEND";
-
-export type MarketSummary = {
-  id: string;
-  label: string;
-  collateralSymbol: "BTC";
-  quoteSymbol: "USDC";
-  strike: string;
-  fixedApr: string;
-  maturity: string;
-  availableLiquidity: string;
-  utilization: string;
-  offerDepth: string;
-  settlementState: "OPEN" | "MATURED" | "SETTLED";
-  contractsReady: boolean;
-};
-
-export type Quote = {
-  side: QuoteSide;
-  principal: string;
-  collateralRequired: string;
-  interest: string;
-  protocolFee: string;
-  totalDue: string;
-  totalPayout: string;
-  apr: string;
-  maturity: string;
-  expiry: string;
-  steps: string[];
-};
-
-export type PortfolioPosition = {
-  id: string;
-  side: QuoteSide;
-  settlementState: "ACTIVE" | "MATURED" | "SETTLED";
-  maturity: string;
-  principal: string;
-  marketId?: string;
-  collateral?: string;
-  payout?: string;
-};
-
-export type PortfolioPayload = {
-  wallet: string;
-  summary: { totalBorrowed: string; totalLent: string; activePositions: number };
-  positions: PortfolioPosition[];
-};
-
-export type RuntimeConfig = {
-  profile: DataProfile;
-  chainId: number;
-  rpcConfigured: boolean;
-  awakeningAddress: string | null;
-  settlementAddress: string | null;
-  patAddress: string | null;
-  optionVaultAddress: string | null;
-  contractsReady: boolean;
-};
+export type SettlementState = "OPEN" | "MATURED" | "SETTLED";
+export type MarketSummary = { id:string; collateralAsset:string; principalAsset:string; maturity:string; fixedApr:string; utilization:string; availableLiquidity:string; offerDepth:string; settlementState:SettlementState; contractsReady:boolean };
+export type MarketDetail = MarketSummary & { collateralRatio:string; patCoverage:string; minimumAmount:string };
+export type MarketMeta = { profile:string; chainId:number; generatedAt:string };
+export type MarketsResponse = { data:MarketSummary[]; meta:MarketMeta };
+export type Quote = { marketId:string; side:QuoteSide; principal:string; collateralRequirement:string; interest:string; protocolFee:string; totalDueOrPayout:string; apr:string; maturity:string; expiresAt:string; executionSteps:string[] };
+export type PortfolioPosition = { id:string; marketId:string; side:QuoteSide; principal:string; collateral:string; maturity:string; settlementState:SettlementState };
+export type PortfolioPayload = { wallet:string; totals:{borrowedPrincipal:string;lentPrincipal:string;collateralLocked:string}; borrowPositions:PortfolioPosition[]; lendPositions:PortfolioPosition[] };
+export type RuntimeConfig = { profile:string; chainId:number; rpcUrlConfigured:boolean; contractsReady:boolean; awakeningAddress?:string|null; settlementAddress?:string|null; patAddress?:string|null; optionVaultAddress?:string|null };
+export type SignedOffer = { wallet:string; marketId:string; amount:string; apr:string; expiry:string; signature:string };
+export type Offer = SignedOffer & { id:string; status:"OPEN"; createdAt:string };

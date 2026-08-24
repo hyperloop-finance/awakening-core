@@ -4,5 +4,5 @@ type ContractAddresses = Pick<RuntimeConfig, "awakeningAddress" | "settlementAdd
 const address = /^0x[a-fA-F0-9]{40}$/;
 
 export function contractsAreReady(config: ContractAddresses) {
-  return Object.values(config).every((value) => typeof value === "string" && address.test(value));
+  return Object.values(config).every((value) => typeof value === "string" && address.test(value) && !/^0x0{40}$/i.test(value));
 }

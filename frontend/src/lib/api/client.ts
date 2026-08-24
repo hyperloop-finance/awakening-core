@@ -1,7 +1,7 @@
-import { buildQuote } from "./quotes";
-import { getMockMarketCatalog, getMockPortfolio, getMockRuntimeConfig } from "./mock";
+import { getMockMarketCatalog, getMockMarket, getMockPortfolio, getMockRuntimeConfig, mockQuote } from "./mock";
 import { resolveDataProfile } from "./profile";
-import type { MarketSummary, PortfolioPayload, Quote, QuoteSide, RuntimeConfig } from "./types";
+import type { MarketDetail, MarketSummary, Offer, PortfolioPayload, Quote, QuoteSide, RuntimeConfig, SignedOffer } from "./types";
+import { parseMarketDetail, parseMarketsResponse, parsePortfolio, parseQuote, parseRuntimeConfig } from "./wire";
 
 export type ApiError = { message: string; status?: number };
 
@@ -14,37 +14,37 @@ export function normalizeApiError(error: unknown): ApiError {
   return { message: "Unable to reach the Awakening API. Check the API URL and try again.", status: undefined };
 }
 
-async function request<T>(path: string): Promise<T> {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080"}${path}`);
+async function request(path: string, init?: RequestInit): Promise<unknown> {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080"}${path}`, init);
   if (!response.ok) throw normalizeApiError({ ...(await response.json().catch(() => null)), status: response.status });
-  return response.json() as Promise<T>;
+  return response.json();
 }
 
 export const awakeningApi = {
   async markets(): Promise<MarketSummary[]> {
     if (resolveDataProfile() === "mock") return getMockMarketCatalog();
-    const response = await request<{ data: MarketSummary[] }>("/api/v1/markets");
-    return response.data;
+    return parseMarketsResponse(await request("/api/v1/markets")).data;
   },
-  async market(id: string): Promise<MarketSummary> {
+  async market(id: string, signal?: AbortSignal): Promise<MarketDetail> {
     if (resolveDataProfile() === "mock") {
-      const market = getMockMarketCatalog().find((candidate) => candidate.id === id);
+      const market = getMockMarket(id);
       if (!market) throw { detail: "Market not found", status: 404 };
       return market;
     }
-    return request<MarketSummary>(`/api/v1/markets/${id}`);
+    return parseMarketDetail(await request(`/api/v1/markets/${id}`, { signal }));
   },
-  async quote(marketId: string, side: QuoteSide, amount: string): Promise<Quote> {
-    const market = await this.market(marketId);
-    if (resolveDataProfile() === "mock") return buildQuote({ side, amount, market });
-    return request<Quote>(`/api/v1/markets/${marketId}/quote?side=${side}&amount=${encodeURIComponent(amount)}`);
+  async quote(marketId: string, side: QuoteSide, amount: string, signal?: AbortSignal): Promise<Quote> {
+    const market = await this.market(marketId, signal);
+    if (resolveDataProfile() === "mock") return mockQuote(market, side, amount);
+    return parseQuote(await request(`/api/v1/markets/${marketId}/quote?side=${side}&amount=${encodeURIComponent(amount)}`, { signal }));
   },
-  async portfolio(wallet: string): Promise<PortfolioPayload> {
+  async portfolio(wallet: string, signal?: AbortSignal): Promise<PortfolioPayload> {
     if (resolveDataProfile() === "mock") return getMockPortfolio(wallet);
-    return request<PortfolioPayload>(`/api/v1/portfolio/${wallet}`);
+    return parsePortfolio(await request(`/api/v1/portfolio/${wallet}`, { signal }));
   },
   async runtimeConfig(): Promise<RuntimeConfig> {
     if (resolveDataProfile() === "mock") return getMockRuntimeConfig();
-    return request<RuntimeConfig>("/api/v1/config");
+    return parseRuntimeConfig(await request("/api/v1/config"));
   },
+  async createOffer(offer: SignedOffer): Promise<Offer> { return request("/api/v1/offers", { method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(offer) }) as Promise<Offer>; },
 };
