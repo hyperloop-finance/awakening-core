@@ -1,0 +1,8 @@
+import type { RuntimeConfig } from "../api/types";
+
+type ContractAddresses = Pick<RuntimeConfig, "awakeningAddress" | "settlementAddress" | "patAddress" | "optionVaultAddress">;
+const address = /^0x[a-fA-F0-9]{40}$/;
+
+export function contractsAreReady(config: ContractAddresses) {
+  return Object.values(config).every((value) => typeof value === "string" && address.test(value));
+}
