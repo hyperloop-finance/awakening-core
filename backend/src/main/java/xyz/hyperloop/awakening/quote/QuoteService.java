@@ -31,6 +31,9 @@ public class QuoteService {
 
 	public Quote quote(String marketId, String rawSide, String rawAmount) {
 		MarketDetail market = marketService.getMarket(marketId);
+		if (!"OPEN".equals(market.settlementState())) {
+			throw new ApiException(HttpStatus.CONFLICT, "Market unavailable", "Quotes are unavailable after market maturity.");
+		}
 		Side side = parseSide(rawSide);
 		BigDecimal amount = parseQuoteAmount(rawAmount, market.minimumAmount());
 		BigDecimal principal = amount;

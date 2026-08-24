@@ -37,15 +37,21 @@ public class PortfolioService {
 		if (!DEMO_WALLET.equals(normalizedWallet)) {
 			return new Portfolio(normalizedWallet, new PortfolioTotals("0.00", "0.00", "0.00000000"), List.of(), List.of(), meta());
 		}
+		Instant borrowMaturity = marketService.maturity();
+		Instant lendMaturity = Instant.parse("2026-05-01T00:00:00Z");
 		Position borrow = new Position("borrow-demo-1", MarketService.BTC_USDC_90D, "BORROW", "1200.00", "0.03000000",
-				marketService.maturity(), "OPEN");
+				borrowMaturity, settlementState(borrowMaturity));
 		Position lend = new Position("lend-demo-1", MarketService.BTC_USDC_90D, "LEND", "800.00", "0.00000000",
-				Instant.parse("2026-05-01T00:00:00Z"), "MATURED");
+				lendMaturity, settlementState(lendMaturity));
 		return new Portfolio(normalizedWallet, new PortfolioTotals("1200.00", "800.00", "0.03000000"), List.of(borrow), List.of(lend), meta());
 	}
 
 	private PortfolioMeta meta() {
 		return new PortfolioMeta(activeProfile(), clock.instant(), "MOCK_CATALOG");
+	}
+
+	private String settlementState(Instant maturity) {
+		return clock.instant().isBefore(maturity) ? "OPEN" : "MATURED";
 	}
 
 	private boolean mockCatalogAvailable() {
