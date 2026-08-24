@@ -7,6 +7,7 @@ todo.md
 .codex/
 .cursor/
 .superpowers/
+.worktrees/
 
 # --- OS ---
 .DS_Store
