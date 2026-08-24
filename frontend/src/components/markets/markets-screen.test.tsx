@@ -9,8 +9,8 @@ const market: MarketSummary = {
   collateralAsset: "BTC",
   principalAsset: "USDC",
   maturity: "2026-12-15T00:00:00Z",
-  fixedApr: "12.00",
-  utilization: "41.20",
+  fixedApr: "0.12",
+  utilization: "0.412",
   availableLiquidity: "9007199254740993.000000",
   offerDepth: "18",
   settlementState: "OPEN",
@@ -21,7 +21,7 @@ const nextMarket: MarketSummary = {
   ...market,
   id: `0x${"b".repeat(64)}`,
   maturity: "2026-10-01T00:00:00Z",
-  fixedApr: "18.00",
+  fixedApr: "0.18",
   availableLiquidity: "7.250000",
 };
 
@@ -49,6 +49,8 @@ describe("MarketsScreen", () => {
 
     expect(await screen.findByRole("table", { name: "Available markets" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "MARKET" })).toBeInTheDocument();
+    expect(within(screen.getByRole("table")).getByText("12%")).toBeInTheDocument();
+    expect(within(screen.getByRole("table")).getByText("41.2%")).toBeInTheDocument();
     expect(
       within(screen.getByRole("table")).getByText("9,007,199,254,740,993 USDC"),
     ).toBeInTheDocument();

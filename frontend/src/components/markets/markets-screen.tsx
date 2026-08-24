@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { awakeningApi, normalizeApiError } from "@/lib/api/client";
 import type { MarketSummary } from "@/lib/api/types";
 import { formatDecimal } from "@/lib/format";
+import { formatRateAsPercent } from "@/lib/fixed-decimal";
 import { deriveMarketsOverview, filterMarkets } from "@/lib/state/flows";
 import { EmptyState, ErrorState, LoadingState } from "@/components/shell/states";
 
@@ -64,7 +65,9 @@ export function MarketsScreen() {
           </div>
           <div className="glass-card metric">
             <span>Average fixed APR</span>
-            <strong>{overview.averageApr ? `${overview.averageApr}%` : "—"}</strong>
+            <strong>
+              {overview.averageApr ? formatRateAsPercent(overview.averageApr) : "—"}
+            </strong>
           </div>
           <div className="glass-card metric">
             <span>Next maturity</span>
@@ -128,10 +131,10 @@ export function MarketsScreen() {
                       {market.collateralAsset} / {market.principalAsset}
                       <span className="market-meta">PAT coverage preview</span>
                     </th>
-                    <td>{market.fixedApr}%</td>
+                    <td>{formatRateAsPercent(market.fixedApr)}</td>
                     <td>{market.maturity.slice(0, 10)} UTC</td>
                     <td>{formatDecimal(market.availableLiquidity)} USDC</td>
-                    <td>{market.utilization}%</td>
+                    <td>{formatRateAsPercent(market.utilization)}</td>
                     <td>{market.offerDepth}</td>
                     <td>
                       <span className="market-actions">

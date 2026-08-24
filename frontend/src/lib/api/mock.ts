@@ -4,40 +4,25 @@ import { buildQuote } from "./quotes";
 export const DEMO_WALLET = "0xde00000000000000000000000000000000000001";
 
 const ids = [
-  "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-  "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "0x8f0d4f673bd9de1d1f927cbf3abfc7b77c680f1d817e113d5603bb483fa041e6",
 ];
 
+// Temporary contract parity: keep this fallback identical to MarketService until the API replaces it.
 const markets: MarketDetail[] = [
   {
     id: ids[0],
     collateralAsset: "BTC",
     principalAsset: "USDC",
-    maturity: "2026-12-15T00:00:00Z",
-    fixedApr: "12.00",
-    utilization: "41.20",
-    availableLiquidity: "2500000.000000",
-    offerDepth: "18",
+    maturity: "2026-12-31T00:00:00Z",
+    fixedApr: "0.0850",
+    utilization: "0.4200",
+    availableLiquidity: "250000.00",
+    offerDepth: "175000.00",
     settlementState: "OPEN",
     contractsReady: false,
     collateralRatio: "1.5000",
-    patCoverage: "100.00",
-    minimumAmount: "100.000000",
-  },
-  {
-    id: ids[1],
-    collateralAsset: "BTC",
-    principalAsset: "USDC",
-    maturity: "2027-03-15T00:00:00Z",
-    fixedApr: "14.50",
-    utilization: "27.80",
-    availableLiquidity: "1800000.000000",
-    offerDepth: "11",
-    settlementState: "OPEN",
-    contractsReady: false,
-    collateralRatio: "1.5000",
-    patCoverage: "100.00",
-    minimumAmount: "100.000000",
+    patCoverage: "0.9500",
+    minimumAmount: "100.00",
   },
 ];
 
@@ -76,7 +61,7 @@ export function getMockPortfolio(wallet: string): PortfolioPayload {
         side: "BORROW",
         principal: "12500.000000",
         collateral: "0.34722222",
-        maturity: "2026-12-15T00:00:00Z",
+        maturity: "2026-12-31T00:00:00Z",
         settlementState: "OPEN",
       },
     ],

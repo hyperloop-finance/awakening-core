@@ -18,14 +18,14 @@ const market: MarketDetail = {
   collateralAsset: "BTC",
   principalAsset: "USDC",
   maturity: "2027-09-01T00:00:00Z",
-  fixedApr: "12.00",
-  utilization: "41.20",
+  fixedApr: "0.12",
+  utilization: "0.42",
   availableLiquidity: "2500000.000000",
   offerDepth: "18",
   settlementState: "OPEN",
   contractsReady: false,
   collateralRatio: "1.500000",
-  patCoverage: "100.20",
+  patCoverage: "0.95",
   minimumAmount: "100.000000",
 };
 
@@ -37,7 +37,7 @@ const quote: Quote = {
   interest: "29.589041",
   protocolFee: "3.000000",
   totalDueOrPayout: "1026.589041",
-  apr: "12.00",
+  apr: "0.12",
   maturity: market.maturity,
   expiresAt: "2026-09-01T00:10:00Z",
   executionSteps: ["Review preview", "No on-chain transaction will be sent"],
@@ -63,10 +63,10 @@ describe("LendScreen", () => {
     response.resolve(market);
 
     expect(await screen.findByText("PAT coverage")).toBeInTheDocument();
-    expect(screen.getByText("100.20%")).toBeInTheDocument();
-    expect(screen.getByText("12.00%")).toBeInTheDocument();
+    expect(screen.getByText("95%")).toBeInTheDocument();
+    expect(screen.getByText("12%")).toBeInTheDocument();
     expect(screen.getByText("100.000000 USDC")).toBeInTheDocument();
-    expect(screen.getByLabelText("Offer APR")).toHaveValue("12.00");
+    expect(screen.getByLabelText("Offer APR (%)")).toHaveValue("12");
     fireEvent.change(screen.getByLabelText("USDC amount"), { target: { value: "99" } });
     expect(screen.getByText("Minimum amount is 100.000000.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Calculate lend quote" })).toBeDisabled();
@@ -97,7 +97,7 @@ describe("LendScreen", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Calculate lend quote" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("No lend capacity remains.");
-    expect(screen.getByText("100.20%")).toBeInTheDocument();
+    expect(screen.getByText("95%")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(await screen.findByText("1,026.589041 USDC")).toBeInTheDocument();
@@ -131,7 +131,7 @@ describe("LendScreen", () => {
       expect.any(AbortSignal),
     );
 
-    fireEvent.change(screen.getByLabelText("Offer APR"), {
+    fireEvent.change(screen.getByLabelText("Offer APR (%)"), {
       target: { value: "15.5" },
     });
     expect(screen.getByText("Total payout")).toBeInTheDocument();
@@ -147,7 +147,7 @@ describe("LendScreen", () => {
     expect(screen.getByLabelText("Unsigned offer payload")).toHaveTextContent(
       `wallet:${walletState.wallet}`,
     );
-    expect(screen.getByLabelText("Unsigned offer payload")).toHaveTextContent("apr:15.5");
+    expect(screen.getByLabelText("Unsigned offer payload")).toHaveTextContent("apr:0.155");
     expect(simulate).toBeEnabled();
 
     fireEvent.click(simulate);
@@ -164,12 +164,12 @@ describe("LendScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: "Calculate lend quote" }));
     await screen.findByText("Total payout");
 
-    const offerApr = screen.getByLabelText("Offer APR");
+    const offerApr = screen.getByLabelText("Offer APR (%)");
     fireEvent.change(offerApr, { target: { value: "1e1" } });
     expect(screen.getByText("Use a plain decimal APR.")).toBeInTheDocument();
 
-    fireEvent.change(offerApr, { target: { value: "12.123456789" } });
-    expect(screen.getByText("Use at most 8 decimal places.")).toBeInTheDocument();
+    fireEvent.change(offerApr, { target: { value: "12.1234567" } });
+    expect(screen.getByText("Use at most 6 decimal places.")).toBeInTheDocument();
 
     fireEvent.change(offerApr, {
       target: { value: "101" },

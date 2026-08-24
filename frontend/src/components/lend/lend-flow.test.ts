@@ -8,8 +8,8 @@ import {
 
 const market = {
   minimumAmount: "100.000000",
-  fixedApr: "12.00",
-  patCoverage: "100.20",
+  fixedApr: "0.12",
+  patCoverage: "0.95",
 } as MarketDetail;
 
 const quote = {
@@ -34,8 +34,8 @@ describe("lend offer flow", () => {
     ).toBe(false);
   });
   it("maps API market terms", () => {
-    expect(lendDetails(market)).toContainEqual(["PAT coverage", "100.20%"]);
-    expect(lendDetails(market)).toContainEqual(["Fixed APR", "12.00%"]);
+    expect(lendDetails(market)).toContainEqual(["PAT coverage", "95%"]);
+    expect(lendDetails(market)).toContainEqual(["Fixed APR", "12%"]);
   });
   it("builds the documented unsigned payload without inventing a signature", () => {
     expect(
@@ -44,7 +44,7 @@ describe("lend offer flow", () => {
         marketId: `0x${"A".repeat(64)}`,
         chainId: 31337,
         wallet: `0x${"D".repeat(40)}`,
-        offerApr: "15.500000",
+        offerAprPercent: "15.500000",
       }),
     ).toBe(
       [
@@ -53,7 +53,7 @@ describe("lend offer flow", () => {
         `wallet:0x${"d".repeat(40)}`,
         `marketId:0x${"a".repeat(64)}`,
         "amount:1000",
-        "apr:15.5",
+        "apr:0.155",
         "expiry:2026-09-01T00:10:00Z",
       ].join("\n"),
     );

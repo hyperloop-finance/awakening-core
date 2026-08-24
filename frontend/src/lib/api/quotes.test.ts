@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { MarketDetail, Quote } from "./types";
-import { mockQuote } from "./mock";
+import { getMockMarketCatalog, mockQuote } from "./mock";
 import { buildQuote } from "./quotes";
 
 const scale = BigInt(100_000_000);
@@ -15,7 +15,7 @@ const market: MarketDetail = {
   collateralAsset: "BTC",
   principalAsset: "USDC",
   maturity: "2027-09-01T00:00:00Z",
-  fixedApr: "12.00",
+  fixedApr: "0.0850",
   utilization: "41.20",
   availableLiquidity: "2500000.000000",
   offerDepth: "18",
@@ -37,15 +37,15 @@ function accountingFields(quote: Quote) {
 }
 
 describe("buildQuote backend parity", () => {
-  it("matches the QuoteService BORROW literal fixture at 1000 USDC and 12%", () => {
+  it("matches the published QuoteService BORROW fixture at a 0.0850 decimal rate", () => {
     const quote = buildQuote({ side: "BORROW", amount: "1000", market });
 
     expect(accountingFields(quote)).toEqual({
       principal: "1000",
       collateralRequirement: "0.02500000",
-      interest: "29.589041",
+      interest: "20.958904",
       protocolFee: "3.000000",
-      totalDueOrPayout: "1032.589041",
+      totalDueOrPayout: "1023.958904",
     });
     expect(scaled(quote.totalDueOrPayout)).toBe(
       scaled(quote.principal) + scaled(quote.interest) + scaled(quote.protocolFee),
@@ -58,9 +58,9 @@ describe("buildQuote backend parity", () => {
     expect(accountingFields(quote)).toEqual({
       principal: "1000",
       collateralRequirement: "0.00000000",
-      interest: "29.589041",
+      interest: "20.958904",
       protocolFee: "3.000000",
-      totalDueOrPayout: "1026.589041",
+      totalDueOrPayout: "1017.958904",
     });
     expect(scaled(quote.totalDueOrPayout)).toBe(
       scaled(quote.principal) + scaled(quote.interest) - scaled(quote.protocolFee),
@@ -71,9 +71,9 @@ describe("buildQuote backend parity", () => {
     expect(accountingFields(buildQuote({ side: "BORROW", amount: "2000", market }))).toEqual({
       principal: "2000",
       collateralRequirement: "0.05000000",
-      interest: "59.178082",
+      interest: "41.917808",
       protocolFee: "6.000000",
-      totalDueOrPayout: "2065.178082",
+      totalDueOrPayout: "2047.917808",
     });
   });
 
@@ -116,9 +116,29 @@ describe("buildQuote backend parity", () => {
     expect(accountingFields(mockQuote(market, "BORROW", "1000"))).toEqual({
       principal: "1000",
       collateralRequirement: "0.02500000",
-      interest: "29.589041",
+      interest: "20.958904",
       protocolFee: "3.000000",
-      totalDueOrPayout: "1032.589041",
+      totalDueOrPayout: "1023.958904",
     });
+  });
+
+  it("mirrors the backend public market fixture in the default mock catalog", () => {
+    expect(getMockMarketCatalog()).toEqual([
+      {
+        id: "0x8f0d4f673bd9de1d1f927cbf3abfc7b77c680f1d817e113d5603bb483fa041e6",
+        collateralAsset: "BTC",
+        principalAsset: "USDC",
+        maturity: "2026-12-31T00:00:00Z",
+        fixedApr: "0.0850",
+        utilization: "0.4200",
+        availableLiquidity: "250000.00",
+        offerDepth: "175000.00",
+        settlementState: "OPEN",
+        contractsReady: false,
+        collateralRatio: "1.5000",
+        patCoverage: "0.9500",
+        minimumAmount: "100.00",
+      },
+    ]);
   });
 });

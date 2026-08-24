@@ -15,7 +15,7 @@ describe("borrow quote lifecycle", () => {
 
   it("maps PAT and collateral information", () => {
     expect(
-      borrowDetails({ minimumAmount: "100", patCoverage: "100.2", collateralRatio: "1.66" }),
-    ).toContainEqual(["PAT coverage", "100.2%"]);
+      borrowDetails({ minimumAmount: "100", patCoverage: "0.95", collateralRatio: "1.66" }),
+    ).toContainEqual(["PAT coverage", "95%"]);
   });
 });

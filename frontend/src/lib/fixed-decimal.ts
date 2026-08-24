@@ -18,3 +18,19 @@ export function formatFixedDecimal(value: bigint): string {
     .replace(/0+$/, "");
   return `${negative ? "-" : ""}${integer}${fraction ? `.${fraction}` : ""}`;
 }
+
+export function decimalRateToPercent(value: string): string {
+  return formatFixedDecimal(parseFixedDecimal(value) * BigInt(100));
+}
+
+export function formatRateAsPercent(value: string): string {
+  return `${decimalRateToPercent(value)}%`;
+}
+
+export function percentToDecimalRate(value: string): string {
+  const percent = parseFixedDecimal(value);
+  if (percent % BigInt(100) !== BigInt(0)) {
+    throw new Error("Percentage must use at most 6 decimal places.");
+  }
+  return formatFixedDecimal(percent / BigInt(100));
+}

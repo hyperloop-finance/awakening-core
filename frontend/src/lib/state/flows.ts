@@ -1,6 +1,6 @@
 import type { MarketSummary, PortfolioPayload, PortfolioPosition, Quote } from "../api/types";
 import { formatDecimal } from "../format";
-import { formatFixedDecimal, parseFixedDecimal } from "../fixed-decimal";
+import { formatFixedDecimal, formatRateAsPercent, parseFixedDecimal } from "../fixed-decimal";
 
 export function filterMarkets(markets: MarketSummary[], query: string) {
   if (!query.trim()) return markets;
@@ -51,7 +51,7 @@ export function quoteSummary(quote: Quote): [string, string][] {
   return [
     ["Principal", `${formatDecimal(quote.principal)} USDC`],
     ["BTC collateral", `${formatDecimal(quote.collateralRequirement, 8)} BTC`],
-    ["Fixed APR", `${quote.apr}%`],
+    ["Fixed APR", formatRateAsPercent(quote.apr)],
     ["Interest", `${formatDecimal(quote.interest)} USDC`],
     ["Protocol fee", `${formatDecimal(quote.protocolFee)} USDC`],
     [

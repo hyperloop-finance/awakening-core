@@ -1,5 +1,10 @@
 import type { MarketDetail, Quote } from "@/lib/api/types";
-import { formatFixedDecimal, parseFixedDecimal } from "@/lib/fixed-decimal";
+import {
+  formatFixedDecimal,
+  formatRateAsPercent,
+  parseFixedDecimal,
+  percentToDecimalRate,
+} from "@/lib/fixed-decimal";
 
 export function canPreviewOffer({
   hasQuote,
@@ -15,8 +20,8 @@ export function canPreviewOffer({
 
 export function validateOfferApr(value: string) {
   if (!/^\d+(\.\d+)?$/.test(value)) return "Use a plain decimal APR.";
-  if ((value.split(".")[1]?.length ?? 0) > 8) {
-    return "Use at most 8 decimal places.";
+  if ((value.split(".")[1]?.length ?? 0) > 6) {
+    return "Use at most 6 decimal places.";
   }
   const apr = parseFixedDecimal(value);
   if (apr <= BigInt(0)) return "Enter an APR greater than zero.";
@@ -27,8 +32,8 @@ export function validateOfferApr(value: string) {
 export function lendDetails(market: MarketDetail): [string, string][] {
   return [
     ["Minimum amount", `${market.minimumAmount} USDC`],
-    ["Fixed APR", `${market.fixedApr}%`],
-    ["PAT coverage", `${market.patCoverage}%`],
+    ["Fixed APR", formatRateAsPercent(market.fixedApr)],
+    ["PAT coverage", formatRateAsPercent(market.patCoverage)],
   ];
 }
 
@@ -37,13 +42,13 @@ export function buildUnsignedOfferPayload({
   marketId,
   chainId,
   wallet,
-  offerApr,
+  offerAprPercent,
 }: {
   quote: Quote;
   marketId: string;
   chainId?: number;
   wallet?: string;
-  offerApr: string;
+  offerAprPercent: string;
 }) {
   return [
     "Awakening Mock Offer",
@@ -51,7 +56,7 @@ export function buildUnsignedOfferPayload({
     `wallet:${wallet?.toLowerCase() ?? "<wallet required>"}`,
     `marketId:${marketId.toLowerCase()}`,
     `amount:${formatFixedDecimal(parseFixedDecimal(quote.principal))}`,
-    `apr:${formatFixedDecimal(parseFixedDecimal(offerApr))}`,
+    `apr:${percentToDecimalRate(offerAprPercent)}`,
     `expiry:${quote.expiresAt}`,
   ].join("\n");
 }

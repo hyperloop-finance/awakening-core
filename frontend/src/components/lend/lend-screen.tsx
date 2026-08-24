@@ -7,6 +7,7 @@ import { useWalletIdentity } from "@/components/shell/wallet";
 import { awakeningApi, normalizeApiError } from "@/lib/api/client";
 import { validateDecimalInput } from "@/lib/api/quotes";
 import type { MarketDetail, Quote } from "@/lib/api/types";
+import { decimalRateToPercent, formatRateAsPercent } from "@/lib/fixed-decimal";
 import { quoteSummary } from "@/lib/state/flows";
 import {
   buildUnsignedOfferPayload,
@@ -30,7 +31,7 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
   const [marketState, setMarketState] = useState<MarketState>({ kind: "loading" });
   const [quoteState, setQuoteState] = useState<QuoteState>({ kind: "idle" });
   const [amount, setAmount] = useState("1000");
-  const [offerApr, setOfferApr] = useState("");
+  const [offerAprPercent, setOfferAprPercent] = useState("");
   const [previewed, setPreviewed] = useState(false);
   const [simulated, setSimulated] = useState(false);
   const marketController = useRef<AbortController | undefined>(undefined);
@@ -59,7 +60,7 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
       .then((market) => {
         if (generation === marketGeneration.current && !controller.signal.aborted) {
           setMarketState({ kind: "ready", market });
-          setOfferApr(market.fixedApr);
+          setOfferAprPercent(decimalRateToPercent(market.fixedApr));
         }
       })
       .catch((reason) => {
@@ -79,7 +80,7 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
 
   const minimum = marketState.kind === "ready" ? marketState.market.minimumAmount : "0";
   const amountError = validateDecimalInput(amount, minimum);
-  const offerAprError = validateOfferApr(offerApr);
+  const offerAprError = validateOfferApr(offerAprPercent);
 
   const refreshQuote = useCallback(() => {
     if (marketState.kind !== "ready" || amountError) return;
@@ -113,7 +114,7 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
           marketId,
           chainId: runtime.kind === "ready" ? runtime.config.chainId : undefined,
           wallet,
-          offerApr,
+          offerAprPercent,
         })
       : undefined;
 
@@ -166,15 +167,15 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
               </p>
             )}
             <label className="form-label" htmlFor="lend-apr">
-              Offer APR
+              Offer APR (%)
             </label>
             <input
               id="lend-apr"
               inputMode="decimal"
               className="amount-input"
-              value={offerApr}
+              value={offerAprPercent}
               onChange={(event) => {
-                setOfferApr(event.target.value);
+                setOfferAprPercent(event.target.value);
                 setPreviewed(false);
                 setSimulated(false);
               }}
@@ -183,7 +184,7 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
               <p className="field-help field-error">{offerAprError}</p>
             ) : (
               <p className="field-help">
-                Defaults to the market APR. Your rate only changes the unsigned offer.
+                Enter a percentage: 8.5 means 8.5%. The payload uses decimal rate 0.085.
               </p>
             )}
             <button
@@ -197,8 +198,8 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
               <div className="preview-box">
                 <strong className="preview-label">Market indicative quote</strong>
                 <p className="field-help">
-                  Calculated by the API at the market&apos;s {quote.apr}% APR; it does not
-                  estimate your custom offer.
+                  Calculated by the API at the market&apos;s {formatRateAsPercent(quote.apr)}
+                  APR; it does not estimate your custom offer.
                 </p>
                 {quoteSummary(quote).map(([label, value]) => (
                   <div className="preview-row" key={label}>

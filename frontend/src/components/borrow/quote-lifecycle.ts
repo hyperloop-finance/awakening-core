@@ -1,5 +1,6 @@
 import { validateDecimalInput } from "@/lib/api/quotes";
 import type { MarketDetail } from "@/lib/api/types";
+import { formatRateAsPercent } from "@/lib/fixed-decimal";
 
 export function validateBorrowAmount(amount: string, minimum: string) {
   return validateDecimalInput(amount, minimum);
@@ -13,6 +14,6 @@ export function borrowDetails({
   return [
     ["Minimum amount", `${minimumAmount} USDC`],
     ["Collateral ratio", `${collateralRatio}x`],
-    ["PAT coverage", `${patCoverage}%`],
+    ["PAT coverage", formatRateAsPercent(patCoverage)],
   ];
 }

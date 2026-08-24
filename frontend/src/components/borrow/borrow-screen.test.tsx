@@ -10,14 +10,14 @@ const market: MarketDetail = {
   collateralAsset: "BTC",
   principalAsset: "USDC",
   maturity: "2026-12-15T00:00:00Z",
-  fixedApr: "12.00",
-  utilization: "41.20",
+  fixedApr: "0.12",
+  utilization: "0.42",
   availableLiquidity: "2500000.000000",
   offerDepth: "18",
   settlementState: "OPEN",
   contractsReady: false,
   collateralRatio: "1.5000",
-  patCoverage: "100.20",
+  patCoverage: "0.95",
   minimumAmount: "100.000000",
 };
 
@@ -29,7 +29,7 @@ const quote = (principal: string): Quote => ({
   interest: "29.589041",
   protocolFee: "3.000000",
   totalDueOrPayout: "1032.589041",
-  apr: "12.00",
+  apr: "0.12",
   maturity: market.maturity,
   expiresAt: "2026-08-24T04:00:00Z",
   executionSteps: ["Review preview", "No on-chain transaction will be sent"],
@@ -69,7 +69,7 @@ describe("CreditFlow", () => {
     response.resolve(market);
 
     expect(await screen.findByText("PAT coverage")).toBeInTheDocument();
-    expect(screen.getByText("100.20%")).toBeInTheDocument();
+    expect(screen.getByText("95%")).toBeInTheDocument();
     expect(screen.getByText("1.5000x")).toBeInTheDocument();
     expect(screen.getByText("100.000000 USDC")).toBeInTheDocument();
     expect(screen.getByText(/expire after five minutes/)).toBeInTheDocument();
@@ -93,6 +93,7 @@ describe("CreditFlow", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(await screen.findByText("1,000 USDC")).toBeInTheDocument();
+    expect(screen.getByText("12%")).toBeInTheDocument();
     expect(screen.getByText("Interest").nextElementSibling).toHaveTextContent(
       "29.589041 USDC",
     );
@@ -147,7 +148,7 @@ describe("CreditFlow", () => {
     vi.spyOn(awakeningApi, "market").mockImplementation(async (id) => ({
       ...market,
       id,
-      fixedApr: id === nextMarketId ? "14.50" : "12.00",
+      fixedApr: id === nextMarketId ? "0.145" : "0.12",
     }));
     vi.spyOn(awakeningApi, "quote").mockResolvedValue(quote("1000"));
     const { rerender } = render(<CreditFlow marketId={marketId} side="BORROW" />);

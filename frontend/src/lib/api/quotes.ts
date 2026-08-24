@@ -6,7 +6,6 @@ import {
 } from "../fixed-decimal";
 
 const maximum = BigInt(1_000_000) * FIXED_DECIMAL_SCALE;
-const percentDenominator = BigInt(100);
 const protocolFeeBasisPoints = BigInt(30);
 const basisPointDenominator = BigInt(10_000);
 const quoteTermDays = BigInt(90);
@@ -61,10 +60,10 @@ export function buildQuote({
   const error = validateDecimalInput(amount, market.minimumAmount);
   if (error) throw new Error(error);
   const principal = parseFixedDecimal(amount);
+  // QuoteService exposes APR as a decimal rate (0.085 = 8.5%), not percentage points.
   const apr = parseFixedDecimal(market.fixedApr);
   const interestNumerator = principal * apr * quoteTermDays;
-  const interestDenominator =
-    FIXED_DECIMAL_SCALE * percentDenominator * daysPerYear;
+  const interestDenominator = FIXED_DECIMAL_SCALE * daysPerYear;
   const feeNumerator = principal * protocolFeeBasisPoints;
   const interest = divideHalfUp(
     interestNumerator,
