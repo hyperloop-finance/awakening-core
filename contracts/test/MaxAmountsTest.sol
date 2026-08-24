@@ -21,16 +21,17 @@ contract MaxAmountsTest is BaseTest {
 
         market.loanToken = address(loanToken);
         market.maturity = vm.getBlockTimestamp() + 100;
+        market.maxStrike = type(uint256).max;
+        market.penaltyPct = 5e16;
         market.collateralParams
             .push(
                 CollateralParams({
                     token: address(collateralToken1),
-                    lltv: 0.77e18,
-                    maxLif: maxLif(0.77e18, 0.25e18),
+                    
+                    
                     oracle: address(oracle1)
                 })
             );
-        market.rcfThreshold = 0;
 
         id = toId(market);
 

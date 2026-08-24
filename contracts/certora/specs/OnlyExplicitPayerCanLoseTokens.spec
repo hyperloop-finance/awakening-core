@@ -10,11 +10,9 @@ methods {
 
     // Callbacks can modify the whole state arbitrarily, and can only modify the ghost variables to allow
     // themselves as payer. Callbacks are checked to only be called by their corresponding function,
-    // eg onLiquidate is only called by liquidate. onRatify and onSell cannot authorize a payer, so we
     // model them with a plain HAVOC_ALL.
-    function _.onBuy(bytes32, Midnight.Market, uint256, uint256, uint256, address, bytes) external => onCallBackSummary(calledContract, buyCallbackAllowed) expect(bytes32);
-    function _.onLiquidate(address, bytes32, Midnight.Market, uint256, uint256, uint256, address, address, bytes, uint256) external => onCallBackSummary(calledContract, liquidateCallbackAllowed) expect(bytes32);
-    function _.onRepay(bytes32, Midnight.Market, uint256, address, bytes) external => onCallBackSummary(calledContract, repayCallbackAllowed) expect(bytes32);
+    function _.onBuy(bytes32, Awakening.Market, uint256, uint256, uint256, address, bytes) external => onCallBackSummary(calledContract, buyCallbackAllowed) expect(bytes32);
+    function _.onRepay(bytes32, Awakening.Market, uint256, address, bytes) external => onCallBackSummary(calledContract, repayCallbackAllowed) expect(bytes32);
     function _.onFlashLoan(address, address[], uint256[], bytes) external => onCallBackSummary(calledContract, flashLoanCallbackAllowed) expect(bytes32);
 
     // Checks every token pull against the current explicit-payer allowlist.
@@ -34,8 +32,6 @@ persistent ghost address callback;
 persistent ghost bool callbackAllowed;
 
 persistent ghost bool buyCallbackAllowed;
-
-persistent ghost bool liquidateCallbackAllowed;
 
 persistent ghost bool repayCallbackAllowed;
 
@@ -92,7 +88,7 @@ function CVL_transferFrom(address token, address src, address dest, uint256 valu
 /// 1. msg.sender (when !offer.buy and buyerCallback == 0),
 /// 2. the buyerCallback that returned CALLBACK_SUCCESS,
 /// 3. the offer maker (when offer.buy and buyerCallback == 0, i.e. maker is the buyer with no callback).
-rule takeOnlyExplicitPayer(env e, Midnight.Offer offer, bytes ratifierData, uint256 units, address taker, address receiverIfTakerIsSeller, address takerCallback, bytes takerCallbackData) {
+rule takeOnlyExplicitPayer(env e, Awakening.Offer offer, bytes ratifierData, uint256 units, address taker, address receiverIfTakerIsSeller, address takerCallback, bytes takerCallbackData) {
     require e.msg.sender != currentContract, "only external calls";
 
     address buyerCallback = offer.buy ? offer.callback : takerCallback;
@@ -104,7 +100,6 @@ rule takeOnlyExplicitPayer(env e, Midnight.Offer offer, bytes ratifierData, uint
     makerAllowed = offer.buy && buyerCallback == 0;
 
     buyCallbackAllowed = true;
-    liquidateCallbackAllowed = false;
     repayCallbackAllowed = false;
     flashLoanCallbackAllowed = false;
     badPullSeen = false;
@@ -116,7 +111,7 @@ rule takeOnlyExplicitPayer(env e, Midnight.Offer offer, bytes ratifierData, uint
 
 /// Proves that for every entry point other than `take`, tokens are only ever pulled from msg.sender
 /// or from a callback that returned CALLBACK_SUCCESS.
-rule otherEntryPointsOnlyPullFromCaller(method f, env e, calldataarg args) filtered { f -> !f.isView && f.selector != sig:take(Midnight.Offer, bytes, uint256, address, address, address, bytes).selector } {
+rule otherEntryPointsOnlyPullFromCaller(method f, env e, calldataarg args) filtered { f -> !f.isView && f.selector != sig:take(Awakening.Offer, bytes, uint256, address, address, address, bytes).selector } {
     require e.msg.sender != currentContract, "only external calls";
 
     msgSender = e.msg.sender;
@@ -125,8 +120,7 @@ rule otherEntryPointsOnlyPullFromCaller(method f, env e, calldataarg args) filte
     makerAllowed = false;
 
     buyCallbackAllowed = false;
-    liquidateCallbackAllowed = f.selector == sig:liquidate(Midnight.Market, uint256, uint256, uint256, address, bool, address, address, bytes).selector;
-    repayCallbackAllowed = f.selector == sig:repay(Midnight.Market, uint256, address, address, bytes).selector;
+    repayCallbackAllowed = f.selector == sig:repay(Awakening.Market, uint256, address, address, bytes).selector;
     flashLoanCallbackAllowed = f.selector == sig:flashLoan(address[], uint256[], address, bytes).selector;
     badPullSeen = false;
 

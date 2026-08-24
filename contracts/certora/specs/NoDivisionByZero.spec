@@ -5,7 +5,6 @@
 // All other Solidity divisions in the codebase use non-zero denominators:
 // - settlementFee: divides by (end - start), always a positive constant from the breakpoint table.
 // - setMarketSettlementFee / setDefaultSettlementFee: divide by CBP (1e12).
-// - liquidate: divides by TIME_TO_MAX_LIF (15 minutes = 900).
 // - tickToPrice: divides by 5e12 or a value greater than 1e18.
 // - wExp, used in tickToPrice: divides by non-zero constants.
 // Therefore, we only look for division by zero in mulDivDown and mulDivUp in this file.
@@ -19,7 +18,7 @@ methods {
     function _.price() external => ghostPrice(calledContract) expect(uint256);
 
     // Summary for deterministic toId for the global market.
-    function IdLib.toId(Midnight.Market memory market, uint256 chainId, address midnight) internal returns (bytes32) => summaryToId(market, chainId, midnight);
+    function IdLib.toId(Awakening.Market memory market, uint256 chainId, address midnight) internal returns (bytes32) => summaryToId(market, chainId, midnight);
 
     // This function is checked manually to not cause a division by zero.
     function TickLib.tickToPrice(uint256) internal returns (uint256) => NONDET;
@@ -41,26 +40,11 @@ persistent ghost mapping(uint256 => address) globalMarketCollateralOracle;
 
 persistent ghost mapping(uint256 => address) globalMarketCollateralToken;
 
-persistent ghost mapping(uint256 => uint256) globalMarketCollateralLLTV;
-
-persistent ghost mapping(uint256 => uint256) globalMarketCollateralMaxLif;
-
 persistent ghost uint256 globalMarketMaturity;
-
-persistent ghost uint256 globalMarketRcfThreshold;
 
 persistent ghost address globalMarketEnterGate;
 
-persistent ghost address globalMarketLiquidatorGate;
-
 persistent ghost bytes32 globalId;
-
-/// HOOKS ///
-
-// Follows from lastLossFactorLeqMarketLossFactor in Midnight.spec.
-hook Sload uint128 value position[KEY bytes32 id][KEY address user].lastLossFactor {
-    require value <= currentContract.marketState[id].lossFactor;
-}
 
 /// SUMMARIES ///
 
@@ -68,13 +52,13 @@ ghost ghostPrice(address) returns uint256;
 
 definition WAD() returns uint256 = 10 ^ 18;
 
-definition collateralMatches(Midnight.Market market, uint256 index) returns bool = (index < globalMarketCollateralLength => market.collateralParams[index].oracle == globalMarketCollateralOracle[index] && market.collateralParams[index].token == globalMarketCollateralToken[index] && market.collateralParams[index].lltv == globalMarketCollateralLLTV[index] && market.collateralParams[index].maxLif == globalMarketCollateralMaxLif[index]);
+definition collateralMatches(Awakening.Market market, uint256 index) returns bool = (index < globalMarketCollateralLength => market.collateralParams[index].oracle == globalMarketCollateralOracle[index] && market.collateralParams[index].token == globalMarketCollateralToken[index]);
 
-function equalsGlobalMarket(Midnight.Market market) returns (bool) {
-    return market.loanToken == globalMarketLoanToken && market.collateralParams.length == globalMarketCollateralLength && collateralMatches(market, 0) && collateralMatches(market, 1) && collateralMatches(market, 2) && market.maturity == globalMarketMaturity && market.rcfThreshold == globalMarketRcfThreshold && market.enterGate == globalMarketEnterGate && market.liquidatorGate == globalMarketLiquidatorGate;
+function equalsGlobalMarket(Awakening.Market market) returns (bool) {
+    return market.loanToken == globalMarketLoanToken && market.collateralParams.length == globalMarketCollateralLength && collateralMatches(market, 0) && collateralMatches(market, 1) && collateralMatches(market, 2) && market.maturity == globalMarketMaturity && market.enterGate == globalMarketEnterGate;
 }
 
-function summaryToId(Midnight.Market market, uint256 chainId, address midnight) returns (bytes32) {
+function summaryToId(Awakening.Market market, uint256 chainId, address midnight) returns (bytes32) {
     bytes32 id;
     if (equalsGlobalMarket(market) && midnight == currentContract) {
         require id == globalId, "toId() is deterministic";
@@ -105,25 +89,7 @@ function mulDivUpSummary(uint256 x, uint256 y, uint256 d) returns uint256 {
 
 /// RULES ///
 
-// The liquidate function is verified in a separate rule (noDivisionByZeroLiquidate).
-rule noDivisionByZero(method f, env e, calldataarg args) filtered { f -> f.selector != sig:liquidate(Midnight.Market, uint256, uint256, uint256, address, bool, address, address, bytes).selector } {
+rule noDivisionByZero(method f, env e, calldataarg args) {
     f(e, args);
-    assert true;
-}
-
-// Show that liquidate does not cause a division by zero, in case the oracle price is non-zero and the collateral is active.
-rule noDivisionByZeroLiquidate(env e, Midnight.Market market, uint256 collateralIndex, uint256 seizedAssets, uint256 repaidUnits, address borrower, address receiver, address callback, bytes data, bool postMaturityMode) {
-    require equalsGlobalMarket(market);
-
-    // Needed for the bitmap loop which calls mulDivUp(WAD, maxLif) for every activated collateral.
-    require forall uint256 i. i < market.collateralParams.length => market.collateralParams[i].maxLif >= WAD(), "see maxLifIsAtLeastWad in ExactMath.spec";
-
-    require market.collateralParams[collateralIndex].lltv < WAD() => to_mathint(market.collateralParams[collateralIndex].maxLif) * to_mathint(market.collateralParams[collateralIndex].lltv) <= to_mathint(WAD()) * (to_mathint(WAD()) - 1), "see lifTimesLltvStrictBound in ExactMath.spec";
-
-    // Assume that the collateral price is non-zero and the collateral is active. Otherwise, liquidate may revert with div by zero.
-    require ghostPrice(market.collateralParams[collateralIndex].oracle) > 0, "Assumption: the collateral price is not zero";
-    require summaryGetBit(currentContract.position[globalId][borrower].collateralBitmap, collateralIndex), "Assumption: liquidated collateral was activated";
-
-    liquidate(e, market, collateralIndex, seizedAssets, repaidUnits, borrower, postMaturityMode, receiver, callback, data);
     assert true;
 }

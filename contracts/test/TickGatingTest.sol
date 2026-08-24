@@ -21,25 +21,18 @@ contract TickGatingTest is BaseTest {
 
         market.loanToken = address(loanToken);
         market.maturity = vm.getBlockTimestamp() + 100;
+        market.maxStrike = type(uint256).max;
+        market.penaltyPct = 5e16;
         market.collateralParams
             .push(
                 CollateralParams({
                     token: address(collateralToken1),
-                    lltv: 0.77e18,
-                    maxLif: maxLif(0.77e18, 0.25e18),
+                    
+                    
                     oracle: address(oracle1)
                 })
             );
-        market.collateralParams
-            .push(
-                CollateralParams({
-                    token: address(collateralToken2),
-                    lltv: 0.77e18,
-                    maxLif: maxLif(0.77e18, 0.25e18),
-                    oracle: address(oracle2)
-                })
-            );
-        market.collateralParams = sortCollateralParams(market.collateralParams);
+                market.collateralParams = sortCollateralParams(market.collateralParams);
 
         // Create the market so it picks up spacing 4.
         id = awakening.touchMarket(market);

@@ -3,7 +3,7 @@
 methods {
     function multicall(bytes[]) external => HAVOC_ALL DELETE;
 
-    function IdLib.toId(Midnight.Market memory market, uint256, address) internal returns (bytes32) => CVL_toId(market);
+    function IdLib.toId(Awakening.Market memory market, uint256, address) internal returns (bytes32) => CVL_toId(market);
 
     function creditOf(bytes32 id, address user) external returns (uint128) envfree;
     function pendingFee(bytes32 id, address user) external returns (uint128) envfree;
@@ -11,7 +11,7 @@ methods {
     function continuousFeeCredit(bytes32 id) external returns (uint128) envfree;
 
     // Summarize internals irrelevant to continuous fee tracking.
-    function IdLib.storeInCode(Midnight.Market memory, uint256) internal returns (address) => NONDET;
+    function IdLib.storeInCode(Awakening.Market memory, uint256) internal returns (address) => NONDET;
     function UtilsLib.msb(uint128) internal returns (uint256) => NONDET;
     function TickLib.tickToPrice(uint256 tick) internal returns (uint256) => NONDET;
 
@@ -19,7 +19,7 @@ methods {
     function UtilsLib.tExchange(uint256, bytes32, address, bool) internal returns (bool) => NONDET;
     function UtilsLib.tGet(uint256, bytes32, address) internal returns (bool) => NONDET;
 
-    // Assume no reentrancy: callbacks and transfers do not re-enter Midnight.
+    // Assume no reentrancy: callbacks and transfers do not re-enter Awakening.
     // This is justified because the properties we verify are about the effect of each function's own body on the continuous fee, not the effect of the full transaction including callbacks.
 }
 
@@ -29,7 +29,7 @@ methods {
 
 persistent ghost bytes32 lastId;
 
-function CVL_toId(Midnight.Market market) returns bytes32 {
+function CVL_toId(Awakening.Market market) returns bytes32 {
     // non-deterministic id
     bytes32 id;
     lastId = id;
@@ -39,7 +39,7 @@ function CVL_toId(Midnight.Market market) returns bytes32 {
 definition WAD() returns uint256 = 10 ^ 18;
 
 // The buyer's pendingFee increases by floor(creditIncrease * continuousFee * timeToMaturity / WAD).
-rule continuousFeeNotOverchargedForBuyer(env e, Midnight.Offer offer, bytes ratifierData, uint256 units, address taker, address receiver, address takerCallback, bytes takerCallbackData) {
+rule continuousFeeNotOverchargedForBuyer(env e, Awakening.Offer offer, bytes ratifierData, uint256 units, address taker, address receiver, address takerCallback, bytes takerCallbackData) {
     address buyer = offer.buy ? offer.maker : taker;
 
     bytes32 id;
@@ -48,7 +48,7 @@ rule continuousFeeNotOverchargedForBuyer(env e, Midnight.Offer offer, bytes rati
 
     postUpdateCredit, postUpdatePendingFee, _ = updatePositionView(e, offer.market, id, buyer);
 
-    require pendingFee(id, buyer) <= creditOf(id, buyer), "See pendingContinuousFeeBoundedByCredit in Midnight.spec";
+    require pendingFee(id, buyer) <= creditOf(id, buyer), "See pendingContinuousFeeBoundedByCredit in Awakening.spec";
 
     take(e, offer, ratifierData, units, taker, receiver, takerCallback, takerCallbackData);
 
@@ -63,7 +63,7 @@ rule continuousFeeNotOverchargedForBuyer(env e, Midnight.Offer offer, bytes rati
 }
 
 // When a seller's credit decreases via a take, their pendingFee decreases by ceil(PendingFee * creditDelta / postUpdateCredit).
-rule pendingFeeDecreasesProportionallyForSeller(env e, Midnight.Offer offer, bytes ratifierData, uint256 units, address taker, address receiver, address takerCallback, bytes takerCallbackData) {
+rule pendingFeeDecreasesProportionallyForSeller(env e, Awakening.Offer offer, bytes ratifierData, uint256 units, address taker, address receiver, address takerCallback, bytes takerCallbackData) {
     address seller = offer.buy ? taker : offer.maker;
 
     bytes32 id;
@@ -72,7 +72,7 @@ rule pendingFeeDecreasesProportionallyForSeller(env e, Midnight.Offer offer, byt
 
     postUpdateCredit, postUpdatePendingFee, _ = updatePositionView(e, offer.market, id, seller);
 
-    require postUpdateCredit > 0 || postUpdatePendingFee == 0, "See noRemainingContinuousFeeWithoutCredit in Midnight.spec";
+    require postUpdateCredit > 0 || postUpdatePendingFee == 0, "See noRemainingContinuousFeeWithoutCredit in Awakening.spec";
 
     take(e, offer, ratifierData, units, taker, receiver, takerCallback, takerCallbackData);
 
@@ -81,7 +81,7 @@ rule pendingFeeDecreasesProportionallyForSeller(env e, Midnight.Offer offer, byt
     uint256 creditAfter = creditOf(id, seller);
     uint256 pendingFeeAfter = pendingFee(id, seller);
 
-    require creditAfter > 0 || pendingFeeAfter == 0, "See noRemainingContinuousFeeWithoutCredit in Midnight.spec";
+    require creditAfter > 0 || pendingFeeAfter == 0, "See noRemainingContinuousFeeWithoutCredit in Awakening.spec";
 
     mathint creditDelta = postUpdateCredit - creditAfter;
 
@@ -91,7 +91,7 @@ rule pendingFeeDecreasesProportionallyForSeller(env e, Midnight.Offer offer, byt
 }
 
 // When credit decreases via withdraw, pendingFee decreases by ceil(pendingFee * units / postUpdateCredit).
-rule pendingFeeDecreasesProportionallyOnWithdraw(env e, Midnight.Market market, uint256 units, address onBehalf, address receiver) {
+rule pendingFeeDecreasesProportionallyOnWithdraw(env e, Awakening.Market market, uint256 units, address onBehalf, address receiver) {
     bytes32 id;
     uint128 postUpdateCredit;
     uint128 postUpdatePendingFee;
@@ -107,7 +107,7 @@ rule pendingFeeDecreasesProportionallyOnWithdraw(env e, Midnight.Market market, 
 }
 
 // take() increases continuousFeeCredit by exactly the sum of the accrued fees of the buyer and seller.
-rule continuousFeeCreditIncreasesByAccruedFees(env e, Midnight.Offer offer, bytes ratifierData, uint256 units, address taker, address receiver, address takerCallback, bytes takerCallbackData) {
+rule continuousFeeCreditIncreasesByAccruedFees(env e, Awakening.Offer offer, bytes ratifierData, uint256 units, address taker, address receiver, address takerCallback, bytes takerCallbackData) {
     address buyer = offer.buy ? offer.maker : taker;
     address seller = offer.buy ? taker : offer.maker;
 
@@ -128,7 +128,7 @@ rule continuousFeeCreditIncreasesByAccruedFees(env e, Midnight.Offer offer, byte
 }
 
 // take should not change the return values of updatePositionView (i.e., post-update credit, pending fee, and accrued fee) of a third party.
-rule takeDoesNotAffectThirdParties(env e, Midnight.Offer offer, bytes ratifierData, uint256 units, address taker, address receiver, address takerCallback, bytes takerCallbackData, address user) {
+rule takeDoesNotAffectThirdParties(env e, Awakening.Offer offer, bytes ratifierData, uint256 units, address taker, address receiver, address takerCallback, bytes takerCallbackData, address user) {
     address buyer = offer.buy ? offer.maker : taker;
     address seller = offer.buy ? taker : offer.maker;
 

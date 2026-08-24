@@ -4,10 +4,8 @@ pragma solidity ^0.8.0;
 
 import {IAwakening, Market, Offer, CollateralParams} from "../src/interfaces/IAwakening.sol";
 import {IEnterGate} from "../src/interfaces/IGate.sol";
-import {LIQUIDATION_CURSOR_LOW, ORACLE_PRICE_SCALE} from "../src/libraries/ConstantsLib.sol";
 import {MAX_TICK} from "../src/libraries/TickLib.sol";
 import {BaseTest, MAX_TEST_AMOUNT} from "./BaseTest.sol";
-import {Oracle} from "./helpers/Oracle.sol";
 
 contract WhitelistGate is IEnterGate {
     mapping(address => bool) public whitelisted;
@@ -41,31 +39,32 @@ contract GateTest is BaseTest {
 
         market.loanToken = address(loanToken);
         market.maturity = vm.getBlockTimestamp() + 100;
+        market.maxStrike = type(uint256).max;
+        market.penaltyPct = 5e16;
         market.collateralParams
             .push(
                 CollateralParams({
                     token: address(collateralToken1),
-                    lltv: 0.77e18,
-                    oracle: address(oracle1),
-                    maxLif: maxLif(0.77e18, LIQUIDATION_CURSOR_LOW)
+                    
+                    oracle: address(oracle1)
                 })
             );
         market.collateralParams = sortCollateralParams(market.collateralParams);
 
         gatedMarket.loanToken = address(loanToken);
         gatedMarket.maturity = vm.getBlockTimestamp() + 100;
+        gatedMarket.maxStrike = type(uint256).max;
+        gatedMarket.penaltyPct = 5e16;
         gatedMarket.collateralParams
             .push(
                 CollateralParams({
                     token: address(collateralToken1),
-                    lltv: 0.77e18,
-                    oracle: address(oracle1),
-                    maxLif: maxLif(0.77e18, LIQUIDATION_CURSOR_LOW)
+                    
+                    oracle: address(oracle1)
                 })
             );
         gatedMarket.collateralParams = sortCollateralParams(gatedMarket.collateralParams);
         gatedMarket.enterGate = address(gate);
-        gatedMarket.liquidatorGate = address(gate);
 
         gatedId = toId(gatedMarket);
 

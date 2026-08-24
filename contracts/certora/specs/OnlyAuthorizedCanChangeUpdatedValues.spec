@@ -6,24 +6,21 @@ methods {
     function multicall(bytes[]) external => HAVOC_ALL DELETE;
 
     function isAuthorized(address authorizer, address authorized) external returns (bool) envfree;
-    function Utils.hashMarket(Midnight.Market) external returns (bytes32) envfree;
+    function Utils.hashMarket(Awakening.Market) external returns (bytes32) envfree;
 
     // Position/marketState getters used to express protocol invariants as preconditions.
     function creditOf(bytes32, address) external returns (uint128) envfree;
     function pendingFee(bytes32, address) external returns (uint128) envfree;
-    function lastLossFactor(bytes32, address) external returns (uint128) envfree;
     function lastAccrual(bytes32, address) external returns (uint128) envfree;
-    function lossFactor(bytes32) external returns (uint128) envfree;
 
     // Summarize toId to be able to reference the id in the rules.
-    function IdLib.toId(Midnight.Market memory market, uint256, address) internal returns (bytes32) => summaryToId(market);
+    function IdLib.toId(Awakening.Market memory market, uint256, address) internal returns (bytes32) => summaryToId(market);
 
     // Sound because the protocol doesn't use toMarket.
-    function IdLib.storeInCode(Midnight.Market memory, uint256) internal returns (address) => NONDET;
+    function IdLib.storeInCode(Awakening.Market memory, uint256) internal returns (address) => NONDET;
 
     // Over-approximate view functions for prover performance.
     function settlementFee(bytes32, uint256) internal returns (uint256) => NONDET;
-    function isHealthy(Midnight.Market memory, bytes32, address) internal returns (bool) => NONDET;
     function TickLib.tickToPrice(uint256) internal returns (uint256) => NONDET;
     function UtilsLib.msb(uint128) internal returns (uint256) => NONDET;
     function UtilsLib.countBits(uint128) internal returns (uint256) => NONDET;
@@ -33,12 +30,12 @@ methods {
     function UtilsLib.mulDivDown(uint256 x, uint256 y, uint256 z) internal returns (uint256) => ghostMulDivDown(x, y, z);
     function UtilsLib.mulDivUp(uint256 x, uint256 y, uint256 z) internal returns (uint256) => ghostMulDivUp(x, y, z);
 
-    // Assume no reentrancy: callbacks and tokens do not re-enter Midnight.
+    // Assume no reentrancy: callbacks and tokens do not re-enter Awakening.
     // This is justified because the properties we verify are about the effect of each function's own body on the state, not the effect of the full transaction including callbacks.
-    function _.onBuy(bytes32, Midnight.Market, uint256, uint256, uint256, address, bytes) external => NONDET;
-    function _.onSell(bytes32, Midnight.Market, uint256, uint256, uint256, address, address, bytes) external => NONDET;
-    function _.onRepay(bytes32, Midnight.Market, uint256, address, bytes) external => NONDET;
-    function _.isRatified(Midnight.Offer offer, bytes) external => CVL_isRatified(offer) expect(bytes32);
+    function _.onBuy(bytes32, Awakening.Market, uint256, uint256, uint256, address, bytes) external => NONDET;
+    function _.onSell(bytes32, Awakening.Market, uint256, uint256, uint256, address, address, bytes) external => NONDET;
+    function _.onRepay(bytes32, Awakening.Market, uint256, address, bytes) external => NONDET;
+    function _.isRatified(Awakening.Offer offer, bytes) external => CVL_isRatified(offer) expect(bytes32);
     function _.onFlashLoan(address, address[], uint256[], bytes) external => NONDET;
     function SafeTransferLib.safeTransferFrom(address, address, address, uint256) internal => NONDET;
     function SafeTransferLib.safeTransfer(address, address, uint256) internal => NONDET;
@@ -81,13 +78,13 @@ ghost mapping(address => bool) makerRatified {
     init_state axiom forall address a. makerRatified[a] == false;
 }
 
-function CVL_isRatified(Midnight.Offer offer) returns bytes32 {
+function CVL_isRatified(Awakening.Offer offer) returns bytes32 {
     bytes32 result;
     makerRatified[offer.maker] = true;
     return result;
 }
 
-function summaryToId(Midnight.Market market) returns (bytes32) {
+function summaryToId(Awakening.Market market) returns (bytes32) {
     return Utils.hashMarket(market);
 }
 
@@ -95,15 +92,14 @@ function summaryToId(Midnight.Market market) returns (bytes32) {
 
 /// An unauthorized caller cannot change a user's updated credit or updated pending fee except via liquidate.
 /// accruedFee is intentionally excluded: updatePosition is permissionless and can set the fees to 0.
-/// Assumes no reentrancy: callbacks and token transfers are not modeled as re-entering Midnight, so re-entrant collateral changes are not covered.
-rule onlyAuthorizedCanChangeUpdatedValuesExceptLiquidate(env e, method f, calldataarg args, Midnight.Market market, address user) filtered { f -> f.selector != sig:liquidate(Midnight.Market, uint256, uint256, uint256, address, bool, address, address, bytes).selector } {
+/// Assumes no reentrancy: callbacks and token transfers are not modeled as re-entering Awakening, so re-entrant collateral changes are not covered.
+rule onlyAuthorizedCanChangeUpdatedValuesExceptLiquidate(env e, method f, calldataarg args, Awakening.Market market, address user) filtered { f -> !f.isView } {
     require e.block.timestamp <= max_uint128, "realistic timestamp, needed for the uint128 cast";
 
     bytes32 id = summaryToId(market);
     bool userIsAuthorized = user == e.msg.sender || isAuthorized(user, e.msg.sender);
 
     require pendingFee(id, user) <= creditOf(id, user), "see pendingContinuousFeeBoundedByCredit";
-    require lastLossFactor(id, user) <= lossFactor(id), "see lastLossFactorLeqMarketLossFactor";
     require lastAccrual(id, user) <= require_uint128(e.block.timestamp), "lastAccrual <= block.timestamp by timestamp monotonicity";
 
     uint128 updatedCreditBefore;

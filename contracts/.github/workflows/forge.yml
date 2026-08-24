@@ -74,12 +74,8 @@ jobs:
       - name: Assert no liquidation surface remains
         run: |
           set -e
-          if grep -rn 'ILiquidateCallback\|ILiquidatorGate' src/ 2>/dev/null; then
-            echo "ERROR: liquidation interfaces must not exist in Awakening"
-            exit 1
-          fi
-          if grep -rn 'function liquidate(\|function _liquidate' src/ 2>/dev/null; then
-            echo "ERROR: liquidate() function must not exist in Awakening"
+          if grep -rnE 'liquidat|LLTV|LIF|lossFactor|isHealthy|maxLif|rcfThreshold' src/ 2>/dev/null; then
+            echo "ERROR: liquidation surface must not exist in Awakening"
             exit 1
           fi
           echo "OK: liquidation surface is gone"

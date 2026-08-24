@@ -27,17 +27,13 @@ function buildTypes(height: number) {
     OfferTree: [{ name: "offerTree", type: offerTreeFieldType }],
     CollateralParams: [
       { name: "token", type: "address" },
-      { name: "lltv", type: "uint256" },
-      { name: "maxLif", type: "uint256" },
       { name: "oracle", type: "address" },
     ],
     Market: [
       { name: "loanToken", type: "address" },
       { name: "collateralParams", type: "CollateralParams[]" },
       { name: "maturity", type: "uint256" },
-      { name: "rcfThreshold", type: "uint256" },
       { name: "enterGate", type: "address" },
-      { name: "liquidatorGate", type: "address" },
     ],
     Offer: [
       { name: "market", type: "Market" },
@@ -62,11 +58,9 @@ function defaultOffer(number: string) {
   return {
     market: {
       loanToken: "0x" + number.repeat(40),
-      collateralParams: [{token: ZERO_ADDR, lltv: "0", maxLif: "0", oracle: ZERO_ADDR}],
+      collateralParams: [{token: ZERO_ADDR, oracle: ZERO_ADDR}],
       maturity: "0",
-      rcfThreshold: "0",
       enterGate: ZERO_ADDR,
-      liquidatorGate: ZERO_ADDR,
     },
     buy: false,
     maker: ZERO_ADDR,

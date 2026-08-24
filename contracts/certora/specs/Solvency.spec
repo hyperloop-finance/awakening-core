@@ -10,23 +10,19 @@ methods {
     function UtilsLib.mulDivUp(uint256 a, uint256 b, uint256 denominator) internal returns (uint256) => CVL_mulDivUp(a, b, denominator);
 
     // Summarize toId, this adds no assumption but allows to retrieve the loan token from the market id.
-    function IdLib.toId(Midnight.Market memory market, uint256 chainId, address midnight) internal returns (bytes32) => CVL_toId(market, chainId, midnight);
+    function IdLib.toId(Awakening.Market memory market, uint256 chainId, address midnight) internal returns (bytes32) => CVL_toId(market, chainId, midnight);
 
     // Summaries for complex internals irrelevant to token balance tracking.
     function UtilsLib.msb(uint128) internal returns (uint256) => NONDET;
     function TickLib.tickToPrice(uint256) internal returns (uint256) => NONDET;
     function TickLib.wExp(int256) internal returns (uint256) => NONDET;
-    function isHealthy(Midnight.Market memory, bytes32, address) internal returns (bool) => NONDET;
     function settlementFee(bytes32, uint256) internal returns (uint256) => NONDET;
 
-    // Hook on callbacks, this adds no assumption: see FlashLiquidateCallback.sol and the summaries below.
-    function _.onBuy(bytes32, Midnight.Market, uint256, uint256, uint256, address, bytes) external => NONDET;
-    function _.onSell(bytes32, Midnight.Market, uint256, uint256, uint256, address, address, bytes) external => NONDET;
+    // Hook on callbacks, this adds no assumption: see the summaries below.
+    function _.onBuy(bytes32, Awakening.Market, uint256, uint256, uint256, address, bytes) external => NONDET;
+    function _.onSell(bytes32, Awakening.Market, uint256, uint256, uint256, address, address, bytes) external => NONDET;
     function _.onFlashLoan(address caller, address[] tokens, uint256[] amounts, bytes data) external => DISPATCHER(true);
-    function _.onLiquidate(address liquidator, bytes32 id, Midnight.Market market, uint256 collateralIndex, uint256 seizedAssets, uint256 repaidUnits, address borrower, address receiver, bytes data, uint256 badDebt) external => DISPATCHER(true);
-    function _.onRepay(bytes32 id, Midnight.Market market, uint256 units, address onBehalf, bytes data) external => DISPATCHER(true);
-    function FlashLiquidateCallback.startFlashloan(address token, uint256 amount) internal => CVL_flashLoanStart(token, amount);
-    function FlashLiquidateCallback.endFlashloan(address token, uint256 amount) internal => CVL_flashLoanEnd(token, amount);
+    function _.onRepay(bytes32 id, Awakening.Market market, uint256 units, address onBehalf, bytes data) external => DISPATCHER(true);
 
     // Assume ERC20 tokens transfer correctly: no fee taking from sender or receiver, no rebasing, no blacklisting, no transfer limits.
     function _.transfer(address a, uint256 v) external with(env e) => CVL_transferFrom(e, calledContract, e.msg.sender, a, v) expect(bool);
@@ -75,7 +71,7 @@ ghost mapping(bytes32 => mapping(uint128 => address)) collateralToken;
 
 ghost hash(address, uint256, uint256, address) returns bytes32;
 
-function CVL_toId(Midnight.Market market, uint256 chainId, address midnight) returns bytes32 {
+function CVL_toId(Awakening.Market market, uint256 chainId, address midnight) returns bytes32 {
     // Deterministically derive the market id.
     bytes32 id = hash(market.loanToken, market.maturity, chainId, midnight);
 
@@ -166,7 +162,7 @@ strong invariant tokenBalanceCorrect(address token)
             requireInvariant pendingFeeReceiptZero(token);
             require e.msg.sender != currentContract, "only external calls";
         }
-        preserved take(Midnight.Offer offer, bytes ratifierData, uint256 units, address taker, address receiverIfTakerIsSeller, address takerCallback, bytes takerCallbackData) with (env e) {
+        preserved take(Awakening.Offer offer, bytes ratifierData, uint256 units, address taker, address receiverIfTakerIsSeller, address takerCallback, bytes takerCallbackData) with (env e) {
             requireInvariant pendingFeeReceiptZero(token);
             require e.msg.sender != currentContract, "only external calls";
             require taker != currentContract, "no settlement with contract";

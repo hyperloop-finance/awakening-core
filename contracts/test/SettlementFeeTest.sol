@@ -38,26 +38,19 @@ contract SettlementFeeTest is BaseTest {
         vm.warp(vm.getBlockTimestamp() + 1000 days); // to be able to come back in time enough
 
         market.loanToken = address(loanToken);
-        market.maturity = vm.getBlockTimestamp() + 1 days; // TTM = 1 day (exactly at breakpoint)
+        market.maturity = vm.getBlockTimestamp() + 1 days;
+        market.maxStrike = type(uint256).max;
+        market.penaltyPct = 5e16; // TTM = 1 day (exactly at breakpoint)
         market.collateralParams
             .push(
                 CollateralParams({
                     token: address(collateralToken1),
-                    lltv: 0.77e18,
-                    maxLif: maxLif(0.77e18, 0.25e18),
+                    
+                    
                     oracle: address(oracle1)
                 })
             );
-        market.collateralParams
-            .push(
-                CollateralParams({
-                    token: address(collateralToken2),
-                    lltv: 0.77e18,
-                    maxLif: maxLif(0.77e18, 0.25e18),
-                    oracle: address(oracle2)
-                })
-            );
-        market.collateralParams = sortCollateralParams(market.collateralParams);
+                market.collateralParams = sortCollateralParams(market.collateralParams);
 
         id = toId(market);
 
@@ -166,6 +159,8 @@ contract SettlementFeeTest is BaseTest {
         settlementFee7Days = bound(settlementFee7Days, settlementFee1Day, maxSettlementFee(2)) / 1e12 * 1e12;
 
         market.maturity = vm.getBlockTimestamp() + 3 days;
+        market.maxStrike = type(uint256).max;
+        market.penaltyPct = 5e16;
 
         // Set fees at breakpoints for linear interpolation (3 days is between 1 and 7 days)
         // Must be set before touchMarket, which snapshots defaultFees at creation time.
@@ -206,6 +201,8 @@ contract SettlementFeeTest is BaseTest {
         settlementFee0Day = bound(settlementFee0Day, 0, maxSettlementFee(0)) / 1e12 * 1e12;
         maturity = bound(maturity, 0, vm.getBlockTimestamp() - 1);
         market.maturity = maturity;
+        market.maxStrike = type(uint256).max;
+        market.penaltyPct = 5e16;
         id = toId(market);
         lenderOffer.market = market;
         borrowerOffer.market = market;
@@ -230,6 +227,8 @@ contract SettlementFeeTest is BaseTest {
         maturity = bound(maturity, vm.getBlockTimestamp() + 360 days, vm.getBlockTimestamp() + 36500 days);
 
         market.maturity = maturity;
+        market.maxStrike = type(uint256).max;
+        market.penaltyPct = 5e16;
         id = toId(market);
         lenderOffer.market = market;
         borrowerOffer.market = market;

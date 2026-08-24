@@ -7,14 +7,14 @@ using Utils as Utils;
 methods {
     function multicall(bytes[]) external => HAVOC_ALL DELETE;
 
-    function Utils.hashMarket(Midnight.Market) external returns (bytes32) envfree;
+    function Utils.hashMarket(Awakening.Market) external returns (bytes32) envfree;
 
     // Oracle integration assumption: every (collateralAmount * oraclePrice) fits in uint256.
     // Storage collateral is uint128, so boundedPrice enforces the product bound against max_uint128.
     function _.price() external => boundedPrice(calledContract) expect(uint256);
 
     // Deterministic toId: links call-site markets to validated state from touchMarket.
-    function IdLib.toId(Midnight.Market memory market, uint256, address) internal returns (bytes32) => summaryToId(market);
+    function IdLib.toId(Awakening.Market memory market, uint256, address) internal returns (bytes32) => summaryToId(market);
 
     // Sound return bound: tickToPrice <= WAD for non-reverting calls.
     function TickLib.tickToPrice(uint256) internal returns (uint256) => boundedTickPrice();
@@ -32,12 +32,8 @@ definition WAD() returns uint256 = 10 ^ 18;
 
 definition ORACLE_PRICE_SCALE() returns uint256 = 10 ^ 36;
 
-// Proven in CreatedMarkets.spec (createdMarketsHaveLltvLessThanOrEqualToOne)
-// and ExactMath.spec (maxLifIsAtLeastWad, maxLifIsAtMostTwoWad).
 // Maturity is bounded to uint64 as a realistic timestamp assumption for overflow analysis.
-function summaryToId(Midnight.Market market) returns (bytes32) {
-    require forall uint256 i. i < market.collateralParams.length => market.collateralParams[i].lltv <= WAD(), "proven in CreatedMarkets.spec";
-    require forall uint256 i. i < market.collateralParams.length => market.collateralParams[i].maxLif >= WAD() && market.collateralParams[i].maxLif <= 2 * WAD(), "proven in ExactMath.spec";
+function summaryToId(Awakening.Market market) returns (bytes32) {
     require market.maturity <= max_uint64, "maturity fits in uint64: realistic timestamp assumption";
     return Utils.hashMarket(market);
 }
@@ -87,21 +83,14 @@ function mulDivUpSummary(uint256 x, uint256 y, uint256 d) returns uint256 {
 /// RULES ///
 
 // Normal calls intentionally scope this proof to non-reverting executions.
-// The updatePositionView and isHealthy have dedicated rules.
-rule noMultiplicationOverflow(method f, env e, calldataarg args) filtered { f -> f.selector != sig:isHealthy(Midnight.Market, bytes32, address).selector && f.selector != sig:updatePositionView(Midnight.Market, bytes32, address).selector } {
+// The updatePositionView has a dedicated rule.
+rule noMultiplicationOverflow(method f, env e, calldataarg args) filtered { f -> f.selector != sig:updatePositionView(Awakening.Market, bytes32, address).selector } {
     require !mulOverflow, "prestate: no overflow before call";
     f(e, args);
     assert !mulOverflow;
 }
 
-rule noMultiplicationOverflowIsHealthy(env e, Midnight.Market market, bytes32 id, address borrower) {
-    require !mulOverflow, "prestate: no overflow before call";
-    require id == summaryToId(market), "id corresponds to market";
-    isHealthy(e, market, id, borrower);
-    assert !mulOverflow;
-}
-
-rule noMultiplicationOverflowUpdatePositionView(env e, Midnight.Market market, bytes32 id, address user) {
+rule noMultiplicationOverflowUpdatePositionView(env e, Awakening.Market market, bytes32 id, address user) {
     require !mulOverflow, "prestate: no overflow before call";
     require id == summaryToId(market), "id corresponds to market";
     updatePositionView(e, market, id, user);

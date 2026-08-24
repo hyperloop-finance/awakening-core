@@ -13,7 +13,6 @@ import {IdLib} from "../src/libraries/IdLib.sol";
 import {EventsLib} from "../src/libraries/EventsLib.sol";
 import {BaseTest} from "./BaseTest.sol";
 import {ERC20} from "./erc20s/ERC20.sol";
-import {Oracle} from "./helpers/Oracle.sol";
 import {StdStorage, stdStorage} from "../lib/forge-std/src/StdStorage.sol";
 
 contract TakeTest is BaseTest {
@@ -36,26 +35,18 @@ contract TakeTest is BaseTest {
 
         market.loanToken = address(loanToken);
         market.maturity = vm.getBlockTimestamp() + 100;
+        market.maxStrike = type(uint256).max;
+        market.penaltyPct = 5e16;
         market.collateralParams
             .push(
                 CollateralParams({
                     token: address(collateralToken1),
-                    lltv: 0.77e18,
-                    maxLif: maxLif(0.77e18, 0.25e18),
+                    
+                    
                     oracle: address(oracle1)
                 })
             );
-        market.collateralParams
-            .push(
-                CollateralParams({
-                    token: address(collateralToken2),
-                    lltv: 0.77e18,
-                    maxLif: maxLif(0.77e18, 0.25e18),
-                    oracle: address(oracle2)
-                })
-            );
-        market.collateralParams = sortCollateralParams(market.collateralParams);
-        market.rcfThreshold = 0;
+                market.collateralParams = sortCollateralParams(market.collateralParams);
 
         id = awakening.touchMarket(market);
         awakening.setMarketTickSpacing(id, 1);
@@ -456,7 +447,6 @@ contract TakeTest is BaseTest {
         setupOtherUsers(market, units);
         assertEq(awakening.creditOf(id, otherLender), units, "other lender credit");
         assertEq(awakening.debtOf(id, otherLender), 0, "other lender debt");
-        assertTrue(awakening.isHealthy(market, id, otherLender), "other lender healthy");
         uint256 totalUnitsBefore = awakening.totalUnits(id);
 
         uint256 timestamp = market.maturity + 1;
@@ -479,7 +469,6 @@ contract TakeTest is BaseTest {
         setupOtherUsers(market, units);
         assertEq(awakening.creditOf(id, otherLender), units, "other lender credit");
         assertEq(awakening.debtOf(id, otherLender), 0, "other lender debt");
-        assertTrue(awakening.isHealthy(market, id, otherLender), "other lender healthy");
         uint256 totalUnitsBefore = awakening.totalUnits(id);
 
         uint256 timestamp = market.maturity + 1;
@@ -532,7 +521,6 @@ contract TakeTest is BaseTest {
         setupOtherUsers(market, units);
         assertEq(awakening.creditOf(id, otherLender), units, "other lender credit");
         assertEq(awakening.debtOf(id, otherLender), 0, "other lender debt");
-        assertTrue(awakening.isHealthy(market, id, otherLender), "other lender healthy");
         uint256 otherBorrowerDebt = awakening.debtOf(id, otherBorrower);
 
         uint256 timestamp = market.maturity + 1;
@@ -553,7 +541,6 @@ contract TakeTest is BaseTest {
         setupOtherUsers(market, units);
         assertEq(awakening.creditOf(id, otherLender), units, "other lender credit");
         assertEq(awakening.debtOf(id, otherLender), 0, "other lender debt");
-        assertTrue(awakening.isHealthy(market, id, otherLender), "other lender healthy");
         uint256 otherBorrowerDebt = awakening.debtOf(id, otherBorrower);
 
         uint256 timestamp = market.maturity + 1;
@@ -802,34 +789,6 @@ contract TakeTest is BaseTest {
 
         vm.expectRevert(IAwakening.CannotIncreaseDebtPostMaturity.selector);
         take(100, borrower, lenderOffer);
-    }
-
-    function testBuyUnhealthy(uint256 units, uint256 tick, uint256 collateralized) public {
-        units = bound(units, 1, maxAssets);
-        collateralized = bound(collateralized, 0, units / 2);
-        tick = bound(tick, 0, MAX_TICK);
-        borrowerOffer.maxUnits = units;
-        borrowerOffer.tick = tick;
-        uint256 price = TickLib.tickToPrice(tick);
-        deal(address(loanToken), lender, units.mulDivUp(price, WAD));
-        collateralize(market, borrower, collateralized);
-
-        vm.expectRevert(IAwakening.SellerIsLiquidatable.selector);
-        take(units, lender, borrowerOffer);
-    }
-
-    function testSellUnhealthy(uint256 units, uint256 tick, uint256 collateralized) public {
-        units = bound(units, 1, maxAssets);
-        collateralized = bound(collateralized, 0, units / 2);
-        tick = bound(tick, 0, MAX_TICK);
-        lenderOffer.maxUnits = units;
-        lenderOffer.tick = tick;
-        uint256 price = TickLib.tickToPrice(tick);
-        deal(address(loanToken), lender, units.mulDivDown(price, WAD));
-        collateralize(market, borrower, collateralized);
-
-        vm.expectRevert(IAwakening.SellerIsLiquidatable.selector);
-        take(units, borrower, lenderOffer);
     }
 
     function testTakeOfferNotStarted(uint256 start) public {
@@ -1141,7 +1100,7 @@ contract TakeTest is BaseTest {
         awakening.setMarketContinuousFee(id, continuousFee);
         addCredit(borrower, units);
 
-        uint256 collateral = units.mulDivUp(WAD, market.collateralParams[0].lltv);
+        uint256 collateral = units;
         borrowerOffer.callback = address(new BorrowCallback());
         borrowerOffer.callbackData = abi.encode(0, collateral, data);
         borrowerOffer.maxUnits = type(uint256).max;
@@ -1178,7 +1137,7 @@ contract TakeTest is BaseTest {
         units = bound(units, 0, maxAssets);
         continuousFee = uint32(bound(continuousFee, 0, MAX_CONTINUOUS_FEE));
         awakening.setMarketContinuousFee(id, continuousFee);
-        uint256 collateral = units.mulDivUp(WAD, market.collateralParams[0].lltv);
+        uint256 collateral = units;
         addCredit(borrower, units);
 
         lenderOffer.maxUnits = type(uint256).max;

@@ -10,33 +10,13 @@ import {ERC20USDT} from "./erc20s/ERC20USDT.sol";
 import {ERC20RevertToZero} from "./erc20s/ERC20RevertToZero.sol";
 import {ERC20NoReturn} from "./erc20s/ERC20NoReturn.sol";
 import {Oracle} from "./helpers/Oracle.sol";
-import {
-    IEcrecoverRatifier,
-    Signature,
-    EIP712_DOMAIN_TYPEHASH
-} from "../src/ratifiers/interfaces/IEcrecoverRatifier.sol";
+import {Signature, EIP712_DOMAIN_TYPEHASH} from "../src/ratifiers/interfaces/IEcrecoverRatifier.sol";
 import {HashLib} from "../src/ratifiers/libraries/HashLib.sol";
 import {DummyRatifier} from "./helpers/DummyRatifier.sol";
 import {UtilsLib} from "../src/libraries/UtilsLib.sol";
 import {IdLib} from "../src/libraries/IdLib.sol";
 import {TickLib, MAX_TICK} from "../src/libraries/TickLib.sol";
-import {
-    WAD,
-    ORACLE_PRICE_SCALE,
-    MAX_COLLATERALS,
-    LIQUIDATION_CURSOR_LOW,
-    LLTV_0,
-    LLTV_1,
-    LLTV_2,
-    LLTV_3,
-    LLTV_4,
-    LLTV_5,
-    LLTV_6,
-    LLTV_7,
-    LLTV_8,
-    maxSettlementFee as _maxSettlementFee,
-    maxLif as _maxLif
-} from "../src/libraries/ConstantsLib.sol";
+import {WAD, maxSettlementFee as _maxSettlementFee} from "../src/libraries/ConstantsLib.sol";
 import {Market, Offer, CollateralParams} from "../src/interfaces/IAwakening.sol";
 import {Awakening} from "../src/Awakening.sol";
 import {EcrecoverRatifier} from "../src/ratifiers/EcrecoverRatifier.sol";
@@ -153,15 +133,13 @@ abstract contract BaseTest is Test {
     }
 
     function collateralize(Market memory market, address _borrower, uint256 debt, uint256 collateralIndex) internal {
-        uint256 oraclePrice = Oracle(market.collateralParams[collateralIndex].oracle).price();
-        uint256 collateral =
-            debt.mulDivUp(WAD, market.collateralParams[collateralIndex].lltv).mulDivUp(ORACLE_PRICE_SCALE, oraclePrice);
-        deal(address(market.collateralParams[collateralIndex].token), _borrower, collateral);
+        address collateralToken = market.collateralParams[collateralIndex].token;
+        deal(collateralToken, _borrower, debt);
 
         vm.startPrank(_borrower);
-        ERC20(market.collateralParams[collateralIndex].token).approve(address(awakening), 0);
-        ERC20(market.collateralParams[collateralIndex].token).approve(address(awakening), collateral);
-        awakening.supplyCollateral(market, collateralIndex, collateral, _borrower);
+        ERC20(collateralToken).approve(address(awakening), 0);
+        ERC20(collateralToken).approve(address(awakening), debt);
+        awakening.supplyCollateral(market, collateralIndex, debt, _borrower);
         vm.stopPrank();
     }
 
@@ -219,38 +197,29 @@ abstract contract BaseTest is Test {
     function sortCollateralParams(CollateralParams[] memory arr) internal pure returns (CollateralParams[] memory) {
         for (uint256 i = 1; i < arr.length; i++) {
             uint256 j = i;
-            while (j > 0 && bytes20(arr[j].token) < bytes20(arr[j - 1].token)) {
-                CollateralParams memory temp = arr[j];
-                arr[j] = arr[j - 1];
-                arr[j - 1] = temp;
+            while (j > 0 && _tokenLessThan(arr[j].token, arr[j - 1].token)) {
+                (arr[j], arr[j - 1]) = (arr[j - 1], arr[j]);
                 j--;
             }
         }
         return arr;
     }
 
-    /// @dev Returns an allowed LLTV tier based on a seed value.
-    function allowedLltv(uint256 seed) internal pure returns (uint256) {
-        uint256[9] memory tiers = [LLTV_0, LLTV_1, LLTV_2, LLTV_3, LLTV_4, LLTV_5, LLTV_6, LLTV_7, LLTV_8];
-        return tiers[seed % 9];
+    function _tokenLessThan(address a, address b) internal pure returns (bool) {
+        return bytes20(a) < bytes20(b);
     }
 
-    /// @dev Returns a market with sorted, unique collateralParams, valid lltv/maxLif, and a creatable TTM.
+    /// @dev Returns a market with a single non-zero collateral token and a creatable TTM.
     function validMarket(Market memory market) internal view returns (Market memory) {
-        uint256 len =
-            market.collateralParams.length > MAX_COLLATERALS ? MAX_COLLATERALS : market.collateralParams.length;
-        vm.assume(len > 0);
-        CollateralParams[] memory collateralParams = new CollateralParams[](len);
-        for (uint256 i = 0; i < len; i++) {
-            collateralParams[i].token =
-                address(uint160(uint256(keccak256(abi.encode(market.collateralParams[i].token, i)))));
-            uint256 lltv = allowedLltv(market.collateralParams[i].lltv);
-            collateralParams[i].lltv = lltv;
-            collateralParams[i].maxLif = maxLif(lltv, LIQUIDATION_CURSOR_LOW);
-        }
-        collateralParams = sortCollateralParams(collateralParams);
+        CollateralParams[] memory collateralParams = new CollateralParams[](1);
+        collateralParams[0].token = market.collateralParams.length > 0
+            ? address(uint160(uint256(keccak256(abi.encode(market.collateralParams[0].token)))))
+            : address(uint160(uint256(keccak256(abi.encode("collateral")))));
+        vm.assume(collateralParams[0].token != address(0));
         market.collateralParams = collateralParams;
         market.maturity = bound(market.maturity, 0, vm.getBlockTimestamp() + 100 * 365 days);
+        market.maxStrike = type(uint256).max;
+        market.penaltyPct = 5e16;
         return market;
     }
 
@@ -293,10 +262,6 @@ abstract contract BaseTest is Test {
 
     function absDiff(uint256 a, uint256 b) internal pure returns (uint256) {
         return a > b ? a - b : b - a;
-    }
-
-    function maxLif(uint256 lltv, uint256 cursor) internal pure returns (uint256) {
-        return _maxLif(lltv, cursor);
     }
 
     function maxSettlementFee(uint256 index) internal pure returns (uint256) {
