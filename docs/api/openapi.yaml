@@ -1,0 +1,222 @@
+openapi: 3.1.0
+info:
+  title: Awakening API
+  version: v1
+  description: Mock-first API for BTC-collateralized fixed-rate borrowing and lending.
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/v1/markets:
+    get:
+      operationId: listMarkets
+      responses:
+        '200':
+          description: Market catalog
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MarketsResponse' }
+  /api/v1/markets/{marketId}:
+    parameters:
+      - $ref: '#/components/parameters/MarketId'
+    get:
+      operationId: getMarket
+      responses:
+        '200':
+          description: Market detail
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MarketDetail' }
+        '404': { $ref: '#/components/responses/Problem' }
+  /api/v1/markets/{marketId}/quote:
+    parameters:
+      - $ref: '#/components/parameters/MarketId'
+      - name: side
+        in: query
+        required: true
+        schema: { type: string, enum: [BORROW, LEND] }
+      - name: amount
+        in: query
+        required: true
+        schema: { type: string, pattern: '^\\d+(\\.\\d+)?$' }
+    get:
+      operationId: getQuote
+      responses:
+        '200':
+          description: Deterministic quote
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Quote' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+  /api/v1/portfolio/{wallet}:
+    parameters:
+      - $ref: '#/components/parameters/Wallet'
+    get:
+      operationId: getPortfolio
+      responses:
+        '200':
+          description: Wallet portfolio
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Portfolio' }
+        '400': { $ref: '#/components/responses/Problem' }
+  /api/v1/offers:
+    post:
+      operationId: createOffer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SignedOffer' }
+      responses:
+        '201':
+          description: Offer stored
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Offer' }
+        '400': { $ref: '#/components/responses/Problem' }
+  /api/v1/config:
+    get:
+      operationId: getRuntimeConfig
+      responses:
+        '200':
+          description: Non-secret runtime configuration
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RuntimeConfig' }
+components:
+  parameters:
+    MarketId:
+      name: marketId
+      in: path
+      required: true
+      schema: { type: string, pattern: '^0x[a-f0-9]{64}$' }
+    Wallet:
+      name: wallet
+      in: path
+      required: true
+      schema: { type: string, pattern: '^0x[a-fA-F0-9]{40}$' }
+  responses:
+    Problem:
+      description: RFC 9457 Problem Details
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    MarketMeta:
+      type: object
+      required: [profile, chainId, generatedAt]
+      properties:
+        profile: { type: string }
+        chainId: { type: integer }
+        generatedAt: { type: string, format: date-time }
+    MarketsResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/MarketSummary' } }
+        meta: { $ref: '#/components/schemas/MarketMeta' }
+    MarketSummary:
+      type: object
+      required: [id, collateralAsset, principalAsset, maturity, fixedApr, utilization, availableLiquidity, offerDepth, settlementState, contractsReady]
+      properties:
+        id: { type: string }
+        collateralAsset: { type: string, example: BTC }
+        principalAsset: { type: string, example: USDC }
+        maturity: { type: string, format: date-time }
+        fixedApr: { type: string }
+        utilization: { type: string }
+        availableLiquidity: { type: string }
+        offerDepth: { type: string }
+        settlementState: { type: string, enum: [OPEN, MATURED, SETTLED] }
+        contractsReady: { type: boolean }
+    MarketDetail:
+      allOf:
+        - $ref: '#/components/schemas/MarketSummary'
+        - type: object
+          required: [collateralRatio, patCoverage, minimumAmount]
+          properties:
+            collateralRatio: { type: string }
+            patCoverage: { type: string }
+            minimumAmount: { type: string }
+    Quote:
+      type: object
+      required: [marketId, side, principal, collateralRequirement, interest, protocolFee, totalDueOrPayout, apr, maturity, expiresAt, executionSteps]
+      properties:
+        marketId: { type: string }
+        side: { type: string, enum: [BORROW, LEND] }
+        principal: { type: string }
+        collateralRequirement: { type: string }
+        interest: { type: string }
+        protocolFee: { type: string }
+        totalDueOrPayout: { type: string }
+        apr: { type: string }
+        maturity: { type: string, format: date-time }
+        expiresAt: { type: string, format: date-time }
+        executionSteps: { type: array, items: { type: string } }
+    Portfolio:
+      type: object
+      required: [wallet, totals, borrowPositions, lendPositions]
+      properties:
+        wallet: { type: string }
+        totals: { $ref: '#/components/schemas/PortfolioTotals' }
+        borrowPositions: { type: array, items: { $ref: '#/components/schemas/Position' } }
+        lendPositions: { type: array, items: { $ref: '#/components/schemas/Position' } }
+    PortfolioTotals:
+      type: object
+      required: [borrowedPrincipal, lentPrincipal, collateralLocked]
+      properties:
+        borrowedPrincipal: { type: string }
+        lentPrincipal: { type: string }
+        collateralLocked: { type: string }
+    Position:
+      type: object
+      required: [id, marketId, side, principal, collateral, maturity, settlementState]
+      properties:
+        id: { type: string }
+        marketId: { type: string }
+        side: { type: string, enum: [BORROW, LEND] }
+        principal: { type: string }
+        collateral: { type: string }
+        maturity: { type: string, format: date-time }
+        settlementState: { type: string, enum: [OPEN, MATURED, SETTLED] }
+    SignedOffer:
+      type: object
+      required: [wallet, marketId, amount, apr, expiry, signature]
+      properties:
+        wallet: { type: string }
+        marketId: { type: string }
+        amount: { type: string }
+        apr: { type: string }
+        expiry: { type: string, format: date-time }
+        signature: { type: string, pattern: '^0x[a-fA-F0-9]+$' }
+    Offer:
+      allOf:
+        - $ref: '#/components/schemas/SignedOffer'
+        - type: object
+          required: [id, status, createdAt]
+          properties:
+            id: { type: string }
+            status: { type: string, enum: [OPEN] }
+            createdAt: { type: string, format: date-time }
+    RuntimeConfig:
+      type: object
+      required: [profile, chainId, rpcUrlConfigured, contractsReady]
+      properties:
+        profile: { type: string }
+        chainId: { type: integer }
+        rpcUrlConfigured: { type: boolean }
+        contractsReady: { type: boolean }
+        awakeningAddress: { type: [string, 'null'] }
+        settlementAddress: { type: [string, 'null'] }
+        patAddress: { type: [string, 'null'] }
+        optionVaultAddress: { type: [string, 'null'] }
+    Problem:
+      type: object
+      required: [type, title, status, detail]
+      properties:
+        type: { type: string, format: uri-reference }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string, format: uri-reference }
