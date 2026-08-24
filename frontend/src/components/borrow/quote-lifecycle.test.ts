@@ -1,0 +1,3 @@
+import { describe, expect, it } from "vitest";
+import { quoteKey, quoteStillCurrent, validateBorrowAmount, borrowDetails } from "./quote-lifecycle";
+describe("borrow quote lifecycle",()=>{it("enforces market minimum and amount bounds",()=>{expect(validateBorrowAmount("99","100")).toBe("Minimum amount is 100.");expect(validateBorrowAmount("100.000000001","100")).toBe("Use at most 8 decimal places.")});it("maps PAT and collateral information",()=>expect(borrowDetails({minimumAmount:"100",patCoverage:"100.2",collateralRatio:"1.66"})).toContainEqual(["PAT coverage","100.2%"]));it("binds quotes to market, amount and side",()=>{const key=quoteKey("0xabc","100","BORROW");expect(quoteStillCurrent(key,quoteKey("0xabc","101","BORROW"))).toBe(false)})});

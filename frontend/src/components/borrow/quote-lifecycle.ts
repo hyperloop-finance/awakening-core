@@ -1,0 +1,4 @@
+export const quoteKey=(marketId:string,amount:string,side:string)=>`${marketId}:${amount}:${side}`;
+export const quoteStillCurrent=(expected:string,actual:string)=>expected===actual;
+export function validateBorrowAmount(amount:string,minimum:string){if(!/^\d+(\.\d+)?$/.test(amount))return "Use a plain decimal amount.";if((amount.split(".")[1]?.length??0)>8)return "Use at most 8 decimal places.";const p=(x:string)=>{const[a,b=""]=x.split(".");return BigInt(a+b.padEnd(8,"0"))};if(p(amount)<p(minimum))return `Minimum amount is ${minimum}.`;return undefined}
+export const borrowDetails=({minimumAmount,patCoverage,collateralRatio}:{minimumAmount:string;patCoverage:string;collateralRatio:string}):[string,string][]=>[["Minimum amount",`${minimumAmount} USDC`],["Collateral ratio",`${collateralRatio}x`],["PAT coverage",`${patCoverage}%`]];
