@@ -27,6 +27,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/MarketDetail' }
         '404': { $ref: '#/components/responses/Problem' }
+        '503': { $ref: '#/components/responses/Problem' }
   /api/v1/markets/{marketId}/quote:
     parameters:
       - $ref: '#/components/parameters/MarketId'
@@ -37,7 +38,7 @@ paths:
       - name: amount
         in: query
         required: true
-        schema: { type: string, pattern: '^\\d+(\\.\\d+)?$' }
+        schema: { $ref: '#/components/schemas/PlainDecimal' }
     get:
       operationId: getQuote
       responses:
@@ -48,6 +49,7 @@ paths:
               schema: { $ref: '#/components/schemas/Quote' }
         '400': { $ref: '#/components/responses/Problem' }
         '404': { $ref: '#/components/responses/Problem' }
+        '503': { $ref: '#/components/responses/Problem' }
   /api/v1/portfolio/{wallet}:
     parameters:
       - $ref: '#/components/parameters/Wallet'
@@ -60,6 +62,8 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/Portfolio' }
         '400': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
   /api/v1/offers:
     post:
       operationId: createOffer
@@ -105,11 +109,15 @@ components:
   schemas:
     MarketMeta:
       type: object
-      required: [profile, chainId, generatedAt]
+      required: [profile, chainId, generatedAt, dataSource]
       properties:
         profile: { type: string }
         chainId: { type: integer }
         generatedAt: { type: string, format: date-time }
+        dataSource:
+          type: string
+          enum: [MOCK_CATALOG, UNAVAILABLE]
+          description: MOCK_CATALOG is deterministic fixture data, never indexed on-chain state.
     MarketsResponse:
       type: object
       required: [data, meta]
@@ -182,14 +190,22 @@ components:
         settlementState: { type: string, enum: [OPEN, MATURED, SETTLED] }
     SignedOffer:
       type: object
-      required: [wallet, marketId, amount, apr, expiry, signature]
+      description: >-
+        While contractsReady is false, only EIP191_MOCK is accepted. Its EIP-191 personal-sign
+        payload is the exact UTF-8 lines `Awakening Mock Offer`, chainId, lowercased wallet,
+        marketId, normalized plain amount, normalized plain apr, and ISO expiry in that order.
+        EIP-712 is not accepted without a deployed verifier; its future domain is
+        {name: Awakening, version: '1', chainId, verifyingContract} and its Offer message is
+        {wallet, marketId, amount, apr, expiry}.
+      required: [signingScheme, wallet, marketId, amount, apr, expiry, signature]
       properties:
-        wallet: { type: string }
-        marketId: { type: string }
-        amount: { type: string }
-        apr: { type: string }
+        signingScheme: { type: string, enum: [EIP191_MOCK] }
+        wallet: { type: string, pattern: '^0x[a-fA-F0-9]{40}$' }
+        marketId: { type: string, pattern: '^0x[a-f0-9]{64}$' }
+        amount: { $ref: '#/components/schemas/PlainDecimal' }
+        apr: { $ref: '#/components/schemas/PlainDecimal' }
         expiry: { type: string, format: date-time }
-        signature: { type: string, pattern: '^0x[a-fA-F0-9]+$' }
+        signature: { type: string, pattern: '^0x[a-fA-F0-9]{130}$' }
     Offer:
       allOf:
         - $ref: '#/components/schemas/SignedOffer'
@@ -207,10 +223,15 @@ components:
         chainId: { type: integer }
         rpcUrlConfigured: { type: boolean }
         contractsReady: { type: boolean }
-        awakeningAddress: { type: [string, 'null'] }
-        settlementAddress: { type: [string, 'null'] }
-        patAddress: { type: [string, 'null'] }
-        optionVaultAddress: { type: [string, 'null'] }
+        awakeningAddress: { type: [string, 'null'], pattern: '^0x[a-fA-F0-9]{40}$', description: Non-zero EVM address when configured. }
+        settlementAddress: { type: [string, 'null'], pattern: '^0x[a-fA-F0-9]{40}$', description: Non-zero EVM address when configured. }
+        patAddress: { type: [string, 'null'], pattern: '^0x[a-fA-F0-9]{40}$', description: Non-zero EVM address when configured. }
+        optionVaultAddress: { type: [string, 'null'], pattern: '^0x[a-fA-F0-9]{40}$', description: Non-zero EVM address when configured. }
+    PlainDecimal:
+      type: string
+      pattern: '^\\d+(\\.\\d+)?$'
+      maxLength: 17
+      description: Plain non-negative decimal without exponent notation; at most 8 fractional digits and 1000000 maximum.
     Problem:
       type: object
       required: [type, title, status, detail]

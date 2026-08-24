@@ -27,7 +27,7 @@ class QuoteApiTest {
 				.queryParam("side", "BORROW").queryParam("amount", "1000"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.side").value("BORROW"))
-				.andExpect(jsonPath("$.principal").value("1000.00"))
+				.andExpect(jsonPath("$.principal").value("1000"))
 				.andExpect(jsonPath("$.collateralRequirement").value("0.02500000"))
 				.andExpect(jsonPath("$.interest").value("20.958904"))
 				.andExpect(jsonPath("$.totalDueOrPayout").value("1023.958904"));

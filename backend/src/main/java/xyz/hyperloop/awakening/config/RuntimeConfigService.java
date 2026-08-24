@@ -16,13 +16,18 @@ public class RuntimeConfigService {
 	}
 
 	public RuntimeConfig getConfig() {
-		String awakening = nullable(properties.contracts().awakeningAddress());
-		String settlement = nullable(properties.contracts().settlementAddress());
-		String pat = nullable(properties.contracts().patAddress());
-		String optionVault = nullable(properties.contracts().optionVaultAddress());
+		String awakening = configuredAddress(properties.contracts().awakeningAddress());
+		String settlement = configuredAddress(properties.contracts().settlementAddress());
+		String pat = configuredAddress(properties.contracts().patAddress());
+		String optionVault = configuredAddress(properties.contracts().optionVaultAddress());
 		return new RuntimeConfig(activeProfile(), properties.rpc().chainId(), nullable(properties.rpc().url()) != null,
-				awakening != null && settlement != null && pat != null && optionVault != null,
+				contractsReady(),
 				awakening, settlement, pat, optionVault);
+	}
+
+	public boolean contractsReady() {
+		return isValidAddress(properties.contracts().awakeningAddress()) && isValidAddress(properties.contracts().settlementAddress())
+				&& isValidAddress(properties.contracts().patAddress()) && isValidAddress(properties.contracts().optionVaultAddress());
 	}
 
 	private String activeProfile() {
@@ -32,5 +37,13 @@ public class RuntimeConfigService {
 
 	private String nullable(String value) {
 		return value == null || value.isBlank() ? null : value;
+	}
+
+	private String configuredAddress(String value) {
+		return isValidAddress(value) ? value.toLowerCase() : null;
+	}
+
+	private boolean isValidAddress(String value) {
+		return value != null && value.matches("0x[0-9a-fA-F]{40}") && !value.equalsIgnoreCase("0x0000000000000000000000000000000000000000");
 	}
 }

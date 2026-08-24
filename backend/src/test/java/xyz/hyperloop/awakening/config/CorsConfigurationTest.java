@@ -26,4 +26,12 @@ class CorsConfigurationTest {
 				.andExpect(status().isOk())
 				.andExpect(header().string("Access-Control-Allow-Origin", "http://client.example"));
 	}
+
+	@Test
+	void rejectsUnconfiguredFrontendOrigin() throws Exception {
+		mockMvc.perform(options("/api/v1/markets")
+				.header("Origin", "http://untrusted.example")
+				.header("Access-Control-Request-Method", "GET"))
+				.andExpect(status().isForbidden());
+	}
 }
