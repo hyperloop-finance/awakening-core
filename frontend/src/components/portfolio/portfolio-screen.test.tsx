@@ -100,6 +100,7 @@ describe("PortfolioScreen", () => {
 
     expect(await screen.findAllByText("9,007,199,254,740,993 USDC")).toHaveLength(2);
     expect(screen.getByText("Matures Jan 1, 2026 UTC")).toBeInTheDocument();
+    expect(screen.getByRole("table", { name: "Borrow positions" })).toBeInTheDocument();
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 

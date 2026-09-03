@@ -49,6 +49,8 @@ describe("MarketsScreen", () => {
 
     expect(await screen.findByRole("table", { name: "Available markets" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "MARKET" })).toBeInTheDocument();
+    expect(screen.getByText("min(S, K)")).toBeInTheDocument();
+    expect(screen.getByText("DETERMINISTIC PREVIEW · NO LIVE TVL")).toBeInTheDocument();
     expect(within(screen.getByRole("table")).getByText("12%")).toBeInTheDocument();
     expect(within(screen.getByRole("table")).getByText("41.2%")).toBeInTheDocument();
     expect(

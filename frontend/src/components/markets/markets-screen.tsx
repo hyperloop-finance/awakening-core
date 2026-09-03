@@ -47,45 +47,76 @@ export function MarketsScreen() {
 
   return (
     <>
-      <div className="eyebrow">FIXED RATE · FIXED MATURITY · BTC COLLATERAL</div>
-      <h1 className="page-heading">BTC credit without interim liquidations.</h1>
-      <p className="page-subtitle">
-        Explore BTC / USDC markets. Positions remain previews until contract addresses are
-        configured.
-      </p>
-      {overview && (
-        <section className="overview-grid" aria-label="Market overview">
-          <div className="glass-card metric">
-            <span>Total available</span>
-            <strong>{formatDecimal(overview.totalLiquidity)} USDC</strong>
+      <section className="markets-hero" aria-labelledby="markets-title">
+        <div className="markets-hero-copy">
+          <div className="preview-status">
+            <span aria-hidden="true" />
+            DETERMINISTIC PREVIEW · NO LIVE TVL
           </div>
-          <div className="glass-card metric">
-            <span>Market count</span>
-            <strong>{overview.marketCount}</strong>
+          <h1 className="page-heading" id="markets-title">
+            Borrow against BTC.<br />
+            <span>Never get liquidated.</span>
+          </h1>
+          <p className="page-subtitle">
+            Fixed-rate, fixed-maturity BTC credit. Every quote carries explicit put
+            attribution, with no health checks or margin calls during the term.
+          </p>
+          <div className="invariant-panel" aria-label="Protocol repayment invariant">
+            <span className="invariant-label">THE INVARIANT</span>
+            <div className="invariant-equation">
+              <span>min(S, K)</span>
+              <i>+</i>
+              <span>max(K − S, 0)</span>
+              <i>=</i>
+              <strong>K</strong>
+            </div>
+            <p>collateral value + put payoff = protected repayment at maturity</p>
           </div>
-          <div className="glass-card metric">
-            <span>Average fixed APR</span>
-            <strong>
-              {overview.averageApr ? formatRateAsPercent(overview.averageApr) : "—"}
-            </strong>
-          </div>
-          <div className="glass-card metric">
-            <span>Next maturity</span>
-            <strong>
-              {overview.nextMaturity
-                ? `${overview.nextMaturity.slice(0, 10)} UTC`
-                : "—"}
-            </strong>
-          </div>
-        </section>
-      )}
-      <section>
+        </div>
+
+        {overview && (
+          <section className="market-overview" aria-label="Market overview">
+            <div className="metric">
+              <span>Total available</span>
+              <strong>{formatDecimal(overview.totalLiquidity)} USDC</strong>
+              <small>API catalog preview</small>
+            </div>
+            <div className="metric">
+              <span>Market count</span>
+              <strong>{overview.marketCount}</strong>
+              <small>returned by current profile</small>
+            </div>
+            <div className="metric">
+              <span>Average fixed APR</span>
+              <strong>
+                {overview.averageApr ? formatRateAsPercent(overview.averageApr) : "—"}
+              </strong>
+              <small>simple catalog average</small>
+            </div>
+            <div className="metric">
+              <span>Next maturity</span>
+              <strong>
+                {overview.nextMaturity
+                  ? `${overview.nextMaturity.slice(0, 10)} UTC`
+                  : "—"}
+              </strong>
+              <small>fixed settlement date</small>
+            </div>
+          </section>
+        )}
+      </section>
+
+      <section className="markets-section" aria-labelledby="market-catalog-title">
         <div className="section-heading">
           <div>
-            <h2>Markets</h2>
-            <p>Filter by market identifier or maturity.</p>
+            <h2 id="market-catalog-title">Markets</h2>
+            <p>Isolated BTC / USDC terms sourced from the current API profile.</p>
           </div>
           <div className="market-filter">
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none">
+              <circle cx="11" cy="11" r="6" />
+              <path d="m16 16 4 4" />
+            </svg>
             <input
               className="filter-input"
               aria-label="Filter markets"
@@ -111,16 +142,17 @@ export function MarketsScreen() {
           </EmptyState>
         )}
         {filtered.length > 0 && (
-          <div className="glass-card market-table">
+          <div className="market-table">
             <table aria-label="Available markets">
               <thead>
                 <tr>
                   <th scope="col">MARKET</th>
-                  <th scope="col">APR</th>
+                  <th scope="col">FIXED APR</th>
                   <th scope="col">MATURITY</th>
                   <th scope="col">AVAILABLE</th>
                   <th scope="col">UTILIZATION</th>
-                  <th scope="col">OFFERS</th>
+                  <th scope="col">OFFER DEPTH</th>
+                  <th scope="col">STATUS</th>
                   <th scope="col">ACTIONS</th>
                 </tr>
               </thead>
@@ -128,14 +160,23 @@ export function MarketsScreen() {
                 {filtered.map((market) => (
                   <tr key={market.id}>
                     <th scope="row" className="market-name">
-                      {market.collateralAsset} / {market.principalAsset}
-                      <span className="market-meta">PAT coverage preview</span>
+                      <span className="asset-pair">
+                        <i className="asset-symbol asset-btc">B</i>
+                        <i className="asset-symbol asset-usdc">$</i>
+                        <b>{market.collateralAsset} / {market.principalAsset}</b>
+                      </span>
+                      <span className="market-meta">PAT terms resolved with quote</span>
                     </th>
-                    <td>{formatRateAsPercent(market.fixedApr)}</td>
+                    <td><span className="rate-badge">{formatRateAsPercent(market.fixedApr)}</span></td>
                     <td>{market.maturity.slice(0, 10)} UTC</td>
                     <td>{formatDecimal(market.availableLiquidity)} USDC</td>
                     <td>{formatRateAsPercent(market.utilization)}</td>
-                    <td>{market.offerDepth}</td>
+                    <td>{formatDecimal(market.offerDepth)} USDC</td>
+                    <td>
+                      <span className={`status-badge status-${market.settlementState.toLowerCase()}`}>
+                        <i aria-hidden="true" />{market.settlementState}
+                      </span>
+                    </td>
                     <td>
                       <span className="market-actions">
                         <Link className="small-action" href={`/borrow/${market.id}`}>

@@ -4,6 +4,13 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { AppShell } from "@/components/shell/app-shell";
 
+/*
+ * Design direction audit — seed ff920e19
+ * User-fixed direction: awakening-mvp faithful evolution.
+ * Preserve the reference's cosmic black ground, precise violet/lavender hierarchy,
+ * dense operating surfaces, PAT/status language, and explicit preview-state honesty.
+ */
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -27,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable}`}
       >
         <Providers>
           <AppShell>{children}</AppShell>

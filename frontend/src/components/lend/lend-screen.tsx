@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRuntimeReadiness } from "@/components/shell/app-shell";
 import { ErrorState, LoadingState } from "@/components/shell/states";
 import { useWalletIdentity } from "@/components/shell/wallet";
@@ -8,6 +9,7 @@ import { awakeningApi, normalizeApiError } from "@/lib/api/client";
 import { validateDecimalInput } from "@/lib/api/quotes";
 import type { MarketDetail, Quote } from "@/lib/api/types";
 import { decimalRateToPercent, formatRateAsPercent } from "@/lib/fixed-decimal";
+import { formatDecimal } from "@/lib/format";
 import { quoteSummary } from "@/lib/state/flows";
 import {
   buildUnsignedOfferPayload,
@@ -120,14 +122,25 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
 
   return (
     <>
-      <div className="eyebrow">OFF-CHAIN LEND OFFER</div>
-      <h1 className="page-heading">Lend at a fixed APR.</h1>
-      <p className="page-subtitle">
-        {marketState.kind === "ready"
-          ? `${marketState.market.collateralAsset} / ${marketState.market.principalAsset}`
-          : "Market details pending"}
-        {" · "}compare the market quote, then set the APR for your unsigned offer.
-      </p>
+      <header className="flow-hero">
+        <Link className="back-link" href="/markets">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none"><path d="m15 5-7 7 7 7" /></svg>
+          Markets
+        </Link>
+        <div className="flow-title-row">
+          <div>
+            <span className="preview-status"><span aria-hidden="true" />UNSIGNED OFFER PREVIEW</span>
+            <h1 className="page-heading">Lend at a fixed APR.</h1>
+            <p className="page-subtitle">
+              {marketState.kind === "ready"
+                ? `${marketState.market.collateralAsset} / ${marketState.market.principalAsset}`
+                : "Market details pending"}
+              {" · "}compare the market quote, then define your offer rate.
+            </p>
+          </div>
+          <span className="non-live-badge">NO SIGNATURE REQUEST</span>
+        </div>
+      </header>
 
       {marketState.kind === "loading" && <LoadingState label="Loading market…" />}
       {marketState.kind === "error" && (
@@ -136,29 +149,67 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
 
       {marketState.kind === "ready" && (
         <div className="flow-grid">
-          <section className="glass-card flow-panel">
-            <h2>Lend quote</h2>
-            <div className="preview-box market-detail-box">
-              {lendDetails(marketState.market).map(([label, value]) => (
-                <div className="preview-row" key={label}>
-                  <span>{label}</span>
-                  <b>{value}</b>
+          <div className="market-context">
+            <section className="market-facts" aria-labelledby="lend-market-facts-title">
+              <div className="panel-heading">
+                <div>
+                  <span>MARKET FACTS</span>
+                  <h2 id="lend-market-facts-title">{marketState.market.collateralAsset} / {marketState.market.principalAsset}</h2>
                 </div>
-              ))}
+                <span className={`status-badge status-${marketState.market.settlementState.toLowerCase()}`}>
+                  <i aria-hidden="true" />{marketState.market.settlementState}
+                </span>
+              </div>
+              <div className="market-id" title={marketState.market.id}>{marketState.market.id}</div>
+              <dl className="fact-list">
+                <div><dt>Maturity</dt><dd>{marketState.market.maturity.slice(0, 10)} UTC</dd></div>
+                <div><dt>Available liquidity</dt><dd>{formatDecimal(marketState.market.availableLiquidity)} USDC</dd></div>
+                {lendDetails(marketState.market).map(([label, value]) => (
+                  <div key={label}><dt>{label}</dt><dd>{value}</dd></div>
+                ))}
+              </dl>
+            </section>
+
+            <section className="pat-explainer" aria-labelledby="lend-pat-title">
+              <div className="pat-seal" aria-hidden="true">
+                <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="15" /><path d="M13 23c4-8 10-8 14 0M20 11v18" /></svg>
+              </div>
+              <div>
+                <span className="pat-label">PUT ATTRIBUTION TOKEN</span>
+                <h2 id="lend-pat-title">Put-attributed lender protection</h2>
+                <p>
+                  Each credit unit is paired with downside attribution at the market strike.
+                  The terminal repayment design is reviewed at quote time and settles at maturity.
+                </p>
+              </div>
+              <div className="pat-equation"><span>COLLATERAL</span><i>+</i><span>PUT PAYOFF</span><i>=</i><strong>K</strong></div>
+            </section>
+
+            <section className="term-track" aria-label="Lend lifecycle">
+              <div className="term-step term-step-active"><span>NOW</span><strong>Draft offer</strong></div>
+              <div className="term-step"><span>FILL</span><strong>PAT checked</strong></div>
+              <div className="term-step"><span>MATURITY</span><strong>Fixed payout</strong></div>
+            </section>
+          </div>
+
+          <section className="transaction-ticket" aria-labelledby="lend-ticket-title">
+            <div className="ticket-heading">
+              <div><span>LEND / USDC</span><h2 id="lend-ticket-title">Offer ticket</h2></div>
+              <span className="ticket-mode">MOCK</span>
+            </div>
+            <div className="warning-callout">
+              {liveContractsReady
+                ? "Contracts are configured, but signing and offer submission are not implemented. Simulation remains local."
+                : "No private key or complete deployment is available. Simulation remains local."}
             </div>
             <label className="form-label" htmlFor="lend-amount">
               USDC amount
             </label>
-            <input
-              id="lend-amount"
-              inputMode="decimal"
-              className="amount-input"
-              value={amount}
-              onChange={(event) => {
-                setAmount(event.target.value);
-                clearQuote();
-              }}
-            />
+            <div className="amount-field">
+              <input id="lend-amount" inputMode="decimal" className="amount-input" value={amount}
+                onChange={(event) => { setAmount(event.target.value); clearQuote(); }} />
+              <span>USDC</span>
+            </div>
             {amountError ? (
               <p className="field-help field-error">{amountError}</p>
             ) : (
@@ -169,17 +220,11 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
             <label className="form-label" htmlFor="lend-apr">
               Offer APR (%)
             </label>
-            <input
-              id="lend-apr"
-              inputMode="decimal"
-              className="amount-input"
-              value={offerAprPercent}
-              onChange={(event) => {
-                setOfferAprPercent(event.target.value);
-                setPreviewed(false);
-                setSimulated(false);
-              }}
-            />
+            <div className="amount-field">
+              <input id="lend-apr" inputMode="decimal" className="amount-input" value={offerAprPercent}
+                onChange={(event) => { setOfferAprPercent(event.target.value); setPreviewed(false); setSimulated(false); }} />
+              <span>% APR</span>
+            </div>
             {offerAprError ? (
               <p className="field-help field-error">{offerAprError}</p>
             ) : (
@@ -194,8 +239,11 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
             >
               {quoteState.kind === "loading" ? "Calculating…" : "Calculate lend quote"}
             </button>
+            {quoteState.kind === "error" && <ErrorState message={quoteState.message} retry={refreshQuote} />}
             {quote && (
-              <div className="preview-box">
+              <div className="quote-result">
+                <div className="quote-result-head"><span>MARKET INDICATIVE QUOTE</span><time>{quote.expiresAt.slice(11, 16)} UTC expiry</time></div>
+                <div className="preview-box">
                 <strong className="preview-label">Market indicative quote</strong>
                 <p className="field-help">
                   Calculated by the API at the market&apos;s {formatRateAsPercent(quote.apr)}
@@ -207,51 +255,32 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
                     <b>{value}</b>
                   </div>
                 ))}
-              </div>
-            )}
-          </section>
-
-          <aside className="glass-card flow-panel">
-            <h2>Unsigned offer preview</h2>
-            <div className="warning-callout">
-              {liveContractsReady
-                ? "Contracts are configured, but signing and offer submission are not implemented. Simulation remains local."
-                : "No private key or complete deployment is available. Simulation remains local."}
-            </div>
-            {quoteState.kind === "error" && (
-              <ErrorState message={quoteState.message} retry={refreshQuote} />
-            )}
-            {quote ? (
-              <>
+                </div>
+                <div className="step-preview">
+                  <h3>Offer preview steps</h3>
+                  <ol className="preview-steps">
+                    {quote.executionSteps.map((step) => <li key={step}>{step}</li>)}
+                  </ol>
+                </div>
                 <button
                   className="primary-button standalone-action"
-                  onClick={() => {
-                    if (offerAprError) return;
-                    setPreviewed(true);
-                    setSimulated(false);
-                  }}
+                  onClick={() => { if (offerAprError) return; setPreviewed(true); setSimulated(false); }}
                   disabled={Boolean(offerAprError)}
                 >
                   {previewed ? "Offer preview ready" : "Preview offer"}
                 </button>
                 {payload && (
                   <div className="preview-box offer-preview">
-                    <div className="preview-row">
-                      <span>Signing scheme</span>
-                      <b>EIP191_MOCK</b>
-                    </div>
-                    <pre className="offer-payload" aria-label="Unsigned offer payload">
-                      {payload}
-                    </pre>
-                    <p className="field-help">
-                      This is an unsigned payload preview. No wallet signature was requested.
-                    </p>
+                    <div className="preview-row"><span>Signing scheme</span><b>EIP191_MOCK</b></div>
+                    <pre className="offer-payload" aria-label="Unsigned offer payload">{payload}</pre>
+                    <p className="field-help">This is an unsigned payload preview. No wallet signature was requested.</p>
                   </div>
                 )}
-              </>
-            ) : quoteState.kind !== "error" ? (
-              <p className="field-help">Calculate a quote to preview the offer payload.</p>
-            ) : null}
+              </div>
+            )}
+            {!quote && quoteState.kind !== "error" && (
+              <div className="ticket-placeholder"><span>OFFER PREVIEW PENDING</span><p>Calculate a quote to inspect payout, PAT-backed terms, and the unsigned payload.</p></div>
+            )}
             <div className="action-stack">
               <button
                 className="primary-button"
@@ -278,7 +307,7 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
                 Offer simulation recorded locally. No signature or transaction was sent.
               </p>
             )}
-          </aside>
+          </section>
         </div>
       )}
     </>

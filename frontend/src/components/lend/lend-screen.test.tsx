@@ -63,6 +63,7 @@ describe("LendScreen", () => {
     response.resolve(market);
 
     expect(await screen.findByText("PAT coverage")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Put-attributed lender protection" })).toBeInTheDocument();
     expect(screen.getByText("95%")).toBeInTheDocument();
     expect(screen.getByText("12%")).toBeInTheDocument();
     expect(screen.getByText("100.000000 USDC")).toBeInTheDocument();

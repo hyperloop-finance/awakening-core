@@ -22,38 +22,48 @@ function PositionList({
   title: string;
   positions: ReturnType<typeof derivePortfolioView>["borrows"];
 }) {
+  const label = title === "Borrows" ? "Borrow positions" : "Lend positions";
   return (
-    <section className="glass-card">
-      <div className="flow-panel">
+    <section className="position-section">
+      <div className="position-section-head">
         <h2>{title}</h2>
-        <p className="field-help">Fixed maturity positions</p>
+        <span>{positions.length} POSITION{positions.length === 1 ? "" : "S"}</span>
       </div>
-      <div className="position-list">
-        {positions.map((position) => (
-          <article className="position-row" key={position.id}>
-            <div className="position-top">
-              <strong>{position.marketId}</strong>
-              <span
-                className={
-                  position.status.startsWith("Matured")
-                    ? "status status-matured"
-                    : "status"
-                }
-              >
-                {position.status}
-              </span>
-            </div>
-            <div className="position-meta">
-              <span>{formatDecimal(position.principal)} USDC</span>
-              <span>Matures {formatUtcDate(position.maturity)} UTC</span>
-            </div>
-            {position.settlementState === "MATURED" && (
-              <p className="field-help">
-                Settlement is displayed for review only; no transaction action is enabled.
-              </p>
-            )}
-          </article>
-        ))}
+      <div className="position-table-wrap">
+        <table className="position-table" aria-label={label}>
+          <thead>
+            <tr>
+              <th scope="col">MARKET / POSITION</th>
+              <th scope="col">PRINCIPAL</th>
+              <th scope="col">COLLATERAL</th>
+              <th scope="col">MATURITY</th>
+              <th scope="col">STATUS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {positions.length === 0 ? (
+              <tr><td className="empty-table-cell" colSpan={5}>No {title.toLowerCase()} in this wallet preview.</td></tr>
+            ) : positions.map((position) => (
+              <tr key={position.id}>
+                <th scope="row">
+                  <span className="position-market">BTC / USDC</span>
+                  <span className="position-id" title={position.marketId}>{position.marketId}</span>
+                </th>
+                <td>{formatDecimal(position.principal)} USDC</td>
+                <td>{formatDecimal(position.collateral, 8)} BTC</td>
+                <td>Matures {formatUtcDate(position.maturity)} UTC</td>
+                <td>
+                  <span className={position.status.startsWith("Matured") ? "status-badge status-matured" : "status-badge status-open"}>
+                    <i aria-hidden="true" />{position.status}
+                  </span>
+                  {position.settlementState === "MATURED" && (
+                    <small>Review only · transaction disabled</small>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </section>
   );
@@ -131,21 +141,26 @@ export function PortfolioScreen() {
     } else {
       content = (
         <>
-          <section className="overview-grid">
-            <div className="glass-card metric">
+          <section className="portfolio-summary" aria-label="Portfolio overview">
+            <div className="summary-lead">
+              <span>{currentState.payload.meta.profile.toUpperCase()} WALLET OVERVIEW</span>
+              <strong>Fixed-maturity positions</strong>
+              <small>Values returned by the current portfolio API profile.</small>
+            </div>
+            <div className="metric">
               <span>BORROWED</span>
               <strong>{formatDecimal(view.summary?.borrowedPrincipal ?? "0")} USDC</strong>
             </div>
-            <div className="glass-card metric">
+            <div className="metric">
               <span>LENT</span>
               <strong>{formatDecimal(view.summary?.lentPrincipal ?? "0")} USDC</strong>
             </div>
-            <div className="glass-card metric">
+            <div className="metric">
               <span>BTC LOCKED</span>
               <strong>{formatDecimal(view.summary?.collateralLocked ?? "0", 8)}</strong>
             </div>
           </section>
-          <div className="positions-grid">
+          <div className="positions-ledger">
             <PositionList title="Borrows" positions={view.borrows} />
             <PositionList title="Lends" positions={view.lends} />
           </div>
@@ -156,8 +171,11 @@ export function PortfolioScreen() {
 
   return (
     <>
-      <div className="eyebrow">POSITION CONTROL CENTER</div>
-      <h1 className="page-heading">Portfolio</h1>
+      <header className="portfolio-hero">
+        <span className="preview-status"><span aria-hidden="true" />POSITION CONTROL CENTER · PREVIEW</span>
+        <h1 className="page-heading">Portfolio</h1>
+        <p className="page-subtitle">Inspect borrow and lend exposure by fixed maturity. Settlement actions remain review-only.</p>
+      </header>
       {content}
     </>
   );

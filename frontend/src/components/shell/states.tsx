@@ -32,7 +32,10 @@ export function ErrorState({
 export function EmptyState({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="state-card">
-      <span className="empty-glyph">◇</span>
+      <svg className="empty-glyph" viewBox="0 0 48 48" aria-hidden="true" fill="none">
+        <circle cx="24" cy="24" r="15" />
+        <path d="M14 24h20M24 14v20M18.5 18.5l11 11M29.5 18.5l-11 11" />
+      </svg>
       <strong>{title}</strong>
       <span>{children}</span>
     </div>

@@ -57,6 +57,7 @@ describe("CreditFlow", () => {
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
 
     expect(await screen.findByText("PAT coverage")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Why PAT removes interim liquidation" })).toBeInTheDocument();
     expect(marketRequest).toHaveBeenCalledTimes(2);
   });
 
