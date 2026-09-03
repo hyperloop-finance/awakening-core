@@ -143,8 +143,8 @@ export function PortfolioScreen() {
         <>
           <section className="portfolio-summary" aria-label="Portfolio overview">
             <div className="summary-lead">
-              <span>{currentState.payload.meta.profile.toUpperCase()} WALLET OVERVIEW</span>
               <strong>Fixed-maturity positions</strong>
+              <span>{currentState.payload.meta.profile.toUpperCase()} WALLET OVERVIEW</span>
               <small>Values returned by the current portfolio API profile.</small>
             </div>
             <div className="metric">
@@ -172,8 +172,10 @@ export function PortfolioScreen() {
   return (
     <>
       <header className="portfolio-hero">
-        <span className="preview-status"><span aria-hidden="true" />POSITION CONTROL CENTER · PREVIEW</span>
-        <h1 className="page-heading">Portfolio</h1>
+        <div className="portfolio-title-line">
+          <h1 className="page-heading">Portfolio</h1>
+          <span className="preview-status"><span aria-hidden="true" />POSITION CONTROL CENTER · PREVIEW</span>
+        </div>
         <p className="page-subtitle">Inspect borrow and lend exposure by fixed maturity. Settlement actions remain review-only.</p>
       </header>
       {content}

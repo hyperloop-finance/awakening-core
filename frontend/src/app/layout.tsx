@@ -1,25 +1,34 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { Providers } from "./providers";
 import { AppShell } from "@/components/shell/app-shell";
 
-/*
- * Design direction audit — seed ff920e19
- * User-fixed direction: awakening-mvp faithful evolution.
- * Preserve the reference's cosmic black ground, precise violet/lavender hierarchy,
- * dense operating surfaces, PAT/status language, and explicit preview-state honesty.
- */
+const directionContract = `AWAKENING DIRECTION CONTRACT — seed ff920e19
+THESIS: fixed-maturity BTC credit is understood through protected settlement, not dashboard decoration.
+OWN-WORLD: near-black cosmic ground; precise violet and lavender; data-led market and transaction surfaces.
+STORY: compare a market, understand PAT coverage, preview every step, then inspect positions without mistaking preview data for production.
+FIRST VIEWPORT: sticky protocol header, honest preview status, invariant, API-derived overview, and a dense market table.
+FORM: operate-first composition with semantic tables, market facts beside transaction tickets, exact decimals, visible states, responsive 44px controls.
+FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md`;
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const localSansFallback = localFont({
+  src: "./fonts/geist-latin-fallback.woff2",
+  variable: "--font-local-sans",
+  weight: "100 900",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const localMonoFallback = localFont({
+  src: "./fonts/geist-mono-latin-fallback.woff2",
+  variable: "--font-local-mono",
+  weight: "100 900",
+  display: "swap",
 });
+
+const directionContractScript = `document.body.insertBefore(document.createComment(${JSON.stringify(
+  directionContract,
+)}), document.body.firstChild);`;
 
 export const metadata: Metadata = {
   title: "Awakening — fixed-maturity BTC credit",
@@ -34,8 +43,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable}`}
+        className={`${localSansFallback.variable} ${localMonoFallback.variable}`}
       >
+        <script
+          data-direction-contract="ff920e19"
+          dangerouslySetInnerHTML={{ __html: directionContractScript }}
+        />
         <Providers>
           <AppShell>{children}</AppShell>
         </Providers>

@@ -109,7 +109,6 @@ export function CreditFlow({ marketId, side }: { marketId: string; side: QuoteSi
         </Link>
         <div className="flow-title-row">
           <div>
-            <span className="preview-status"><span aria-hidden="true" />LOCAL TRANSACTION PREVIEW</span>
             <h1 className="page-heading">{verb} against a fixed maturity.</h1>
             <p className="page-subtitle">
               {marketState.kind === "ready"
@@ -118,7 +117,10 @@ export function CreditFlow({ marketId, side }: { marketId: string; side: QuoteSi
               {" · "}review every consequence before a local simulation.
             </p>
           </div>
-          <span className="non-live-badge">NO WALLET REQUEST</span>
+          <div className="flow-statuses">
+            <span className="preview-status"><span aria-hidden="true" />LOCAL TRANSACTION PREVIEW</span>
+            <span className="non-live-badge">NO WALLET REQUEST</span>
+          </div>
         </div>
       </header>
 
@@ -133,9 +135,8 @@ export function CreditFlow({ marketId, side }: { marketId: string; side: QuoteSi
             <section className="market-facts" aria-labelledby="market-facts-title">
               <div className="panel-heading">
                 <div>
-                  <span>MARKET FACTS</span>
                   <h2 id="market-facts-title">
-                    {marketState.market.collateralAsset} / {marketState.market.principalAsset}
+                    Market facts <small>{marketState.market.collateralAsset} / {marketState.market.principalAsset}</small>
                   </h2>
                 </div>
                 <span className={`status-badge status-${marketState.market.settlementState.toLowerCase()}`}>
@@ -157,8 +158,10 @@ export function CreditFlow({ marketId, side }: { marketId: string; side: QuoteSi
                 <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="15" /><path d="M13 23c4-8 10-8 14 0M20 11v18" /></svg>
               </div>
               <div>
-                <span className="pat-label">PUT ATTRIBUTION TOKEN</span>
-                <h2 id="pat-explainer-title">Why PAT removes interim liquidation</h2>
+                <div className="pat-title-line">
+                  <h2 id="pat-explainer-title">Why PAT removes interim liquidation</h2>
+                  <span className="pat-label">PAT</span>
+                </div>
                 <p>
                   Collateral covers value up to strike K; the attributed put covers the
                   shortfall below K. Settlement happens at maturity, not during price moves.
@@ -178,8 +181,8 @@ export function CreditFlow({ marketId, side }: { marketId: string; side: QuoteSi
 
           <section className="transaction-ticket" aria-labelledby="transaction-ticket-title">
             <div className="ticket-heading">
-              <div><span>{side} / USDC</span><h2 id="transaction-ticket-title">Transaction ticket</h2></div>
-              <span className="ticket-mode">MOCK</span>
+              <h2 id="transaction-ticket-title">Transaction ticket</h2>
+              <span className="ticket-mode">MOCK · {side} / USDC</span>
             </div>
             <div className="warning-callout">
               {liveContractsReady

@@ -129,7 +129,6 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
         </Link>
         <div className="flow-title-row">
           <div>
-            <span className="preview-status"><span aria-hidden="true" />UNSIGNED OFFER PREVIEW</span>
             <h1 className="page-heading">Lend at a fixed APR.</h1>
             <p className="page-subtitle">
               {marketState.kind === "ready"
@@ -138,7 +137,10 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
               {" · "}compare the market quote, then define your offer rate.
             </p>
           </div>
-          <span className="non-live-badge">NO SIGNATURE REQUEST</span>
+          <div className="flow-statuses">
+            <span className="preview-status"><span aria-hidden="true" />UNSIGNED OFFER PREVIEW</span>
+            <span className="non-live-badge">NO SIGNATURE REQUEST</span>
+          </div>
         </div>
       </header>
 
@@ -153,8 +155,7 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
             <section className="market-facts" aria-labelledby="lend-market-facts-title">
               <div className="panel-heading">
                 <div>
-                  <span>MARKET FACTS</span>
-                  <h2 id="lend-market-facts-title">{marketState.market.collateralAsset} / {marketState.market.principalAsset}</h2>
+                  <h2 id="lend-market-facts-title">Market facts <small>{marketState.market.collateralAsset} / {marketState.market.principalAsset}</small></h2>
                 </div>
                 <span className={`status-badge status-${marketState.market.settlementState.toLowerCase()}`}>
                   <i aria-hidden="true" />{marketState.market.settlementState}
@@ -175,8 +176,10 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
                 <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="15" /><path d="M13 23c4-8 10-8 14 0M20 11v18" /></svg>
               </div>
               <div>
-                <span className="pat-label">PUT ATTRIBUTION TOKEN</span>
-                <h2 id="lend-pat-title">Put-attributed lender protection</h2>
+                <div className="pat-title-line">
+                  <h2 id="lend-pat-title">Put-attributed lender protection</h2>
+                  <span className="pat-label">PAT</span>
+                </div>
                 <p>
                   Each credit unit is paired with downside attribution at the market strike.
                   The terminal repayment design is reviewed at quote time and settles at maturity.
@@ -194,8 +197,8 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
 
           <section className="transaction-ticket" aria-labelledby="lend-ticket-title">
             <div className="ticket-heading">
-              <div><span>LEND / USDC</span><h2 id="lend-ticket-title">Offer ticket</h2></div>
-              <span className="ticket-mode">MOCK</span>
+              <h2 id="lend-ticket-title">Offer ticket</h2>
+              <span className="ticket-mode">MOCK · LEND / USDC</span>
             </div>
             <div className="warning-callout">
               {liveContractsReady

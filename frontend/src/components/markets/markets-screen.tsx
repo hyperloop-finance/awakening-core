@@ -49,14 +49,16 @@ export function MarketsScreen() {
     <>
       <section className="markets-hero" aria-labelledby="markets-title">
         <div className="markets-hero-copy">
-          <div className="preview-status">
-            <span aria-hidden="true" />
-            DETERMINISTIC PREVIEW · NO LIVE TVL
+          <div className="hero-title-line">
+            <h1 className="page-heading" id="markets-title">
+              Borrow against BTC.<br />
+              <span>Never get liquidated.</span>
+            </h1>
+            <div className="preview-status">
+              <span aria-hidden="true" />
+              DETERMINISTIC PREVIEW · NO LIVE TVL
+            </div>
           </div>
-          <h1 className="page-heading" id="markets-title">
-            Borrow against BTC.<br />
-            <span>Never get liquidated.</span>
-          </h1>
           <p className="page-subtitle">
             Fixed-rate, fixed-maturity BTC credit. Every quote carries explicit put
             attribution, with no health checks or margin calls during the term.
@@ -167,17 +169,17 @@ export function MarketsScreen() {
                       </span>
                       <span className="market-meta">PAT terms resolved with quote</span>
                     </th>
-                    <td><span className="rate-badge">{formatRateAsPercent(market.fixedApr)}</span></td>
-                    <td>{market.maturity.slice(0, 10)} UTC</td>
-                    <td>{formatDecimal(market.availableLiquidity)} USDC</td>
-                    <td>{formatRateAsPercent(market.utilization)}</td>
-                    <td>{formatDecimal(market.offerDepth)} USDC</td>
-                    <td>
+                    <td data-label="Fixed APR"><span className="rate-badge">{formatRateAsPercent(market.fixedApr)}</span></td>
+                    <td data-label="Maturity">{market.maturity.slice(0, 10)} UTC</td>
+                    <td data-label="Available">{formatDecimal(market.availableLiquidity)} USDC</td>
+                    <td data-label="Utilization">{formatRateAsPercent(market.utilization)}</td>
+                    <td data-label="Offer depth">{formatDecimal(market.offerDepth)} USDC</td>
+                    <td data-label="Status">
                       <span className={`status-badge status-${market.settlementState.toLowerCase()}`}>
                         <i aria-hidden="true" />{market.settlementState}
                       </span>
                     </td>
-                    <td>
+                    <td data-label="Actions" className="market-action-cell">
                       <span className="market-actions">
                         <Link className="small-action" href={`/borrow/${market.id}`}>
                           Borrow
