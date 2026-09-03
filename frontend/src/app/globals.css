@@ -115,8 +115,8 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
 .page-heading > span { color: var(--lavender); }
 .page-subtitle { max-width: 66ch; margin: 0; color: var(--text-mid); font-size: 15px; line-height: 1.7; }
 .preview-status { gap: 8px; padding: 7px 10px; border-radius: 999px; }
-.hero-title-line { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; }
-.hero-title-line .preview-status { flex: none; margin-bottom: 20px; }
+.hero-title-line { display: block; }
+.hero-title-line .preview-status { display: inline-flex; margin: 0 0 16px; }
 
 .markets-hero {
   display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(430px, 0.88fr); gap: 52px;
