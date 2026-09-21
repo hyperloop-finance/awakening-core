@@ -82,7 +82,7 @@ export function MarketsScreen() {
             </div>
           </div>
           <p className="page-subtitle">
-            Fixed-rate, fixed-maturity credit for BTC and tokenized securities. Every quote carries explicit put
+            Fixed-rate, fixed-maturity credit for bStocks. Every quote carries explicit put
             attribution, with no health checks or margin calls during the term.
           </p>
           <div className="invariant-panel" aria-label="Protocol repayment invariant">
