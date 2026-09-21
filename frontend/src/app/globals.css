@@ -135,7 +135,7 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
 }
 .invariant-equation { margin: 9px 0 7px; }
 .invariant-equation i, .pat-equation i { color: var(--violet-bright); font-style: normal; }
-.invariant-equation strong, .pat-equation strong { color: var(--success); font-size: 1.18em; }
+.invariant-equation strong, .pat-equation strong { color: inherit; font-size: inherit; font-weight: inherit; }
 .invariant-panel p { margin: 0; color: var(--text-muted); font-size: 11px; }
 
 .market-overview {
