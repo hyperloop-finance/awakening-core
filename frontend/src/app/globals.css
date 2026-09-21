@@ -200,10 +200,10 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
 }
 .asset-symbol {
   display: flex; flex: none; width: 25px; height: 25px; align-items: center; justify-content: center;
-  border: 2px solid var(--panel); border-radius: 50%; object-fit: cover;
+  box-sizing: border-box; border: 2px solid var(--panel); border-radius: 50%; object-fit: cover;
 }
 .asset-symbol-stock { border: 0; border-radius: 0; clip-path: circle(50%); object-fit: contain; }
-.asset-overlap { margin-left: -7px; }
+.asset-overlap { position: relative; z-index: 1; margin-left: -8px; }
 .asset-ticker { background: var(--violet-deep); color: var(--text); font: 700 7px/1 var(--font-data); letter-spacing: -.02em; }
 .market-meta {
   display: block; margin: 5px 0 0 54px; color: var(--text-dim);
