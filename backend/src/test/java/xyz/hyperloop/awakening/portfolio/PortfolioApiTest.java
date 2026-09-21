@@ -15,7 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 class PortfolioApiTest {
-	private static final String DEMO_WALLET = "0x1111111111111111111111111111111111111111";
+	private static final String DEMO_WALLET = "0xde00000000000000000000000000000000000001";
 	private static final String EMPTY_WALLET = "0x2222222222222222222222222222222222222222";
 
 	@Autowired

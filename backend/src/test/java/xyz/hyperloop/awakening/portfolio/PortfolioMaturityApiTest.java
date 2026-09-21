@@ -38,7 +38,7 @@ class PortfolioMaturityApiTest {
 
 	@Test
 	void derivesBorrowAndLendPositionStatesFromClockAndMaturity() throws Exception {
-		mockMvc.perform(get("/api/v1/portfolio/0x1111111111111111111111111111111111111111"))
+		mockMvc.perform(get("/api/v1/portfolio/0xde00000000000000000000000000000000000001"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.borrowPositions[0].settlementState").value("MATURED"))
 				.andExpect(jsonPath("$.lendPositions[0].settlementState").value("MATURED"));
