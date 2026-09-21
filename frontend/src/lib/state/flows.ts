@@ -2,7 +2,7 @@ import type { MarketSummary, PortfolioPayload, PortfolioPosition, Quote } from "
 import { formatDecimal } from "../format";
 import { formatFixedDecimal, formatRateAsPercent, parseFixedDecimal } from "../fixed-decimal";
 
-export function filterMarkets(markets: MarketSummary[], query: string) {
+export function filterMarkets<T extends MarketSummary>(markets: T[], query: string): T[] {
   if (!query.trim()) return markets;
   const normalized = query.trim().toLowerCase();
   return markets.filter((market) =>

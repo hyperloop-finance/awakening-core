@@ -1,2 +1,2 @@
-import { PortfolioScreen } from "@/components/portfolio/portfolio-screen";
-export default function PortfolioPage() { return <PortfolioScreen />; }
+import { redirect } from "next/navigation";
+export default function PortfolioPage() { redirect("/positions"); }
