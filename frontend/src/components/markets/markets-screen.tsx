@@ -16,19 +16,19 @@ type MarketsState =
   | { kind: "error"; message: string }
   | { kind: "ready"; markets: MarketDetail[] };
 
-const tokenLogos: Record<string, { src: string; alt: string }> = {
+const tokenLogos: Record<string, { src: string; alt: string; tokenizedStock?: boolean }> = {
   BTC: { src: "/tokens/btc.svg", alt: "Bitcoin" },
-  QQQB: { src: "/tokens/qqqb.svg", alt: "Invesco QQQ" },
-  SPCXB: { src: "/tokens/spcxb.svg", alt: "SpaceX" },
-  NVDAB: { src: "/tokens/nvdab.svg", alt: "NVIDIA" },
-  BNCB: { src: "/tokens/bncb.svg", alt: "CEA Industries" },
+  QQQB: { src: "/tokens/qqqb.png", alt: "QQQB bStock", tokenizedStock: true },
+  SPCXB: { src: "/tokens/spcxb.png", alt: "SPCXB bStock", tokenizedStock: true },
+  NVDAB: { src: "/tokens/nvdab.png", alt: "NVDAB bStock", tokenizedStock: true },
+  BNCB: { src: "/tokens/bncb.png", alt: "BNCB bStock", tokenizedStock: true },
   USDC: { src: "/tokens/usdc.svg", alt: "USD Coin" },
   USDT: { src: "/tokens/usdt.svg", alt: "Tether" },
 };
 
 function AssetIcon({ asset, overlap = false }: { asset: string; overlap?: boolean }) {
   const logo = tokenLogos[asset];
-  const className = `asset-symbol${overlap ? " asset-overlap" : ""}`;
+  const className = `asset-symbol${logo?.tokenizedStock ? " asset-symbol-stock" : ""}${overlap ? " asset-overlap" : ""}`;
   return logo
     ? <Image className={className} src={logo.src} alt={logo.alt} width={25} height={25} />
     : <span className={`${className} asset-ticker`} role="img" aria-label={`${asset} token`}>{asset.slice(0, 2)}</span>;

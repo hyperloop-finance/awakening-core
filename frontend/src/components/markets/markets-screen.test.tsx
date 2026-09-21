@@ -107,10 +107,10 @@ describe("MarketsScreen", () => {
     const table = await screen.findByRole("table", { name: "Available markets" });
     expect(within(table).getByText("SPCXB / USDT")).toBeInTheDocument();
     expect(within(table).getAllByText("95,000 USDT")).toHaveLength(4);
-    expect(screen.getByRole("img", { name: "SpaceX" })).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "Invesco QQQ" })).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "NVIDIA" })).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "CEA Industries" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "SPCXB bStock" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "QQQB bStock" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "NVDAB bStock" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "BNCB bStock" })).toBeInTheDocument();
     expect(screen.getAllByRole("img", { name: "Tether" })).toHaveLength(4);
     expect(within(table).getAllByText(/PREVIEW PAT/).length).toBeGreaterThan(0);
   });
