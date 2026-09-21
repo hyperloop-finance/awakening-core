@@ -1,13 +1,21 @@
 import type {
   MarketDetail,
   MarketsResponse,
+  Order,
+  OrderSide,
+  OrderStatus,
   Offer,
+  PositionPayload,
+  PositionSummary,
   PortfolioPayload,
   PortfolioPosition,
   Quote,
   QuoteSide,
   RuntimeConfig,
   SettlementState,
+  SettlementAction,
+  SettlementItem,
+  SettlementPhase,
 } from "./types";
 
 function object(value: unknown, label: string): Record<string, unknown> {
@@ -91,13 +99,46 @@ export function parseMarketsResponse(value: unknown): MarketsResponse {
 
 export function parseMarketDetail(value: unknown): MarketDetail {
   const market = object(value, "MarketDetail");
+  if (!Array.isArray(market.borrowLevels) || !Array.isArray(market.lendLevels)) throw new Error("MarketDetail levels");
+  const level = (value: unknown) => { const item = object(value, "OrderBookLevel"); return { apr: text(item.apr, "OrderBookLevel apr"), availableAmount: text(item.availableAmount, "OrderBookLevel amount") }; };
   return {
     ...parseMarketSummary(market, "MarketDetail"),
     collateralRatio: text(market.collateralRatio, "MarketDetail collateralRatio"),
     patCoverage: text(market.patCoverage, "MarketDetail patCoverage"),
+    strike: text(market.strike, "MarketDetail strike"),
+    patStatus: enumeration(market.patStatus, ["VERIFIED_PREVIEW"], "MarketDetail patStatus"),
+    patSource: enumeration(market.patSource, ["ATTESTED_CUSTODIAN_PREVIEW"], "MarketDetail patSource"),
+    borrowLevels: market.borrowLevels.map(level),
+    lendLevels: market.lendLevels.map(level),
     minimumAmount: text(market.minimumAmount, "MarketDetail minimumAmount"),
   };
 }
+
+const orderSides = ["BORROW", "LEND"] as const;
+export function parseOrder(value: unknown): Order {
+  const order = object(value, "Order");
+  return { id: text(order.id, "Order id"), wallet: text(order.wallet, "Order wallet"), marketId: text(order.marketId, "Order marketId"), side: enumeration<OrderSide>(order.side, orderSides, "Order side"), amount: text(order.amount, "Order amount"), filledAmount: text(order.filledAmount, "Order filledAmount"), remainingAmount: text(order.remainingAmount, "Order remainingAmount"), apr: text(order.apr, "Order apr"), expiry: text(order.expiry, "Order expiry"), status: enumeration<OrderStatus>(order.status, ["OPEN", "PARTIALLY_FILLED", "FILLED", "CANCELLED", "EXPIRED"], "Order status"), createdAt: text(order.createdAt, "Order createdAt") };
+}
+export const parseOrders = (value: unknown): Order[] => {
+  if (!Array.isArray(value)) throw new Error("Orders");
+  return value.map(parseOrder);
+};
+
+function parsePositionSummary(value: unknown): PositionSummary {
+  const item = object(value, "PositionSummary");
+  return { id: text(item.id, "Position id"), marketId: text(item.marketId, "Position marketId"), side: enumeration(item.side, orderSides, "Position side"), principal: text(item.principal, "Position principal"), collateral: text(item.collateral, "Position collateral"), creditUnits: text(item.creditUnits, "Position creditUnits"), debtUnits: text(item.debtUnits, "Position debtUnits"), faceValue: text(item.faceValue, "Position faceValue"), fixedApr: text(item.fixedApr, "Position fixedApr"), strike: text(item.strike, "Position strike"), patStatus: text(item.patStatus, "Position patStatus"), patCoverage: text(item.patCoverage, "Position patCoverage"), maturity: text(item.maturity, "Position maturity"), settlementState: enumeration(item.settlementState, ["OPEN", "MATURED", "SETTLED"], "Position settlementState") };
+}
+export function parsePositionPayload(value: unknown): PositionPayload {
+  const payload = object(value, "PositionPayload"); const totals = object(payload.totals, "PositionTotals");
+  if (!Array.isArray(payload.borrowPositions) || !Array.isArray(payload.lendPositions)) throw new Error("PositionPayload positions");
+  return { wallet: text(payload.wallet, "Position wallet"), totals: { borrowedPrincipal: text(totals.borrowedPrincipal, "Position borrowedPrincipal"), lentPrincipal: text(totals.lentPrincipal, "Position lentPrincipal"), collateralLocked: text(totals.collateralLocked, "Position collateralLocked"), creditFaceValue: text(totals.creditFaceValue, "Position creditFaceValue"), debtOutstanding: text(totals.debtOutstanding, "Position debtOutstanding") }, borrowPositions: payload.borrowPositions.map(parsePositionSummary), lendPositions: payload.lendPositions.map(parsePositionSummary), profile: text(payload.profile, "Position profile"), asOf: text(payload.asOf, "Position asOf"), source: enumeration(payload.source, ["MOCK_CATALOG"], "Position source") };
+}
+export function parseSettlementItem(value: unknown): SettlementItem {
+  const item = object(value, "SettlementItem"); if (!Array.isArray(item.availableActions)) throw new Error("Settlement actions");
+  const actionValues = ["SIMULATE_REPAY_DEBT", "SIMULATE_RECOVER_COLLATERAL", "SIMULATE_CLAIM_LENDER_PAYOUT", "SIMULATE_CLAIM_RESIDUAL_PROCEEDS"] as const;
+  return { positionId: text(item.positionId, "Settlement positionId"), marketId: text(item.marketId, "Settlement marketId"), side: enumeration(item.side, orderSides, "Settlement side"), maturity: text(item.maturity, "Settlement maturity"), phase: enumeration<SettlementPhase>(item.phase, ["PRE_MATURITY", "REPAYMENT_AVAILABLE", "READY_TO_CLAIM", "FINALIZED"], "Settlement phase"), outstandingDebt: text(item.outstandingDebt, "Settlement debt"), recoverableCollateral: text(item.recoverableCollateral, "Settlement collateral"), claimablePayout: text(item.claimablePayout, "Settlement payout"), claimableResidual: text(item.claimableResidual, "Settlement residual"), patStatus: text(item.patStatus, "Settlement PAT"), availableActions: item.availableActions.map((action) => enumeration<SettlementAction>(action, actionValues, "Settlement action")), simulated: bool(item.simulated, "Settlement simulated") };
+}
+export const parseSettlements = (value: unknown): SettlementItem[] => { if (!Array.isArray(value)) throw new Error("Settlements"); return value.map(parseSettlementItem); };
 
 export function parseQuote(value: unknown): Quote {
   const quote = object(value, "Quote");

@@ -19,8 +19,33 @@ export type MarketSummary = {
 export type MarketDetail = MarketSummary & {
   collateralRatio: string;
   patCoverage: string;
+  strike: string;
+  patStatus: "VERIFIED_PREVIEW";
+  patSource: "ATTESTED_CUSTODIAN_PREVIEW";
+  borrowLevels: OrderBookLevel[];
+  lendLevels: OrderBookLevel[];
   minimumAmount: string;
 };
+
+export type OrderBookLevel = { apr: string; availableAmount: string };
+export type OrderSide = "BORROW" | "LEND";
+export type OrderStatus = "OPEN" | "PARTIALLY_FILLED" | "FILLED" | "CANCELLED" | "EXPIRED";
+export type CreateOrderInput = { wallet: string; marketId: string; side: OrderSide; amount: string; apr: string; expiry: string };
+export type Order = CreateOrderInput & { id: string; filledAmount: string; remainingAmount: string; status: OrderStatus; createdAt: string };
+
+export type PositionSummary = {
+  id: string; marketId: string; side: OrderSide; principal: string; collateral: string;
+  creditUnits: string; debtUnits: string; faceValue: string; fixedApr: string; strike: string;
+  patStatus: string; patCoverage: string; maturity: string; settlementState: SettlementState;
+};
+export type PositionPayload = {
+  wallet: string;
+  totals: { borrowedPrincipal: string; lentPrincipal: string; collateralLocked: string; creditFaceValue: string; debtOutstanding: string };
+  borrowPositions: PositionSummary[]; lendPositions: PositionSummary[]; profile: string; asOf: string; source: "MOCK_CATALOG";
+};
+export type SettlementPhase = "PRE_MATURITY" | "REPAYMENT_AVAILABLE" | "READY_TO_CLAIM" | "FINALIZED";
+export type SettlementAction = "SIMULATE_REPAY_DEBT" | "SIMULATE_RECOVER_COLLATERAL" | "SIMULATE_CLAIM_LENDER_PAYOUT" | "SIMULATE_CLAIM_RESIDUAL_PROCEEDS";
+export type SettlementItem = { positionId: string; marketId: string; side: OrderSide; maturity: string; phase: SettlementPhase; outstandingDebt: string; recoverableCollateral: string; claimablePayout: string; claimableResidual: string; patStatus: string; availableActions: SettlementAction[]; simulated: boolean };
 
 export type MarketMeta = {
   profile: string;

@@ -3,12 +3,14 @@ import {
   getMockMarketCatalog,
   getMockPortfolio,
   getMockRuntimeConfig,
+  getMockOrders, createMockOrder, cancelMockOrder, getMockPositions, getMockSettlements, actMockSettlement,
   mockQuote,
 } from "./mock";
 import { resolveDataProfile } from "./profile";
 import type {
   MarketDetail,
   MarketSummary,
+  CreateOrderInput, Order, OrderSide, PositionPayload, SettlementAction, SettlementItem,
   Offer,
   PortfolioPayload,
   Quote,
@@ -23,6 +25,7 @@ import {
   parsePortfolio,
   parseQuote,
   parseRuntimeConfig,
+  parseOrder, parseOrders, parsePositionPayload, parseSettlementItem, parseSettlements,
 } from "./wire";
 
 export type ApiError = { message: string; status?: number };
@@ -104,6 +107,32 @@ export const awakeningApi = {
     return parsePortfolio(
       await request(`/api/v1/portfolio/${encodeURIComponent(wallet)}`, { signal }),
     );
+  },
+
+  async orders(wallet: string, side?: OrderSide, signal?: AbortSignal): Promise<Order[]> {
+    if (resolveDataProfile() === "mock") return getMockOrders(wallet, side);
+    const query = new URLSearchParams({ wallet }); if (side) query.set("side", side);
+    return parseOrders(await request(`/api/v1/orders?${query}`, { signal }));
+  },
+  async createOrder(input: CreateOrderInput, signal?: AbortSignal): Promise<Order> {
+    if (resolveDataProfile() === "mock") return createMockOrder(input);
+    return parseOrder(await request("/api/v1/orders", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(input), signal }));
+  },
+  async cancelOrder(id: string, wallet: string, signal?: AbortSignal): Promise<Order> {
+    if (resolveDataProfile() === "mock") return cancelMockOrder(id, wallet);
+    return parseOrder(await request(`/api/v1/orders/${encodeURIComponent(id)}?wallet=${encodeURIComponent(wallet)}`, { method: "DELETE", signal }));
+  },
+  async positions(wallet: string, signal?: AbortSignal): Promise<PositionPayload> {
+    if (resolveDataProfile() === "mock") return getMockPositions(wallet);
+    return parsePositionPayload(await request(`/api/v1/positions/${encodeURIComponent(wallet)}`, { signal }));
+  },
+  async settlements(wallet: string, signal?: AbortSignal): Promise<SettlementItem[]> {
+    if (resolveDataProfile() === "mock") return getMockSettlements(wallet);
+    return parseSettlements(await request(`/api/v1/settlements/${encodeURIComponent(wallet)}`, { signal }));
+  },
+  async simulateSettlementAction(positionId: string, input: { wallet: string; action: SettlementAction }, signal?: AbortSignal): Promise<SettlementItem> {
+    if (resolveDataProfile() === "mock") return actMockSettlement(positionId, input.wallet, input.action);
+    return parseSettlementItem(await request(`/api/v1/settlements/${encodeURIComponent(positionId)}/actions`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(input), signal }));
   },
 
   async runtimeConfig(signal?: AbortSignal): Promise<RuntimeConfig> {
