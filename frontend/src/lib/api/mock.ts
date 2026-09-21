@@ -121,7 +121,7 @@ export function getMockPositions(wallet: string): PositionPayload {
   return { ...empty, totals: { borrowedPrincipal: "1200.00", lentPrincipal: "800.00", collateralLocked: "0.03000000", creditFaceValue: "800.00", debtOutstanding: "1200.00" }, borrowPositions: [{ ...common, id: "borrow-demo-1", side: "BORROW", principal: "1200.00", collateral: "0.03000000", creditUnits: "0.00", debtUnits: "1200.00", faceValue: "0.00" }], lendPositions: [{ ...common, id: "lend-demo-1", side: "LEND", principal: "800.00", collateral: "0.00000000", creditUnits: "800.00", debtUnits: "0.00", faceValue: "800.00" }] };
 }
 
-let settlementProgress: Record<string, number> = {};
+const settlementProgress: Record<string, number> = {};
 export function getMockSettlements(wallet: string): SettlementItem[] {
   const positions = getMockPositions(wallet); const now = Date.now();
   return [...positions.borrowPositions, ...positions.lendPositions].map((position) => {
