@@ -47,7 +47,11 @@ public class MarketService {
 		MarketSummary market = summary();
 		return new MarketDetail(market.id(), market.collateralAsset(), market.principalAsset(), market.maturity(),
 				market.fixedApr(), market.utilization(), market.availableLiquidity(), market.offerDepth(), market.settlementState(),
-				market.contractsReady(), "1.5000", "0.9500", "100.00");
+				market.contractsReady(), "1.5000", "0.9500", "60000.00", "VERIFIED_PREVIEW",
+				"ATTESTED_CUSTODIAN_PREVIEW",
+				List.of(new OrderBookLevel("0.0825", "75000.00"), new OrderBookLevel("0.0850", "100000.00")),
+				List.of(new OrderBookLevel("0.0875", "80000.00"), new OrderBookLevel("0.0900", "95000.00")),
+				"100.00");
 	}
 
 	public BigDecimal apr() {

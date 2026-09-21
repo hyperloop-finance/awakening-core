@@ -36,6 +36,13 @@ class MarketApiTest {
 		mockMvc.perform(get("/api/v1/markets/{marketId}", BTC_USDC_90D))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.id").value(BTC_USDC_90D))
+				.andExpect(jsonPath("$.strike").value("60000.00"))
+				.andExpect(jsonPath("$.patStatus").value("VERIFIED_PREVIEW"))
+				.andExpect(jsonPath("$.patSource").value("ATTESTED_CUSTODIAN_PREVIEW"))
+				.andExpect(jsonPath("$.patCoverage").value("0.9500"))
+				.andExpect(jsonPath("$.borrowLevels[0].apr").value("0.0825"))
+				.andExpect(jsonPath("$.borrowLevels[0].availableAmount").value("75000.00"))
+				.andExpect(jsonPath("$.lendLevels[0].apr").value("0.0875"))
 				.andExpect(jsonPath("$.collateralRatio").value("1.5000"))
 				.andExpect(jsonPath("$.minimumAmount").value("100.00"));
 	}
