@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.Clock;
+import java.time.Duration;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -16,11 +17,8 @@ import xyz.hyperloop.awakening.market.MarketService;
 
 @Service
 public class QuoteService {
-	private static final BigDecimal BTC_PRICE_USDC = new BigDecimal("60000");
-	private static final BigDecimal COLLATERAL_RATIO = new BigDecimal("1.5");
 	private static final BigDecimal PROTOCOL_FEE_RATE = new BigDecimal("0.003");
-	private static final BigDecimal TERM_DAYS = new BigDecimal("90");
-	private static final BigDecimal DAYS_PER_YEAR = new BigDecimal("365");
+	private static final BigDecimal SECONDS_PER_YEAR = new BigDecimal("31536000");
 	private final MarketService marketService;
 	private final Clock clock;
 
@@ -37,14 +35,16 @@ public class QuoteService {
 		Side side = parseSide(rawSide);
 		BigDecimal amount = parseQuoteAmount(rawAmount, market.minimumAmount());
 		BigDecimal principal = amount;
-		BigDecimal interest = amount.multiply(marketService.apr()).multiply(TERM_DAYS).divide(DAYS_PER_YEAR, 6, RoundingMode.HALF_UP);
+		BigDecimal termSeconds = new BigDecimal(Duration.between(clock.instant(), market.maturity()).getSeconds());
+		BigDecimal interest = amount.multiply(new BigDecimal(market.fixedApr())).multiply(termSeconds)
+				.divide(SECONDS_PER_YEAR, 6, RoundingMode.HALF_UP);
 		BigDecimal fee = amount.multiply(PROTOCOL_FEE_RATE).setScale(6, RoundingMode.HALF_UP);
 		BigDecimal collateral = side == Side.BORROW
-				? amount.multiply(COLLATERAL_RATIO).divide(BTC_PRICE_USDC, 8, RoundingMode.HALF_UP)
+				? amount.multiply(new BigDecimal(market.collateralRatio())).divide(new BigDecimal(market.strike()), 8, RoundingMode.HALF_UP)
 				: BigDecimal.ZERO.setScale(8);
 		BigDecimal total = side == Side.BORROW ? amount.add(interest).add(fee) : amount.add(interest).subtract(fee);
 		return new Quote(market.id(), side.name(), DecimalStrings.normalize(principal), decimal(collateral, 8), decimal(interest, 6), decimal(fee, 6),
-				decimal(total, 6), market.fixedApr(), market.maturity(), clock.instant().plusSeconds(300), steps(side));
+				decimal(total, 6), market.fixedApr(), market.maturity(), clock.instant().plusSeconds(300), steps(side, market));
 	}
 
 	private Side parseSide(String rawSide) {
@@ -74,10 +74,10 @@ public class QuoteService {
 		return value.setScale(scale, RoundingMode.HALF_UP).toPlainString();
 	}
 
-	private List<String> steps(Side side) {
+	private List<String> steps(Side side, MarketDetail market) {
 		return side == Side.BORROW
-				? List.of("Review BTC collateral requirement", "Sign simulated borrow intent", "Receive USDC principal")
-				: List.of("Review fixed-rate offer", "Sign simulated lend offer", "Reserve USDC liquidity");
+				? List.of("Review " + market.collateralAsset() + " collateral requirement", "Sign simulated borrow intent", "Receive " + market.principalAsset() + " principal")
+				: List.of("Review fixed-rate offer", "Sign simulated lend offer", "Reserve " + market.principalAsset() + " liquidity");
 	}
 
 	private enum Side { BORROW, LEND }

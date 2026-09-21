@@ -25,10 +25,28 @@ class MarketApiTest {
 	void listsDeterministicBtcMarketsWithMetadata() throws Exception {
 		mockMvc.perform(get("/api/v1/markets"))
 				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.data.length()").value(5))
 				.andExpect(jsonPath("$.data[0].id").value(BTC_USDC_90D))
 				.andExpect(jsonPath("$.data[0].collateralAsset").value("BTC"))
+				.andExpect(jsonPath("$.data[1].collateralAsset").value("QQQB"))
+				.andExpect(jsonPath("$.data[1].principalAsset").value("USDC"))
+				.andExpect(jsonPath("$.data[2].collateralAsset").value("SPCXB"))
+				.andExpect(jsonPath("$.data[2].principalAsset").value("USDT"))
+				.andExpect(jsonPath("$.data[3].collateralAsset").value("NVDAB"))
+				.andExpect(jsonPath("$.data[4].collateralAsset").value("BNCB"))
+				.andExpect(jsonPath("$.data[4].principalAsset").value("USDT"))
 				.andExpect(jsonPath("$.meta.profile").value("test"))
 				.andExpect(jsonPath("$.meta.chainId").value(31337));
+	}
+
+	@Test
+	void returnsTokenizedStockMarketDetail() throws Exception {
+		mockMvc.perform(get("/api/v1/markets/{marketId}", MarketService.NVDAB_USDC_90D))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.collateralAsset").value("NVDAB"))
+				.andExpect(jsonPath("$.principalAsset").value("USDC"))
+				.andExpect(jsonPath("$.strike").value("180.00"))
+				.andExpect(jsonPath("$.fixedApr").value("0.0950"));
 	}
 
 	@Test

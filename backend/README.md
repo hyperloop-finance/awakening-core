@@ -26,6 +26,12 @@ The shared demo wallet is `0xde00000000000000000000000000000000000001`. Orders a
 
 User endpoints: `/api/v1/markets`, `/api/v1/orders`, `/api/v1/positions/{wallet}`, and `/api/v1/settlements/{wallet}`. `/api/v1/portfolio/{wallet}` remains a compatibility endpoint.
 
+The mock/test market catalog is deterministic and contains `BTC/USDC`,
+`QQQB/USDC`, `SPCXB/USDT`, `NVDAB/USDC`, and `BNCB/USDT`. These are
+preview fixtures, not live Binance prices or deployed on-chain markets. Quotes
+derive APR, strike, collateral ratio, maturity, and asset labels from the
+selected market.
+
 Environment variables (with defaults for local dev in parens):
 
 - `DATABASE_URL` (`jdbc:postgresql://localhost:5432/awakening`)

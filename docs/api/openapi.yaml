@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Awakening API
   version: v1
-  description: Mock-first API for BTC-collateralized fixed-rate borrowing and lending.
+  description: Mock-first API for BTC and tokenized-security collateral with fixed-rate borrowing and lending.
 servers:
   - url: http://localhost:8080
 paths:
@@ -231,8 +231,8 @@ components:
       required: [id, collateralAsset, principalAsset, maturity, fixedApr, utilization, availableLiquidity, offerDepth, settlementState, contractsReady]
       properties:
         id: { type: string }
-        collateralAsset: { type: string, example: BTC }
-        principalAsset: { type: string, example: USDC }
+        collateralAsset: { type: string, example: NVDAB, description: BTC or a tokenized-security ticker in the deterministic preview catalog. }
+        principalAsset: { type: string, example: USDC, description: Settlement asset; the preview catalog includes USDC and USDT. }
         maturity: { type: string, format: date-time }
         fixedApr: { type: string }
         utilization: { type: string }
