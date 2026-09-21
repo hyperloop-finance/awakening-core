@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { awakeningApi, normalizeApiError } from "@/lib/api/client";
 import type { MarketDetail } from "@/lib/api/types";
@@ -8,6 +7,8 @@ import { formatDecimal } from "@/lib/format";
 import { formatRateAsPercent } from "@/lib/fixed-decimal";
 import { deriveMarketsOverview, filterMarkets } from "@/lib/state/flows";
 import { EmptyState, ErrorState, LoadingState } from "@/components/shell/states";
+import { CreditFlow } from "@/components/borrow/borrow-screen";
+import type { QuoteSide } from "@/lib/api/types";
 
 type MarketsState =
   | { kind: "loading" }
@@ -17,6 +18,7 @@ type MarketsState =
 export function MarketsScreen() {
   const [state, setState] = useState<MarketsState>({ kind: "loading" });
   const [query, setQuery] = useState("");
+  const [execution, setExecution] = useState<{ marketId: string; side: QuoteSide }>();
   const controllerRef = useRef<AbortController | undefined>(undefined);
 
   const load = useCallback(() => {
@@ -182,18 +184,18 @@ export function MarketsScreen() {
                     </td>
                     <td data-label="Actions" className="market-action-cell">
                       <span className="market-actions">
-                        <Link className="small-action" href={`/borrow/${market.id}`}>
+                        <button className="small-action" onClick={() => setExecution({ marketId: market.id, side: "BORROW" })}>
                           Borrow now
-                        </Link>
-                        <Link className="small-action" href={`/lend/${market.id}`}>
+                        </button>
+                        <button className="small-action" onClick={() => setExecution({ marketId: market.id, side: "LEND" })}>
                           Lend now
-                        </Link>
-                        <Link className="small-action secondary" href={`/orders?marketId=${market.id}&side=BORROW`}>
+                        </button>
+                        <a className="small-action secondary" href={`/orders?marketId=${market.id}&side=BORROW`}>
                           Place borrow order
-                        </Link>
-                        <Link className="small-action secondary" href={`/orders?marketId=${market.id}&side=LEND`}>
+                        </a>
+                        <a className="small-action secondary" href={`/orders?marketId=${market.id}&side=LEND`}>
                           Place lend order
-                        </Link>
+                        </a>
                       </span>
                     </td>
                   </tr>
@@ -201,6 +203,15 @@ export function MarketsScreen() {
               </tbody>
             </table>
           </div>
+        )}
+        {execution && (
+          <section className="inline-execution" aria-label={`${execution.side === "BORROW" ? "Borrow" : "Lend"} execution`}>
+            <div className="inline-execution-head">
+              <div><span>INLINE EXECUTION</span><h2>{execution.side === "BORROW" ? "Borrow" : "Lend"} without leaving the market</h2></div>
+              <button className="inline-button" onClick={() => setExecution(undefined)}>Close</button>
+            </div>
+            <CreditFlow marketId={execution.marketId} side={execution.side} embedded />
+          </section>
         )}
       </section>
     </>

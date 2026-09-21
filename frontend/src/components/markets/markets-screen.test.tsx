@@ -58,10 +58,9 @@ describe("MarketsScreen", () => {
     expect(
       within(screen.getByRole("table")).getByText("9,007,199,254,740,993 USDC"),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Borrow now" })).toHaveAttribute(
-      "href",
-      `/borrow/${market.id}`,
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Borrow now" }));
+    expect(await screen.findByRole("region", { name: "Borrow execution" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Transaction ticket" })).toBeInTheDocument();
   });
 
   it("renders an empty filter result and can clear it", async () => {

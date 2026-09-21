@@ -21,7 +21,7 @@ type QuoteState =
   | { kind: "error"; message: string }
   | { kind: "ready"; quote: Quote };
 
-export function CreditFlow({ marketId, side }: { marketId: string; side: QuoteSide }) {
+export function CreditFlow({ marketId, side, embedded = false }: { marketId: string; side: QuoteSide; embedded?: boolean }) {
   const [marketState, setMarketState] = useState<MarketState>({ kind: "loading" });
   const [quoteState, setQuoteState] = useState<QuoteState>({ kind: "idle" });
   const [amount, setAmount] = useState(side === "BORROW" ? "1000" : "5000");
@@ -102,7 +102,7 @@ export function CreditFlow({ marketId, side }: { marketId: string; side: QuoteSi
 
   return (
     <>
-      <header className="flow-hero">
+      {!embedded && <header className="flow-hero">
         <Link className="back-link" href="/markets">
           <svg viewBox="0 0 24 24" aria-hidden="true" fill="none"><path d="m15 5-7 7 7 7" /></svg>
           Markets
@@ -122,7 +122,7 @@ export function CreditFlow({ marketId, side }: { marketId: string; side: QuoteSi
             <span className="non-live-badge">NO WALLET REQUEST</span>
           </div>
         </div>
-      </header>
+      </header>}
 
       {marketState.kind === "loading" && <LoadingState label="Loading market…" />}
       {marketState.kind === "error" && (
