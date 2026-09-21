@@ -73,7 +73,7 @@ export function MarketsScreen() {
         <div className="markets-hero-copy">
           <div className="hero-title-line">
             <h1 className="page-heading" id="markets-title">
-              Borrow against BTC or tokenized stocks.<br />
+              Borrow against bStocks.<br />
               <span>Never get liquidated.</span>
             </h1>
             <div className="preview-status">
