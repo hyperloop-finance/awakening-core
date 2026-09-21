@@ -60,6 +60,9 @@ describe("MarketsScreen", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "Bitcoin" })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "USD Coin" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Lend now" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Place borrow order" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Place lend order" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Borrow now" }));
     expect(await screen.findByRole("region", { name: "Borrow execution" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Transaction ticket" })).toBeInTheDocument();

@@ -211,7 +211,7 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
   color: var(--success); font-weight: 650;
 }
 
-.market-actions { display: flex; flex-wrap: wrap; gap: 7px; min-width: 238px; }
+.market-actions { display: flex; flex-wrap: wrap; gap: 7px; min-width: 145px; }
 .small-action.secondary { background: transparent; color: var(--text-mid); border-color: var(--line-medium); }
 .market-meta.compact { margin: 4px 0 0; white-space: nowrap; }
 .workspace-grid { display: grid; grid-template-columns: minmax(300px, .72fr) minmax(0, 1.28fr); gap: 24px; align-items: start; }

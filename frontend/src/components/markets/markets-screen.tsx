@@ -191,12 +191,6 @@ export function MarketsScreen() {
                         <button className="small-action" onClick={() => setExecution({ marketId: market.id, side: "LEND" })}>
                           Lend now
                         </button>
-                        <a className="small-action secondary" href={`/orders?marketId=${market.id}&side=BORROW`}>
-                          Place borrow order
-                        </a>
-                        <a className="small-action secondary" href={`/orders?marketId=${market.id}&side=LEND`}>
-                          Place lend order
-                        </a>
                       </span>
                     </td>
                   </tr>
