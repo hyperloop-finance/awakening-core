@@ -64,6 +64,105 @@ paths:
               schema: { $ref: '#/components/schemas/Portfolio' }
         '400': { $ref: '#/components/responses/Problem' }
         '503': { $ref: '#/components/responses/Problem' }
+  /api/v1/positions/{wallet}:
+    parameters:
+      - $ref: '#/components/parameters/Wallet'
+    get:
+      operationId: getPositions
+      responses:
+        '200':
+          description: Protected borrow and lend positions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PositionPayload' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '503': { $ref: '#/components/responses/Problem' }
+  /api/v1/orders:
+    get:
+      operationId: listOrders
+      parameters:
+        - name: wallet
+          in: query
+          required: true
+          schema: { type: string, pattern: '^0x[a-fA-F0-9]{40}$' }
+        - name: side
+          in: query
+          schema: { type: string, enum: [BORROW, LEND] }
+      responses:
+        '200':
+          description: Preview orders owned by the wallet
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Order' } }
+        '400': { $ref: '#/components/responses/Problem' }
+    post:
+      operationId: createOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateOrderRequest' }
+      responses:
+        '201':
+          description: Preview order created in memory
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+        '400': { $ref: '#/components/responses/Problem' }
+  /api/v1/orders/{orderId}:
+    delete:
+      operationId: cancelOrder
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema: { type: string }
+        - name: wallet
+          in: query
+          required: true
+          schema: { type: string, pattern: '^0x[a-fA-F0-9]{40}$' }
+      responses:
+        '200':
+          description: Cancelled preview order
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /api/v1/settlements/{wallet}:
+    parameters:
+      - $ref: '#/components/parameters/Wallet'
+    get:
+      operationId: listSettlements
+      responses:
+        '200':
+          description: User settlement preview states
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/SettlementItem' } }
+        '400': { $ref: '#/components/responses/Problem' }
+        '503': { $ref: '#/components/responses/Problem' }
+  /api/v1/settlements/{positionId}/actions:
+    post:
+      operationId: simulateSettlementAction
+      parameters:
+        - name: positionId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SettlementActionRequest' }
+      responses:
+        '200':
+          description: Updated simulation state; no chain transaction is sent
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SettlementItem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
   /api/v1/offers:
     post:
       operationId: createOffer
@@ -145,11 +244,106 @@ components:
       allOf:
         - $ref: '#/components/schemas/MarketSummary'
         - type: object
-          required: [collateralRatio, patCoverage, minimumAmount]
+          required: [collateralRatio, patCoverage, strike, patStatus, patSource, borrowLevels, lendLevels, minimumAmount]
           properties:
             collateralRatio: { type: string }
             patCoverage: { type: string }
+            strike: { type: string }
+            patStatus: { type: string, enum: [VERIFIED_PREVIEW] }
+            patSource: { type: string, enum: [ATTESTED_CUSTODIAN_PREVIEW] }
+            borrowLevels: { type: array, items: { $ref: '#/components/schemas/OrderBookLevel' } }
+            lendLevels: { type: array, items: { $ref: '#/components/schemas/OrderBookLevel' } }
             minimumAmount: { type: string }
+    OrderBookLevel:
+      type: object
+      required: [apr, availableAmount]
+      properties:
+        apr: { $ref: '#/components/schemas/PlainDecimal' }
+        availableAmount: { $ref: '#/components/schemas/PlainDecimal' }
+    CreateOrderRequest:
+      type: object
+      required: [wallet, marketId, side, amount, apr, expiry]
+      properties:
+        wallet: { type: string, pattern: '^0x[a-fA-F0-9]{40}$' }
+        marketId: { type: string }
+        side: { type: string, enum: [BORROW, LEND] }
+        amount: { $ref: '#/components/schemas/PlainDecimal' }
+        apr: { $ref: '#/components/schemas/PlainDecimal' }
+        expiry: { type: string, format: date-time }
+    Order:
+      allOf:
+        - $ref: '#/components/schemas/CreateOrderRequest'
+        - type: object
+          required: [id, filledAmount, remainingAmount, status, createdAt]
+          properties:
+            id: { type: string }
+            filledAmount: { $ref: '#/components/schemas/PlainDecimal' }
+            remainingAmount: { $ref: '#/components/schemas/PlainDecimal' }
+            status: { type: string, enum: [OPEN, PARTIALLY_FILLED, FILLED, CANCELLED, EXPIRED] }
+            createdAt: { type: string, format: date-time }
+    PositionPayload:
+      type: object
+      required: [wallet, totals, borrowPositions, lendPositions, profile, asOf, source]
+      properties:
+        wallet: { type: string }
+        totals: { $ref: '#/components/schemas/PositionTotals' }
+        borrowPositions: { type: array, items: { $ref: '#/components/schemas/PositionSummary' } }
+        lendPositions: { type: array, items: { $ref: '#/components/schemas/PositionSummary' } }
+        profile: { type: string }
+        asOf: { type: string, format: date-time }
+        source: { type: string, enum: [MOCK_CATALOG] }
+    PositionTotals:
+      type: object
+      required: [borrowedPrincipal, lentPrincipal, collateralLocked, creditFaceValue, debtOutstanding]
+      properties:
+        borrowedPrincipal: { $ref: '#/components/schemas/PlainDecimal' }
+        lentPrincipal: { $ref: '#/components/schemas/PlainDecimal' }
+        collateralLocked: { $ref: '#/components/schemas/PlainDecimal' }
+        creditFaceValue: { $ref: '#/components/schemas/PlainDecimal' }
+        debtOutstanding: { $ref: '#/components/schemas/PlainDecimal' }
+    PositionSummary:
+      type: object
+      required: [id, marketId, side, principal, collateral, creditUnits, debtUnits, faceValue, fixedApr, strike, patStatus, patCoverage, maturity, settlementState]
+      properties:
+        id: { type: string }
+        marketId: { type: string }
+        side: { type: string, enum: [BORROW, LEND] }
+        principal: { $ref: '#/components/schemas/PlainDecimal' }
+        collateral: { $ref: '#/components/schemas/PlainDecimal' }
+        creditUnits: { $ref: '#/components/schemas/PlainDecimal' }
+        debtUnits: { $ref: '#/components/schemas/PlainDecimal' }
+        faceValue: { $ref: '#/components/schemas/PlainDecimal' }
+        fixedApr: { $ref: '#/components/schemas/PlainDecimal' }
+        strike: { $ref: '#/components/schemas/PlainDecimal' }
+        patStatus: { type: string }
+        patCoverage: { $ref: '#/components/schemas/PlainDecimal' }
+        maturity: { type: string, format: date-time }
+        settlementState: { type: string, enum: [OPEN, MATURED, SETTLED] }
+    SettlementActionRequest:
+      type: object
+      required: [wallet, action]
+      properties:
+        wallet: { type: string, pattern: '^0x[a-fA-F0-9]{40}$' }
+        action: { $ref: '#/components/schemas/SettlementAction' }
+    SettlementAction:
+      type: string
+      enum: [SIMULATE_REPAY_DEBT, SIMULATE_RECOVER_COLLATERAL, SIMULATE_CLAIM_LENDER_PAYOUT, SIMULATE_CLAIM_RESIDUAL_PROCEEDS]
+    SettlementItem:
+      type: object
+      required: [positionId, marketId, side, maturity, phase, outstandingDebt, recoverableCollateral, claimablePayout, claimableResidual, patStatus, availableActions, simulated]
+      properties:
+        positionId: { type: string }
+        marketId: { type: string }
+        side: { type: string, enum: [BORROW, LEND] }
+        maturity: { type: string, format: date-time }
+        phase: { type: string, enum: [PRE_MATURITY, REPAYMENT_AVAILABLE, READY_TO_CLAIM, FINALIZED] }
+        outstandingDebt: { $ref: '#/components/schemas/PlainDecimal' }
+        recoverableCollateral: { $ref: '#/components/schemas/PlainDecimal' }
+        claimablePayout: { $ref: '#/components/schemas/PlainDecimal' }
+        claimableResidual: { $ref: '#/components/schemas/PlainDecimal' }
+        patStatus: { type: string }
+        availableActions: { type: array, items: { $ref: '#/components/schemas/SettlementAction' } }
+        simulated: { type: boolean }
     Quote:
       type: object
       required: [marketId, side, principal, collateralRequirement, interest, protocolFee, totalDueOrPayout, apr, maturity, expiresAt, executionSteps]
