@@ -1,0 +1,20 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import { awakeningApi, normalizeApiError } from "@/lib/api/client";
+import type { SettlementAction, SettlementItem } from "@/lib/api/types";
+import { formatDecimal, formatUtcDate } from "@/lib/format";
+import { settlementActionLabel, settlementPhaseLabel } from "@/lib/state/settlement";
+import { useWalletIdentity } from "@/components/shell/wallet";
+import { EmptyState, ErrorState, LoadingState } from "@/components/shell/states";
+
+export function SettlementScreen() {
+  const { wallet, setDemoEnabled } = useWalletIdentity(); const [items, setItems] = useState<SettlementItem[]>([]); const [loading, setLoading] = useState(false); const [error, setError] = useState<string>(); const [pending, setPending] = useState<string>(); const [notice, setNotice] = useState<string>();
+  const load = useCallback(async () => { if (!wallet) return; setLoading(true); setError(undefined); try { setItems(await awakeningApi.settlements(wallet)); } catch (reason) { setError(normalizeApiError(reason).message); } finally { setLoading(false); } }, [wallet]);
+  useEffect(() => { void load(); }, [load]);
+  const act = async (positionId: string, action: SettlementAction) => { if (!wallet) return; setPending(positionId); setError(undefined); try { const next = await awakeningApi.simulateSettlementAction(positionId, { wallet, action }); setItems((current) => current.map((item) => item.positionId === positionId ? next : item)); setNotice("Preview updated. No wallet signature or chain transaction was sent."); } catch (reason) { setError(normalizeApiError(reason).message); } finally { setPending(undefined); } };
+  return <><header className="portfolio-hero"><div className="portfolio-title-line"><h1 className="page-heading">Settlement</h1><span className="preview-status"><span />SIMULATION ONLY · NO ANVIL TRANSACTION</span></div><p className="page-subtitle">Follow each position through maturity, debt repayment, collateral recovery, and lender payout without implying a live transaction.</p></header>
+    <div className="lifecycle-strip" aria-label="Settlement lifecycle"><span>Before maturity</span><i/><span>Repay or claim</span><i/><span>Recover collateral</span><i/><span>Finalized</span></div>
+    {!wallet ? <EmptyState title="Connect a wallet to review settlement"><button className="inline-button" onClick={() => setDemoEnabled(true)}>Use demo wallet</button></EmptyState> : loading ? <LoadingState label="Loading settlement states…" /> : error && !items.length ? <ErrorState message={error} retry={load} /> : items.length === 0 ? <EmptyState title="Nothing to settle">Positions appear here as they approach maturity.</EmptyState> : <section className="settlement-grid">{notice && <p className="preview-notice">{notice}</p>}{error && <p className="field-error">{error}</p>}{items.map((item) => <article className="settlement-card" key={item.positionId}><header><div><strong>{item.side} · BTC / USDC</strong><span>{item.positionId}</span></div><span className={`status-badge ${item.phase === "FINALIZED" ? "status-open" : "status-matured"}`}>{settlementPhaseLabel(item.phase)}</span></header><dl><div><dt>Maturity</dt><dd>{formatUtcDate(item.maturity)} UTC</dd></div><div><dt>Outstanding debt</dt><dd>{formatDecimal(item.outstandingDebt)} USDC</dd></div><div><dt>Recoverable collateral</dt><dd>{formatDecimal(item.recoverableCollateral, 8)} BTC</dd></div><div><dt>Claimable payout</dt><dd>{formatDecimal(item.claimablePayout)} USDC</dd></div><div><dt>PAT status</dt><dd>{item.patStatus}</dd></div></dl><footer>{item.availableActions.length ? item.availableActions.map((action) => <button className="primary-action" key={action} disabled={pending === item.positionId} onClick={() => void act(item.positionId, action)}>{pending === item.positionId ? "Updating preview…" : settlementActionLabel(action)}</button>) : <span>{item.phase === "PRE_MATURITY" ? "No action before maturity." : "Preview lifecycle complete."}</span>}</footer></article>)}</section>}
+  </>;
+}
