@@ -220,6 +220,53 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
   display: inline-flex; padding: 4px 8px; border-radius: 6px; background: rgba(72, 222, 164, 0.095);
   color: var(--success); font-weight: 650;
 }
+
+.market-actions { display: flex; flex-wrap: wrap; gap: 7px; min-width: 238px; }
+.small-action.secondary { background: transparent; color: var(--text-mid); border-color: var(--line-medium); }
+.market-meta.compact { margin: 4px 0 0; white-space: nowrap; }
+.workspace-grid { display: grid; grid-template-columns: minmax(300px, .72fr) minmax(0, 1.28fr); gap: 24px; align-items: start; }
+.instrument-panel { border: 1px solid var(--line); border-radius: 14px; background: rgba(12, 6, 20, .74); padding: 22px; }
+.instrument-panel h2 { margin: 0 0 18px; font-size: 20px; }
+.order-ticket { display: grid; gap: 16px; position: sticky; top: 96px; }
+.order-ticket label { display: grid; gap: 8px; color: var(--text-muted); font: 600 10px/1.4 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+.order-ticket input { min-height: 46px; border: 1px solid var(--line-medium); border-radius: 10px; background: rgba(4, 6, 12, .72); color: var(--text); padding: 10px 13px; font: 13px/1.4 var(--font-mono); }
+.order-ticket input:focus { outline: 2px solid var(--lavender); outline-offset: 2px; }
+.side-tabs { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg-deep); }
+.side-tabs button { min-height: 42px; border: 0; border-radius: 7px; background: transparent; color: var(--text-muted); font-weight: 650; cursor: pointer; }
+.side-tabs button.active { background: rgba(147, 0, 228, .2); color: var(--text); }
+.field-error { display: block; color: var(--danger); font: 12px/1.4 var(--font-ui); letter-spacing: 0; text-transform: none; }
+.compact-ledger { display: grid; }
+.compact-ledger article { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 14px; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.compact-ledger article div { display: grid; gap: 4px; }
+.compact-ledger article span { color: var(--text-muted); font: 11px/1.4 var(--font-mono); }
+.position-table td small, .settlement-card small { display: block; margin-top: 5px; color: var(--text-muted); }
+.lifecycle-strip { display: grid; grid-template-columns: auto 1fr auto 1fr auto 1fr auto; align-items: center; gap: 12px; margin-bottom: 24px; color: var(--text-muted); font: 600 10px/1.4 var(--font-mono); text-transform: uppercase; letter-spacing: .07em; }
+.lifecycle-strip i { height: 1px; background: var(--line-medium); }
+.settlement-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.preview-notice, .settlement-grid > .field-error { grid-column: 1 / -1; margin: 0; padding: 12px 14px; border: 1px solid var(--line-medium); border-radius: 9px; background: rgba(147, 0, 228, .07); color: var(--text-mid); }
+.settlement-card { border: 1px solid var(--line); border-radius: 14px; background: rgba(12, 6, 20, .72); padding: 20px; }
+.settlement-card header { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+.settlement-card header div { display: grid; gap: 5px; }
+.settlement-card header span { color: var(--text-dim); font: 10px/1.4 var(--font-mono); }
+.settlement-card dl { display: grid; grid-template-columns: 1fr 1fr; margin: 0; }
+.settlement-card dl div { padding: 14px 0; border-bottom: 1px solid var(--line); }
+.settlement-card dt { color: var(--text-dim); font: 600 9px/1.4 var(--font-mono); letter-spacing: .07em; text-transform: uppercase; }
+.settlement-card dd { margin: 5px 0 0; color: var(--text-mid); font: 12px/1.4 var(--font-mono); }
+.settlement-card footer { padding-top: 16px; color: var(--text-muted); font-size: 12px; }
+
+@media (max-width: 860px) {
+  .workspace-grid, .settlement-grid { grid-template-columns: 1fr; }
+  .order-ticket { position: static; }
+  .lifecycle-strip { grid-template-columns: 1fr; gap: 7px; }
+  .lifecycle-strip i { width: 1px; height: 12px; margin-left: 8px; }
+}
+
+@media (max-width: 640px) {
+  .compact-ledger article { grid-template-columns: 1fr auto; }
+  .compact-ledger article .small-action { grid-column: 1 / -1; min-height: 44px; }
+  .settlement-card dl { grid-template-columns: 1fr; }
+  .market-actions { min-width: 0; }
+}
 .status-badge { gap: 6px; padding: 5px 8px; border-radius: 6px; color: var(--success); letter-spacing: 0.04em; }
 .status-badge i { width: 5px; height: 5px; }
 .status-matured { border-color: rgba(240, 187, 93, 0.28); background: rgba(240, 187, 93, 0.07); color: var(--warning); }

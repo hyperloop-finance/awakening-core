@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { awakeningApi } from "@/lib/api/client";
-import type { MarketSummary } from "@/lib/api/types";
+import type { MarketDetail, MarketSummary } from "@/lib/api/types";
 import { MarketsScreen } from "./markets-screen";
 
 const market: MarketSummary = {
@@ -24,6 +24,7 @@ const nextMarket: MarketSummary = {
   fixedApr: "0.18",
   availableLiquidity: "7.250000",
 };
+const detail = (value: MarketSummary): MarketDetail => ({ ...value, collateralRatio: "1.5000", patCoverage: "0.9500", strike: "60000.00", patStatus: "VERIFIED_PREVIEW", patSource: "ATTESTED_CUSTODIAN_PREVIEW", borrowLevels: [], lendLevels: [], minimumAmount: "100.00" });
 
 function deferred<T>() {
   let resolve!: (value: T) => void;
@@ -41,6 +42,7 @@ describe("MarketsScreen", () => {
   it("renders loading, then a semantic API-success table without losing integer precision", async () => {
     const response = deferred<MarketSummary[]>();
     vi.spyOn(awakeningApi, "markets").mockReturnValue(response.promise);
+    vi.spyOn(awakeningApi, "market").mockImplementation(async (id) => detail(id === market.id ? market : nextMarket));
 
     render(<MarketsScreen />);
     expect(screen.getByRole("status")).toHaveTextContent("Loading market data");
@@ -56,7 +58,7 @@ describe("MarketsScreen", () => {
     expect(
       within(screen.getByRole("table")).getByText("9,007,199,254,740,993 USDC"),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Borrow" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Borrow now" })).toHaveAttribute(
       "href",
       `/borrow/${market.id}`,
     );
@@ -64,6 +66,7 @@ describe("MarketsScreen", () => {
 
   it("renders an empty filter result and can clear it", async () => {
     vi.spyOn(awakeningApi, "markets").mockResolvedValue([market]);
+    vi.spyOn(awakeningApi, "market").mockResolvedValue(detail(market));
     render(<MarketsScreen />);
     await screen.findByRole("table");
 
@@ -78,6 +81,7 @@ describe("MarketsScreen", () => {
 
   it("derives overview metrics from the full API catalog", async () => {
     vi.spyOn(awakeningApi, "markets").mockResolvedValue([market, nextMarket]);
+    vi.spyOn(awakeningApi, "market").mockImplementation(async (id) => detail(id === market.id ? market : nextMarket));
     render(<MarketsScreen />);
 
     await screen.findByRole("table");
@@ -107,6 +111,7 @@ describe("MarketsScreen", () => {
       .spyOn(awakeningApi, "markets")
       .mockRejectedValueOnce(new Error("catalog offline"))
       .mockResolvedValueOnce([market]);
+    vi.spyOn(awakeningApi, "market").mockResolvedValue(detail(market));
     render(<MarketsScreen />);
 
     expect(await screen.findByRole("alert")).toHaveTextContent("catalog offline");

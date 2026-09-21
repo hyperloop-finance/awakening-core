@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { awakeningApi, normalizeApiError } from "@/lib/api/client";
-import type { MarketSummary } from "@/lib/api/types";
+import type { MarketDetail } from "@/lib/api/types";
 import { formatDecimal } from "@/lib/format";
 import { formatRateAsPercent } from "@/lib/fixed-decimal";
 import { deriveMarketsOverview, filterMarkets } from "@/lib/state/flows";
@@ -12,7 +12,7 @@ import { EmptyState, ErrorState, LoadingState } from "@/components/shell/states"
 type MarketsState =
   | { kind: "loading" }
   | { kind: "error"; message: string }
-  | { kind: "ready"; markets: MarketSummary[] };
+  | { kind: "ready"; markets: MarketDetail[] };
 
 export function MarketsScreen() {
   const [state, setState] = useState<MarketsState>({ kind: "loading" });
@@ -26,8 +26,9 @@ export function MarketsScreen() {
     setState({ kind: "loading" });
     awakeningApi
       .markets(controller.signal)
-      .then((markets) => {
-        if (!controller.signal.aborted) setState({ kind: "ready", markets });
+      .then(async (markets) => {
+        const details = await Promise.all(markets.map((market) => awakeningApi.market(market.id, controller.signal)));
+        if (!controller.signal.aborted) setState({ kind: "ready", markets: details });
       })
       .catch((reason) => {
         if (!controller.signal.aborted) {
@@ -153,7 +154,7 @@ export function MarketsScreen() {
                   <th scope="col">MATURITY</th>
                   <th scope="col">AVAILABLE</th>
                   <th scope="col">UTILIZATION</th>
-                  <th scope="col">OFFER DEPTH</th>
+                  <th scope="col">STRIKE / PAT</th>
                   <th scope="col">STATUS</th>
                   <th scope="col">ACTIONS</th>
                 </tr>
@@ -173,7 +174,7 @@ export function MarketsScreen() {
                     <td data-label="Maturity">{market.maturity.slice(0, 10)} UTC</td>
                     <td data-label="Available">{formatDecimal(market.availableLiquidity)} USDC</td>
                     <td data-label="Utilization">{formatRateAsPercent(market.utilization)}</td>
-                    <td data-label="Offer depth">{formatDecimal(market.offerDepth)} USDC</td>
+                    <td data-label="Strike / PAT"><strong>{formatDecimal(market.strike)} USDC</strong><small className="market-meta compact">{formatRateAsPercent(market.patCoverage)} · {market.patStatus.replace("_PREVIEW", "")}</small></td>
                     <td data-label="Status">
                       <span className={`status-badge status-${market.settlementState.toLowerCase()}`}>
                         <i aria-hidden="true" />{market.settlementState}
@@ -182,10 +183,16 @@ export function MarketsScreen() {
                     <td data-label="Actions" className="market-action-cell">
                       <span className="market-actions">
                         <Link className="small-action" href={`/borrow/${market.id}`}>
-                          Borrow
+                          Borrow now
                         </Link>
                         <Link className="small-action" href={`/lend/${market.id}`}>
-                          Lend
+                          Lend now
+                        </Link>
+                        <Link className="small-action secondary" href={`/orders?marketId=${market.id}&side=BORROW`}>
+                          Place borrow order
+                        </Link>
+                        <Link className="small-action secondary" href={`/orders?marketId=${market.id}&side=LEND`}>
+                          Place lend order
                         </Link>
                       </span>
                     </td>

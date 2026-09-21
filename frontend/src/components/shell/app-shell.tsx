@@ -17,7 +17,9 @@ import { WalletControls } from "./wallet";
 
 const navigation = [
   { href: "/markets", label: "Markets" },
-  { href: "/portfolio", label: "Portfolio" },
+  { href: "/orders", label: "Orders" },
+  { href: "/positions", label: "Positions" },
+  { href: "/settlement", label: "Settlement" },
 ];
 
 type RuntimeState =

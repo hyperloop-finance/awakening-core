@@ -23,6 +23,11 @@ const market: MarketDetail = {
   contractsReady: false,
   collateralRatio: "1.500000",
   patCoverage: "100.20",
+  strike: "60000.00",
+  patStatus: "VERIFIED_PREVIEW",
+  patSource: "ATTESTED_CUSTODIAN_PREVIEW",
+  borrowLevels: [],
+  lendLevels: [],
   minimumAmount: "1.000000",
 };
 
@@ -137,6 +142,11 @@ describe("buildQuote backend parity", () => {
         contractsReady: false,
         collateralRatio: "1.5000",
         patCoverage: "0.9500",
+        strike: "60000.00",
+        patStatus: "VERIFIED_PREVIEW",
+        patSource: "ATTESTED_CUSTODIAN_PREVIEW",
+        borrowLevels: [{ apr: "0.0825", availableAmount: "75000.00" }, { apr: "0.0850", availableAmount: "100000.00" }],
+        lendLevels: [{ apr: "0.0875", availableAmount: "80000.00" }, { apr: "0.0900", availableAmount: "95000.00" }],
         minimumAmount: "100.00",
       },
     ]);
