@@ -18,6 +18,10 @@ type MarketsState =
 
 const tokenLogos: Record<string, { src: string; alt: string }> = {
   BTC: { src: "/tokens/btc.svg", alt: "Bitcoin" },
+  QQQB: { src: "/tokens/qqqb.svg", alt: "Invesco QQQ" },
+  SPCXB: { src: "/tokens/spcxb.svg", alt: "SpaceX" },
+  NVDAB: { src: "/tokens/nvdab.svg", alt: "NVIDIA" },
+  BNCB: { src: "/tokens/bncb.svg", alt: "CEA Industries" },
   USDC: { src: "/tokens/usdc.svg", alt: "USD Coin" },
   USDT: { src: "/tokens/usdt.svg", alt: "Tether" },
 };

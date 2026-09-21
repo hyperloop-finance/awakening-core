@@ -92,15 +92,26 @@ describe("MarketsScreen", () => {
   });
 
   it("renders tokenized-stock markets and their actual settlement asset", async () => {
-    vi.spyOn(awakeningApi, "markets").mockResolvedValue([market, stockMarket]);
-    vi.spyOn(awakeningApi, "market").mockImplementation(async (id) => detail(id === market.id ? market : stockMarket));
+    const stockMarkets = [
+      { ...stockMarket, id: `0x${"d".repeat(64)}`, collateralAsset: "QQQB" },
+      stockMarket,
+      { ...stockMarket, id: `0x${"e".repeat(64)}`, collateralAsset: "NVDAB" },
+      { ...stockMarket, id: `0x${"f".repeat(64)}`, collateralAsset: "BNCB" },
+    ];
+    vi.spyOn(awakeningApi, "markets").mockResolvedValue([market, ...stockMarkets]);
+    vi.spyOn(awakeningApi, "market").mockImplementation(async (id) =>
+      detail(id === market.id ? market : stockMarkets.find((item) => item.id === id) ?? stockMarket),
+    );
     render(<MarketsScreen />);
 
     const table = await screen.findByRole("table", { name: "Available markets" });
     expect(within(table).getByText("SPCXB / USDT")).toBeInTheDocument();
-    expect(within(table).getByText("95,000 USDT")).toBeInTheDocument();
-    expect(screen.getByLabelText("SPCXB token")).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "Tether" })).toBeInTheDocument();
+    expect(within(table).getAllByText("95,000 USDT")).toHaveLength(4);
+    expect(screen.getByRole("img", { name: "SpaceX" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Invesco QQQ" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "NVIDIA" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "CEA Industries" })).toBeInTheDocument();
+    expect(screen.getAllByRole("img", { name: "Tether" })).toHaveLength(4);
     expect(within(table).getAllByText(/PREVIEW PAT/).length).toBeGreaterThan(0);
   });
 
