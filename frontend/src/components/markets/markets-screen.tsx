@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { awakeningApi, normalizeApiError } from "@/lib/api/client";
 import type { MarketDetail } from "@/lib/api/types";
@@ -166,8 +167,8 @@ export function MarketsScreen() {
                   <tr key={market.id}>
                     <th scope="row" className="market-name">
                       <span className="asset-pair">
-                        <i className="asset-symbol asset-btc">B</i>
-                        <i className="asset-symbol asset-usdc">$</i>
+                        <Image className="asset-symbol asset-btc" src="/tokens/btc.svg" alt="Bitcoin" width={25} height={25} />
+                        <Image className="asset-symbol asset-usdc" src="/tokens/usdc.svg" alt="USD Coin" width={25} height={25} />
                         <b>{market.collateralAsset} / {market.principalAsset}</b>
                       </span>
                       <span className="market-meta">PAT terms resolved with quote</span>

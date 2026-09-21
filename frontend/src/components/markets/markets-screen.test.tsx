@@ -58,6 +58,8 @@ describe("MarketsScreen", () => {
     expect(
       within(screen.getByRole("table")).getByText("9,007,199,254,740,993 USDC"),
     ).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Bitcoin" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "USD Coin" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Borrow now" }));
     expect(await screen.findByRole("region", { name: "Borrow execution" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Transaction ticket" })).toBeInTheDocument();
