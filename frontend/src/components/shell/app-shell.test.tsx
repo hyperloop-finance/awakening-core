@@ -42,7 +42,9 @@ describe("AppShell", () => {
     expect(await screen.findByText("Contracts ready · simulation only")).toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "Primary" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Markets" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("link", { name: "Awakening markets" })).toHaveTextContent("HYPERLOOP");
+    expect(screen.getByRole("link", { name: "Awakening markets" })).toContainElement(
+      screen.getByRole("img", { name: "Hyperloop" }),
+    );
     expect(screen.queryByText("AWAKENING")).not.toBeInTheDocument();
     expect(screen.queryByText("v0.1")).not.toBeInTheDocument();
   });

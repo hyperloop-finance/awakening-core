@@ -41,9 +41,9 @@ button:not(:disabled) { cursor: pointer; }
   gap: 34px; margin: 0 auto; padding: 8px 24px;
 }
 .brand {
-  display: inline-flex; min-height: 44px; align-items: center; color: var(--text);
-  font-family: var(--font-display); font-size: 15px; font-weight: 700; letter-spacing: 0.18em; text-decoration: none; white-space: nowrap;
+  display: inline-flex; min-height: 44px; align-items: center; text-decoration: none;
 }
+.brand-logo { display: block; width: 180px; height: auto; }
 .site-header nav { display: flex; gap: 4px; }
 .nav-link {
   position: relative; display: inline-flex; min-height: 44px; align-items: center; padding: 8px 14px;

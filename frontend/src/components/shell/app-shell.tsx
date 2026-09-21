@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   createContext,
@@ -74,7 +75,14 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="site-header">
         <div className="header-inner">
           <Link className="brand" href="/markets" aria-label="Awakening markets">
-            HYPERLOOP
+            <Image
+              className="brand-logo"
+              src="/hyperloop-logo.svg"
+              alt="Hyperloop"
+              width={180}
+              height={23}
+              priority
+            />
           </Link>
           <nav aria-label="Primary">
             {navigation.map((item) => {
