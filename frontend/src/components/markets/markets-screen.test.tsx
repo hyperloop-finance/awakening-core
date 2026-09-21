@@ -122,7 +122,7 @@ describe("MarketsScreen", () => {
 
     await screen.findByRole("table");
     expect(screen.getByText("Total available").nextElementSibling).toHaveTextContent(
-      "9,007,199,254,741,000.25 stablecoin units",
+      "9,007,199,254,741,000.25 USD",
     );
     expect(screen.getByText("Market count").nextElementSibling).toHaveTextContent("2");
     expect(screen.getByText("Average fixed APR").nextElementSibling).toHaveTextContent("15%");
@@ -138,7 +138,7 @@ describe("MarketsScreen", () => {
     expect(await screen.findByText("No markets available")).toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
     expect(screen.getByText("Total available").nextElementSibling).toHaveTextContent(
-      "0 stablecoin units",
+      "0 USD",
     );
     expect(screen.getByText("Market count").nextElementSibling).toHaveTextContent("0");
     expect(screen.getByText("Average fixed APR").nextElementSibling).toHaveTextContent("—");

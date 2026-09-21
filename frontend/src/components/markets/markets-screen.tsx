@@ -102,7 +102,7 @@ export function MarketsScreen() {
           <section className="market-overview" aria-label="Market overview">
             <div className="metric">
               <span>Total available</span>
-              <strong>{formatDecimal(overview.totalLiquidity)} stablecoin units</strong>
+              <strong>{formatDecimal(overview.totalLiquidity)} USD</strong>
               <small>API catalog preview</small>
             </div>
             <div className="metric">
