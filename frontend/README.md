@@ -2,7 +2,7 @@
 
 Next.js 15 (App Router) + TypeScript + Tailwind + wagmi v2.
 
-The default `mock` profile provides deterministic BTC / USDC Markets, Borrow, Lend, and Portfolio states without an RPC node, contract deployment, or wallet. `api` connects to the local backend contract when it is available.
+The default `mock` profile provides deterministic Markets, Orders, Positions, Settlement, Borrow and Lend states without an RPC node or deployment. `api` connects to the local Spring backend.
 
 ## Prerequisites
 
@@ -27,6 +27,8 @@ pnpm dev
 
 Serves on http://localhost:3000.
 
+Core routes: `/markets`, `/orders`, `/positions`, and `/settlement`. Choose **Use demo wallet** for `0xde00000000000000000000000000000000000001`. Order and settlement mutations are preview-only and send no signature or transaction.
+
 ## Build
 
 ```bash
@@ -42,12 +44,16 @@ src/
 │   ├── layout.tsx          Root layout + <Providers>
 │   ├── page.tsx            Redirects to Markets
 │   ├── providers.tsx       Wagmi + demo-wallet + react-query providers
-│   ├── markets/            Market catalogue and filters
+│   ├── markets/            Market catalogue and take/order actions
+│   ├── orders/             Borrow/Lend order management
+│   ├── positions/          Credit, debt, collateral and PAT
+│   ├── settlement/         Preview maturity actions
 │   ├── borrow/[marketId]/  Quote and simulated preview
 │   ├── lend/[marketId]/    Quote and simulated signing preview
-│   └── portfolio/          Disconnected, empty, error, and populated dashboard states
+│   └── portfolio/          Compatibility redirect to Positions
 └── lib/
-    └── wagmi.ts            Chain + RPC + wallet config
+    ├── api/                 Typed API, parsing and mock parity
+    └── contracts/           Chain + wallet configuration
 ```
 
 ## Safety
