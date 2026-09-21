@@ -80,7 +80,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               src="/hyperloop-logo.svg"
               alt="Hyperloop"
               width={180}
-              height={23}
+              height={19}
               priority
             />
           </Link>
