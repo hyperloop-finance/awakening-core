@@ -6,8 +6,8 @@
   --line-medium: rgba(171, 61, 239, 0.28); --line-strong: rgba(190, 102, 255, 0.48);
   --violet: #9300e4; --violet-deep: #6f00ad; --violet-bright: #b44dff;
   --lavender: #d4b3ff; --text: #ffffff; --text-mid: #eadff7;
-  --text-muted: #a694b7; --text-dim: #746681; --success: #48dea4;
-  --warning: #f0bb5d; --danger: #ff8181; --content: 1440px; --radius: 14px;
+  --text-muted: #a694b7; --text-dim: #746681; --success: #d4b3ff;
+  --warning: #b44dff; --danger: #ff8181; --content: 1440px; --radius: 14px;
   --font-display: "Space Grotesk", var(--font-local-sans), "Avenir Next", sans-serif;
   --font-ui: "Inter", var(--font-local-sans), "Helvetica Neue", system-ui, sans-serif;
   --font-data: "JetBrains Mono", var(--font-local-mono), "SFMono-Regular", Consolas, monospace;
@@ -72,7 +72,7 @@ button:not(:disabled) { cursor: pointer; }
 .network-badge i, .preview-status > span, .status-badge i {
   display: inline-block; flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--success);
 }
-.network-badge i { box-shadow: 0 0 10px rgba(72, 222, 164, 0.72); }
+.network-badge i { box-shadow: 0 0 10px rgba(180, 77, 255, 0.62); }
 .network-badge i.muted, .preview-status > span { background: var(--warning); box-shadow: none; }
 
 .wallet-button, .primary-button, .secondary-button, .text-button, .inline-button, .small-action, .back-link { min-height: 44px; }
@@ -207,7 +207,7 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
   font-family: var(--font-ui); font-size: 10px; font-weight: 400;
 }
 .rate-badge, .ticket-mode {
-  display: inline-flex; padding: 4px 8px; border-radius: 6px; background: rgba(72, 222, 164, 0.095);
+  display: inline-flex; padding: 4px 8px; border-radius: 6px; background: rgba(180, 77, 255, 0.095);
   color: var(--success); font-weight: 650;
 }
 
@@ -259,7 +259,7 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
 }
 .status-badge { gap: 6px; padding: 5px 8px; border-radius: 6px; color: var(--success); letter-spacing: 0.04em; }
 .status-badge i { width: 5px; height: 5px; }
-.status-matured { border-color: rgba(240, 187, 93, 0.28); background: rgba(240, 187, 93, 0.07); color: var(--warning); }
+.status-matured { border-color: var(--line-medium); background: rgba(147, 0, 228, 0.07); color: var(--warning); }
 .status-matured i { background: var(--warning); }
 .market-actions { display: flex; justify-content: flex-end; gap: 7px; }
 .small-action {
@@ -295,8 +295,8 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
 .flow-title-row .page-heading, .portfolio-hero .page-heading { margin-top: 0; font-size: clamp(34px, 3.6vw, 52px); }
 .flow-statuses { display: flex; flex: none; align-items: flex-end; flex-direction: column; gap: 8px; }
 .non-live-badge {
-  flex: none; margin-bottom: 7px; padding: 7px 10px; border-color: rgba(240, 187, 93, 0.32);
-  border-radius: 6px; background: rgba(240, 187, 93, 0.065); color: var(--warning);
+  flex: none; margin-bottom: 7px; padding: 7px 10px; border-color: var(--line-medium);
+  border-radius: 6px; background: rgba(147, 0, 228, 0.065); color: var(--lavender);
 }
 .flow-grid {
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(410px, 0.68fr); gap: 20px;
@@ -360,10 +360,10 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
 .transaction-ticket {
   position: sticky; top: 92px; padding: 22px; box-shadow: 0 28px 68px -42px rgba(147, 0, 228, 0.5);
 }
-.ticket-mode { border-color: rgba(72, 222, 164, 0.28); letter-spacing: 0.08em; }
+.ticket-mode { border-color: var(--line-medium); letter-spacing: 0.08em; }
 .warning-callout {
-  margin-top: 16px; padding: 11px 13px; border: 1px solid rgba(240, 187, 93, 0.24);
-  border-radius: 9px; background: rgba(240, 187, 93, 0.065); color: #f6d99f; font-size: 11px; line-height: 1.55;
+  margin-top: 16px; padding: 11px 13px; border: 1px solid var(--line-medium);
+  border-radius: 9px; background: rgba(147, 0, 228, 0.065); color: var(--text-mid); font-size: 11px; line-height: 1.55;
 }
 .form-label {
   display: block; margin: 20px 0 7px; color: var(--text-muted); font-size: 10px;
@@ -421,8 +421,8 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
 .action-stack { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin-top: 14px; }
 .action-stack:has(> :only-child) { grid-template-columns: 1fr; }
 .success-note {
-  margin: 12px 0 0; padding: 10px 12px; border-radius: 8px; background: rgba(72, 222, 164, 0.075);
-  color: var(--success); font-size: 11px;
+  margin: 12px 0 0; padding: 10px 12px; border-radius: 8px; background: rgba(147, 0, 228, 0.075);
+  color: var(--lavender); font-size: 11px;
 }
 .live-action { border: 1px solid var(--line); background: transparent; box-shadow: none; }
 .ticket-placeholder {

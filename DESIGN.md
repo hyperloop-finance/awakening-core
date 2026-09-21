@@ -18,8 +18,8 @@ colors:
   text-mid: "#eadff7"
   text-muted: "#a694b7"
   text-dim: "#746681"
-  success: "#48dea4"
-  warning: "#f0bb5d"
+  success: "#d4b3ff"
+  warning: "#b44dff"
   danger: "#ff8181"
 typography:
   display:
@@ -86,7 +86,7 @@ components:
     rounded: "{rounded.surface}"
     padding: "22px"
   status-success:
-    backgroundColor: "rgba(72, 222, 164, 0.095)"
+    backgroundColor: "rgba(180, 77, 255, 0.095)"
     textColor: "{colors.success}"
     rounded: "{rounded.micro}"
     padding: "5px 8px"
@@ -106,7 +106,7 @@ The system should feel like a calm observation deck for protected settlement. Fi
 
 - Near-black cosmic atmosphere with two diffuse violet ambient layers.
 - Dense, ledger-like information surfaces with thin violet dividers instead of roomy marketing cards.
-- Violet directs attention; lavender carries hierarchy; semantic green, amber, and red communicate state.
+- Violet directs attention; lavender carries hierarchy and non-error state, while red remains reserved for failures.
 - Preview/mock status is persistent, specific, and never styled as live protocol confirmation.
 - Desktop prioritizes a wide data shell; mobile retains the information model through cards and stacked controls.
 
@@ -123,8 +123,8 @@ The palette is a black-violet field where tonal surfaces establish depth, violet
 
 ### Secondary
 
-- **Resolved Green** (`colors.success`): open/healthy statuses, positive rates, and confirmation only.
-- **Preview Amber** (`colors.warning`): non-live, unsigned, or otherwise constrained states; it must not be used to imply a failure.
+- **Resolved Lavender** (`colors.success`): open/healthy statuses, positive rates, and confirmation only.
+- **Preview Violet** (`colors.warning`): non-live, unsigned, or otherwise constrained states; it must not be used to imply a failure.
 - **Exception Red** (`colors.danger`): field errors and unavailable/error states only.
 
 ### Neutral
@@ -134,7 +134,7 @@ The palette is a black-violet field where tonal surfaces establish depth, violet
 - **Three-Step Hairline** (`colors.line`, `colors.line-medium`, `colors.line-strong`): quiet separation at rest, stronger affordance on controls and focus-adjacent elements.
 - **Readable White Scale** (`colors.text`, `colors.text-mid`, `colors.text-muted`, `colors.text-dim`): from primary data to supporting operational metadata.
 
-**The Violet Rarity Rule.** Let dark ground and text carry most of a screen. Use bright violet to identify hierarchy, interaction, and protocol logic—not to flood surfaces or replace semantic state colors.
+**The Violet Rarity Rule.** Let dark ground and text carry most of a screen. Use bright violet to identify hierarchy, interaction, protocol logic, and explicitly labeled preview states—not to flood surfaces or make color the only carrier of state.
 
 ## Typography
 
@@ -193,7 +193,7 @@ Asset markers, PAT seals, status dots, and transaction-step numerals are circula
 **Character:** small, mono, and evidentiary—not decorative tags.
 
 - **Network / preview badges:** use a pill silhouette, compact mono type, a medium hairline, and an explicit status dot.
-- **Market status:** use the tight success badge for open/healthy state; use amber for matured or non-live state.
+- **Market status:** use lavender for open/healthy state and brighter violet for matured or non-live state; wording carries the semantic distinction.
 - **Preview honesty:** deterministic, mock, unsigned, and transaction-disabled states stay in visible copy near the action or data they qualify.
 
 ### Cards / Containers
@@ -249,7 +249,7 @@ Asset markers, PAT seals, status dots, and transaction-step numerals are circula
 ### Don't:
 
 - **Don't** turn the ledger into a sparse grid of generic white or pastel SaaS cards.
-- **Don't** use success green, rich violet, or glowing primary buttons to imply a live transaction, signature, or deployed-contract state.
+- **Don't** use rich violet or glowing primary buttons to imply a live transaction, signature, or deployed-contract state.
 - **Don't** hide deterministic, mock, unsigned, or disabled status behind a tooltip, wallet state, or secondary screen.
 - **Don't** replace exact decimal values or mono protocol labels with vague, rounded marketing copy.
 - **Don't** add continuous animation, parallax, or decorative motion; preserve the existing short reveal and spinner behavior, then honor reduced-motion preferences.
