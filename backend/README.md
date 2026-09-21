@@ -1,38 +1,30 @@
 # Awakening Backend
 
-Java 21 + Spring Boot 3 + PostgreSQL + web3j.
-
-See `../Awakening Implementation Plan.md` §Phase 2 for the full milestone
-plan. This scaffold delivers Milestone 2A (skeleton + Postgres + first
-migration). Chain indexer, offer relay, PAT attestation, and router are
-not yet implemented.
+Java 21 + Spring Boot 3 preview API for the Awakening hackathon product loop.
 
 ## Prerequisites
 
 - Java 21 LTS
-- Docker (for local Postgres)
-
 No global Maven install required — the `./mvnw` wrapper is included.
 
 ## Local development
 
-1. Start Postgres + anvil (from repo root):
-   ```bash
-   docker compose -f ops/docker-compose.yml up -d
-   ```
-
-2. Build + run tests:
+1. Build + run tests:
    ```bash
    ./mvnw verify
    ```
 
-3. Run the app:
+2. Run the app:
    ```bash
    ./mvnw spring-boot:run
    ```
    Serves on `http://localhost:8080`. Actuator health at `/actuator/health`.
 
 ## Configuration
+
+The shared demo wallet is `0xde00000000000000000000000000000000000001`. Orders and settlement progress are stored in memory and reset on restart. Settlement actions are simulations; no chain transaction is created.
+
+User endpoints: `/api/v1/markets`, `/api/v1/orders`, `/api/v1/positions/{wallet}`, and `/api/v1/settlements/{wallet}`. `/api/v1/portfolio/{wallet}` remains a compatibility endpoint.
 
 Environment variables (with defaults for local dev in parens):
 
@@ -45,17 +37,14 @@ Environment variables (with defaults for local dev in parens):
 - `AWAKENING_INDEXER_CONFIRMATIONS` (`12`)
 - `PORT` (`8080`)
 
-## Package layout (planned)
+## Package layout
 
 ```
 xyz.hyperloop.awakening
-├── indexer/       Chain event → Postgres
-├── offer/         Off-chain offer relay
-├── attestation/   Deribit + Derive + internal PAT sources
-├── router/        Best-fill computation
-├── contracts/     web3j-generated bindings (Milestone 2A.3)
-└── common/        DTOs, config, shared utilities
+├── market/        Market terms, Strike, PAT and depth
+├── order/         Preview Borrow/Lend order lifecycle
+├── position/      Credit, debt, collateral and PAT
+├── settlement/    User settlement preview state machine
+├── portfolio/     Compatibility adapter
+└── api/           Validation and Problem Details
 ```
-
-Currently only the top-level `AwakeningBackendApplication` exists —
-packages will be created as their milestones are implemented.
