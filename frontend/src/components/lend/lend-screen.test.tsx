@@ -54,6 +54,22 @@ function deferred<T>() {
 afterEach(() => vi.restoreAllMocks());
 
 describe("LendScreen", () => {
+  it("uses the selected market's USDT unit throughout the lend ticket", async () => {
+    const usdtMarket = {
+      ...market,
+      collateralAsset: "SPCXB",
+      principalAsset: "USDT",
+      availableLiquidity: "95000.00",
+    };
+    vi.spyOn(awakeningApi, "market").mockResolvedValue(usdtMarket);
+    render(<LendScreen marketId={marketId} side="LEND" />);
+
+    expect(await screen.findByText("95,000 USDT")).toBeInTheDocument();
+    expect(screen.getByText("100.000000 USDT")).toBeInTheDocument();
+    expect(screen.getByLabelText("USDT amount")).toBeInTheDocument();
+    expect(screen.getByText("MOCK · LEND / USDT")).toBeInTheDocument();
+  });
+
   it("loads the market and applies its minimum, APR, and PAT coverage", async () => {
     const response = deferred<MarketDetail>();
     vi.spyOn(awakeningApi, "market").mockReturnValue(response.promise);

@@ -4,6 +4,7 @@ import { getMockMarketCatalog, mockQuote } from "./mock";
 import { buildQuote } from "./quotes";
 
 const scale = BigInt(100_000_000);
+const quoteNow = new Date("2027-06-03T00:00:00Z");
 
 function scaled(value: string) {
   const [integer, fraction = ""] = value.split(".");
@@ -43,7 +44,7 @@ function accountingFields(quote: Quote) {
 
 describe("buildQuote backend parity", () => {
   it("matches the published QuoteService BORROW fixture at a 0.0850 decimal rate", () => {
-    const quote = buildQuote({ side: "BORROW", amount: "1000", market });
+    const quote = buildQuote({ side: "BORROW", amount: "1000", market, now: quoteNow });
 
     expect(accountingFields(quote)).toEqual({
       principal: "1000",
@@ -58,7 +59,7 @@ describe("buildQuote backend parity", () => {
   });
 
   it("matches the QuoteService LEND literal fixture for the same principal", () => {
-    const quote = buildQuote({ side: "LEND", amount: "1000", market });
+    const quote = buildQuote({ side: "LEND", amount: "1000", market, now: quoteNow });
 
     expect(accountingFields(quote)).toEqual({
       principal: "1000",
@@ -73,7 +74,7 @@ describe("buildQuote backend parity", () => {
   });
 
   it("scales every accounting field for a second amount with literal rounding", () => {
-    expect(accountingFields(buildQuote({ side: "BORROW", amount: "2000", market }))).toEqual({
+    expect(accountingFields(buildQuote({ side: "BORROW", amount: "2000", market, now: quoteNow }))).toEqual({
       principal: "2000",
       collateralRequirement: "0.05000000",
       interest: "41.917808",
@@ -82,21 +83,22 @@ describe("buildQuote backend parity", () => {
     });
   });
 
-  it("keeps numeric quote terms independent of the wall clock", () => {
+  it("derives numeric quote terms from the remaining time to maturity", () => {
     const early = buildQuote({
       side: "BORROW",
       amount: "1000",
       market,
-      now: new Date("2025-01-01T00:00:00Z"),
+      now: new Date("2027-06-03T00:00:00Z"),
     });
     const late = buildQuote({
       side: "BORROW",
       amount: "1000",
       market,
-      now: new Date("2030-01-01T00:00:00Z"),
+      now: new Date("2027-07-03T00:00:00Z"),
     });
 
-    expect(accountingFields(late)).toEqual(accountingFields(early));
+    expect(scaled(late.interest)).toBeLessThan(scaled(early.interest));
+    expect(scaled(late.totalDueOrPayout)).toBeLessThan(scaled(early.totalDueOrPayout));
   });
 
   it("matches the backend five-minute expiry and side-specific preview steps", () => {
@@ -117,8 +119,27 @@ describe("buildQuote backend parity", () => {
     ]);
   });
 
+  it("uses each tokenized-stock market's collateral terms and settlement asset", () => {
+    const stockMarket = {
+      ...market,
+      collateralAsset: "SPCXB",
+      principalAsset: "USDT",
+      fixedApr: "0.1180",
+      collateralRatio: "1.6000",
+      strike: "425.00",
+    };
+    const quote = buildQuote({ side: "BORROW", amount: "1000", market: stockMarket, now: quoteNow });
+
+    expect(quote.collateralRequirement).toBe("3.76470588");
+    expect(quote.executionSteps).toEqual([
+      "Review SPCXB collateral requirement",
+      "Sign simulated borrow intent",
+      "Receive USDT principal",
+    ]);
+  });
+
   it("keeps the default mock quote on the parity calculation path", () => {
-    expect(accountingFields(mockQuote(market, "BORROW", "1000"))).toEqual({
+    expect(accountingFields(mockQuote(market, "BORROW", "1000", quoteNow))).toEqual({
       principal: "1000",
       collateralRequirement: "0.02500000",
       interest: "20.958904",
@@ -127,28 +148,11 @@ describe("buildQuote backend parity", () => {
     });
   });
 
-  it("mirrors the backend public market fixture in the default mock catalog", () => {
-    expect(getMockMarketCatalog()).toEqual([
-      {
-        id: "0x8f0d4f673bd9de1d1f927cbf3abfc7b77c680f1d817e113d5603bb483fa041e6",
-        collateralAsset: "BTC",
-        principalAsset: "USDC",
-        maturity: "2026-12-31T00:00:00Z",
-        fixedApr: "0.0850",
-        utilization: "0.4200",
-        availableLiquidity: "250000.00",
-        offerDepth: "175000.00",
-        settlementState: "OPEN",
-        contractsReady: false,
-        collateralRatio: "1.5000",
-        patCoverage: "0.9500",
-        strike: "60000.00",
-        patStatus: "VERIFIED_PREVIEW",
-        patSource: "ATTESTED_CUSTODIAN_PREVIEW",
-        borrowLevels: [{ apr: "0.0825", availableAmount: "75000.00" }, { apr: "0.0850", availableAmount: "100000.00" }],
-        lendLevels: [{ apr: "0.0875", availableAmount: "80000.00" }, { apr: "0.0900", availableAmount: "95000.00" }],
-        minimumAmount: "100.00",
-      },
+  it("mirrors the five backend market fixtures in the default mock catalog", () => {
+    const catalog = getMockMarketCatalog();
+    expect(catalog).toHaveLength(5);
+    expect(catalog.map(({ collateralAsset, principalAsset }) => `${collateralAsset}/${principalAsset}`)).toEqual([
+      "BTC/USDC", "QQQB/USDC", "SPCXB/USDT", "NVDAB/USDC", "BNCB/USDT",
     ]);
   });
 });

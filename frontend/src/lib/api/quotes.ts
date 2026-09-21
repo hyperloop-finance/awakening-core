@@ -8,15 +8,11 @@ import {
 const maximum = BigInt(1_000_000) * FIXED_DECIMAL_SCALE;
 const protocolFeeBasisPoints = BigInt(30);
 const basisPointDenominator = BigInt(10_000);
-const quoteTermDays = BigInt(90);
-const daysPerYear = BigInt(365);
+const millisecondsPerYear = BigInt(365 * 24 * 60 * 60 * 1000);
 const sixDecimalFactor = BigInt(100);
 
 // Temporary mock-contract parity with backend QuoteService. API quotes replace this path
 // outside the mock profile; keep these terms synchronized until then.
-const mockBtcReferencePrice = parseFixedDecimal("60000");
-const mockCollateralRatio = parseFixedDecimal("1.5");
-
 function divideHalfUp(numerator: bigint, denominator: bigint) {
   const negative = numerator < BigInt(0);
   const absolute = negative ? -numerator : numerator;
@@ -60,10 +56,12 @@ export function buildQuote({
   const error = validateDecimalInput(amount, market.minimumAmount);
   if (error) throw new Error(error);
   const principal = parseFixedDecimal(amount);
+  const termMilliseconds = BigInt(new Date(market.maturity).getTime() - now.getTime());
+  if (termMilliseconds <= BigInt(0)) throw new Error("Quotes are unavailable after market maturity.");
   // QuoteService exposes APR as a decimal rate (0.085 = 8.5%), not percentage points.
   const apr = parseFixedDecimal(market.fixedApr);
-  const interestNumerator = principal * apr * quoteTermDays;
-  const interestDenominator = FIXED_DECIMAL_SCALE * daysPerYear;
+  const interestNumerator = principal * apr * termMilliseconds;
+  const interestDenominator = FIXED_DECIMAL_SCALE * millisecondsPerYear;
   const feeNumerator = principal * protocolFeeBasisPoints;
   const interest = divideHalfUp(
     interestNumerator,
@@ -86,7 +84,10 @@ export function buildQuote({
   );
   const collateral =
     side === "BORROW"
-      ? divideHalfUp(principal * mockCollateralRatio, mockBtcReferencePrice)
+      ? divideHalfUp(
+          principal * parseFixedDecimal(market.collateralRatio),
+          parseFixedDecimal(market.strike),
+        )
       : BigInt(0);
   return {
     marketId: market.id,
@@ -102,14 +103,14 @@ export function buildQuote({
     executionSteps:
       side === "BORROW"
         ? [
-            "Review BTC collateral requirement",
+            `Review ${market.collateralAsset} collateral requirement`,
             "Sign simulated borrow intent",
-            "Receive USDC principal",
+            `Receive ${market.principalAsset} principal`,
           ]
         : [
             "Review fixed-rate offer",
             "Sign simulated lend offer",
-            "Reserve USDC liquidity",
+            `Reserve ${market.principalAsset} liquidity`,
           ],
   };
 }

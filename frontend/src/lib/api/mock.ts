@@ -5,6 +5,10 @@ export const DEMO_WALLET = "0xde00000000000000000000000000000000000001";
 
 const ids = [
   "0x8f0d4f673bd9de1d1f927cbf3abfc7b77c680f1d817e113d5603bb483fa041e6",
+  "0x71fb86324753ee2148c04b87911e1aa7d46df0781eb25b3248f1d9be4d734101",
+  "0x72fb86324753ee2148c04b87911e1aa7d46df0781eb25b3248f1d9be4d734102",
+  "0x73fb86324753ee2148c04b87911e1aa7d46df0781eb25b3248f1d9be4d734103",
+  "0x74fb86324753ee2148c04b87911e1aa7d46df0781eb25b3248f1d9be4d734104",
 ];
 
 // Temporary contract parity: keep this fallback identical to MarketService until the API replaces it.
@@ -28,6 +32,38 @@ const markets: MarketDetail[] = [
     borrowLevels: [{ apr: "0.0825", availableAmount: "75000.00" }, { apr: "0.0850", availableAmount: "100000.00" }],
     lendLevels: [{ apr: "0.0875", availableAmount: "80000.00" }, { apr: "0.0900", availableAmount: "95000.00" }],
     minimumAmount: "100.00",
+  },
+  {
+    id: ids[1], collateralAsset: "QQQB", principalAsset: "USDC", maturity: "2027-01-29T00:00:00Z",
+    fixedApr: "0.0720", utilization: "0.3600", availableLiquidity: "180000.00", offerDepth: "120000.00",
+    settlementState: "OPEN", contractsReady: false, collateralRatio: "1.3500", patCoverage: "0.9400",
+    strike: "600.00", patStatus: "VERIFIED_PREVIEW", patSource: "ATTESTED_CUSTODIAN_PREVIEW",
+    borrowLevels: [{ apr: "0.0695", availableAmount: "81000.00" }, { apr: "0.0720", availableAmount: "99000.00" }],
+    lendLevels: [{ apr: "0.0745", availableAmount: "54000.00" }, { apr: "0.0720", availableAmount: "66000.00" }], minimumAmount: "100.00",
+  },
+  {
+    id: ids[2], collateralAsset: "SPCXB", principalAsset: "USDT", maturity: "2027-03-26T00:00:00Z",
+    fixedApr: "0.1180", utilization: "0.5800", availableLiquidity: "95000.00", offerDepth: "72000.00",
+    settlementState: "OPEN", contractsReady: false, collateralRatio: "1.6000", patCoverage: "0.9200",
+    strike: "425.00", patStatus: "VERIFIED_PREVIEW", patSource: "ATTESTED_CUSTODIAN_PREVIEW",
+    borrowLevels: [{ apr: "0.1155", availableAmount: "42750.00" }, { apr: "0.1180", availableAmount: "52250.00" }],
+    lendLevels: [{ apr: "0.1205", availableAmount: "32400.00" }, { apr: "0.1180", availableAmount: "39600.00" }], minimumAmount: "100.00",
+  },
+  {
+    id: ids[3], collateralAsset: "NVDAB", principalAsset: "USDC", maturity: "2026-12-19T00:00:00Z",
+    fixedApr: "0.0950", utilization: "0.4700", availableLiquidity: "210000.00", offerDepth: "145000.00",
+    settlementState: "OPEN", contractsReady: false, collateralRatio: "1.4500", patCoverage: "0.9400",
+    strike: "180.00", patStatus: "VERIFIED_PREVIEW", patSource: "ATTESTED_CUSTODIAN_PREVIEW",
+    borrowLevels: [{ apr: "0.0925", availableAmount: "94500.00" }, { apr: "0.0950", availableAmount: "115500.00" }],
+    lendLevels: [{ apr: "0.0975", availableAmount: "65250.00" }, { apr: "0.0950", availableAmount: "79750.00" }], minimumAmount: "100.00",
+  },
+  {
+    id: ids[4], collateralAsset: "BNCB", principalAsset: "USDT", maturity: "2027-02-26T00:00:00Z",
+    fixedApr: "0.1350", utilization: "0.6300", availableLiquidity: "65000.00", offerDepth: "48000.00",
+    settlementState: "OPEN", contractsReady: false, collateralRatio: "1.7000", patCoverage: "0.9000",
+    strike: "15.00", patStatus: "VERIFIED_PREVIEW", patSource: "ATTESTED_CUSTODIAN_PREVIEW",
+    borrowLevels: [{ apr: "0.1325", availableAmount: "29250.00" }, { apr: "0.1350", availableAmount: "35750.00" }],
+    lendLevels: [{ apr: "0.1375", availableAmount: "21600.00" }, { apr: "0.1350", availableAmount: "26400.00" }], minimumAmount: "100.00",
   },
 ];
 
@@ -99,7 +135,8 @@ export const mockQuote = (
   market: MarketDetail,
   side: QuoteSide,
   amount: string,
-): Quote => buildQuote({ market, side, amount });
+  now?: Date,
+): Quote => buildQuote({ market, side, amount, now });
 
 let orders: Order[] = [];
 let nextOrderId = 1;

@@ -16,6 +16,20 @@ type MarketsState =
   | { kind: "error"; message: string }
   | { kind: "ready"; markets: MarketDetail[] };
 
+const tokenLogos: Record<string, { src: string; alt: string }> = {
+  BTC: { src: "/tokens/btc.svg", alt: "Bitcoin" },
+  USDC: { src: "/tokens/usdc.svg", alt: "USD Coin" },
+  USDT: { src: "/tokens/usdt.svg", alt: "Tether" },
+};
+
+function AssetIcon({ asset, overlap = false }: { asset: string; overlap?: boolean }) {
+  const logo = tokenLogos[asset];
+  const className = `asset-symbol${overlap ? " asset-overlap" : ""}`;
+  return logo
+    ? <Image className={className} src={logo.src} alt={logo.alt} width={25} height={25} />
+    : <span className={`${className} asset-ticker`} role="img" aria-label={`${asset} token`}>{asset.slice(0, 2)}</span>;
+}
+
 export function MarketsScreen() {
   const [state, setState] = useState<MarketsState>({ kind: "loading" });
   const [query, setQuery] = useState("");
@@ -55,7 +69,7 @@ export function MarketsScreen() {
         <div className="markets-hero-copy">
           <div className="hero-title-line">
             <h1 className="page-heading" id="markets-title">
-              Borrow against BTC.<br />
+              Borrow against BTC or tokenized stocks.<br />
               <span>Never get liquidated.</span>
             </h1>
             <div className="preview-status">
@@ -64,7 +78,7 @@ export function MarketsScreen() {
             </div>
           </div>
           <p className="page-subtitle">
-            Fixed-rate, fixed-maturity BTC credit. Every quote carries explicit put
+            Fixed-rate, fixed-maturity credit for BTC and tokenized securities. Every quote carries explicit put
             attribution, with no health checks or margin calls during the term.
           </p>
           <div className="invariant-panel" aria-label="Protocol repayment invariant">
@@ -84,7 +98,7 @@ export function MarketsScreen() {
           <section className="market-overview" aria-label="Market overview">
             <div className="metric">
               <span>Total available</span>
-              <strong>{formatDecimal(overview.totalLiquidity)} USDC</strong>
+              <strong>{formatDecimal(overview.totalLiquidity)} stablecoin units</strong>
               <small>API catalog preview</small>
             </div>
             <div className="metric">
@@ -116,7 +130,7 @@ export function MarketsScreen() {
         <div className="section-heading">
           <div>
             <h2 id="market-catalog-title">Markets</h2>
-            <p>Isolated BTC / USDC terms sourced from the current API profile.</p>
+            <p>Isolated BTC and tokenized-security terms sourced from the current API profile.</p>
           </div>
           <div className="market-filter">
             <svg viewBox="0 0 24 24" aria-hidden="true" fill="none">
@@ -141,7 +155,7 @@ export function MarketsScreen() {
           </EmptyState>
         )}
         {state.kind === "ready" && state.markets.length > 0 && filtered.length === 0 && (
-          <EmptyState title="No BTC markets match this filter">
+          <EmptyState title="No markets match this filter">
             <button className="inline-button" onClick={() => setQuery("")}>
               Clear search
             </button>
@@ -167,17 +181,17 @@ export function MarketsScreen() {
                   <tr key={market.id}>
                     <th scope="row" className="market-name">
                       <span className="asset-pair">
-                        <Image className="asset-symbol asset-btc" src="/tokens/btc.svg" alt="Bitcoin" width={25} height={25} />
-                        <Image className="asset-symbol asset-usdc" src="/tokens/usdc.svg" alt="USD Coin" width={25} height={25} />
+                        <AssetIcon asset={market.collateralAsset} />
+                        <AssetIcon asset={market.principalAsset} overlap />
                         <b>{market.collateralAsset} / {market.principalAsset}</b>
                       </span>
-                      <span className="market-meta">PAT terms resolved with quote</span>
+                      <span className="market-meta">Mock PAT terms resolved with quote</span>
                     </th>
                     <td data-label="Fixed APR"><span className="rate-badge">{formatRateAsPercent(market.fixedApr)}</span></td>
                     <td data-label="Maturity">{market.maturity.slice(0, 10)} UTC</td>
-                    <td data-label="Available">{formatDecimal(market.availableLiquidity)} USDC</td>
+                    <td data-label="Available">{formatDecimal(market.availableLiquidity)} {market.principalAsset}</td>
                     <td data-label="Utilization">{formatRateAsPercent(market.utilization)}</td>
-                    <td data-label="Strike / PAT"><strong>{formatDecimal(market.strike)} USDC</strong><small className="market-meta compact">{formatRateAsPercent(market.patCoverage)} · {market.patStatus.replace("_PREVIEW", "")}</small></td>
+                    <td data-label="Strike / PAT"><strong>{formatDecimal(market.strike)} {market.principalAsset}</strong><small className="market-meta compact">{formatRateAsPercent(market.patCoverage)} · PREVIEW PAT</small></td>
                     <td data-label="Status">
                       <span className={`status-badge status-${market.settlementState.toLowerCase()}`}>
                         <i aria-hidden="true" />{market.settlementState}

@@ -31,8 +31,8 @@ const directionContractScript = `document.body.insertBefore(document.createComme
 )}), document.body.firstChild);`;
 
 export const metadata: Metadata = {
-  title: "Awakening — fixed-maturity BTC credit",
-  description: "Fixed-rate BTC credit with deterministic local and testnet-ready profiles.",
+  title: "Awakening — fixed-maturity protected credit",
+  description: "Fixed-rate credit against BTC and tokenized securities with deterministic preview markets.",
 };
 
 export default function RootLayout({

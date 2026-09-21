@@ -31,7 +31,7 @@ export function validateOfferApr(value: string) {
 
 export function lendDetails(market: MarketDetail): [string, string][] {
   return [
-    ["Minimum amount", `${market.minimumAmount} USDC`],
+    ["Minimum amount", `${market.minimumAmount} ${market.principalAsset}`],
     ["Fixed APR", formatRateAsPercent(market.fixedApr)],
     ["PAT coverage", formatRateAsPercent(market.patCoverage)],
   ];

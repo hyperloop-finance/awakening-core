@@ -164,7 +164,7 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
               <div className="market-id" title={marketState.market.id}>{marketState.market.id}</div>
               <dl className="fact-list">
                 <div><dt>Maturity</dt><dd>{marketState.market.maturity.slice(0, 10)} UTC</dd></div>
-                <div><dt>Available liquidity</dt><dd>{formatDecimal(marketState.market.availableLiquidity)} USDC</dd></div>
+                <div><dt>Available liquidity</dt><dd>{formatDecimal(marketState.market.availableLiquidity)} {marketState.market.principalAsset}</dd></div>
                 {lendDetails(marketState.market).map(([label, value]) => (
                   <div key={label}><dt>{label}</dt><dd>{value}</dd></div>
                 ))}
@@ -198,7 +198,7 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
           <section className="transaction-ticket" aria-labelledby="lend-ticket-title">
             <div className="ticket-heading">
               <h2 id="lend-ticket-title">Offer ticket</h2>
-              <span className="ticket-mode">MOCK · LEND / USDC</span>
+              <span className="ticket-mode">MOCK · LEND / {marketState.market.principalAsset}</span>
             </div>
             <div className="warning-callout">
               {liveContractsReady
@@ -206,12 +206,12 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
                 : "No private key or complete deployment is available. Simulation remains local."}
             </div>
             <label className="form-label" htmlFor="lend-amount">
-              USDC amount
+              {marketState.market.principalAsset} amount
             </label>
             <div className="amount-field">
               <input id="lend-amount" inputMode="decimal" className="amount-input" value={amount}
                 onChange={(event) => { setAmount(event.target.value); clearQuote(); }} />
-              <span>USDC</span>
+              <span>{marketState.market.principalAsset}</span>
             </div>
             {amountError ? (
               <p className="field-help field-error">{amountError}</p>
@@ -252,7 +252,7 @@ export function LendScreen({ marketId }: { marketId: string; side?: "LEND" }) {
                   Calculated by the API at the market&apos;s {formatRateAsPercent(quote.apr)}
                   APR; it does not estimate your custom offer.
                 </p>
-                {quoteSummary(quote).map(([label, value]) => (
+                {quoteSummary(quote, marketState.market).map(([label, value]) => (
                   <div className="preview-row" key={label}>
                     <span>{label}</span>
                     <b>{value}</b>

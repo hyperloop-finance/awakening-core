@@ -199,9 +199,11 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
   margin-left: 11px; font-family: var(--font-ui); font-size: 13px; font-weight: 640;
 }
 .asset-symbol {
-  display: block; width: 25px; height: 25px; border: 2px solid var(--panel); border-radius: 50%; object-fit: cover;
+  display: flex; flex: none; width: 25px; height: 25px; align-items: center; justify-content: center;
+  border: 2px solid var(--panel); border-radius: 50%; object-fit: cover;
 }
-.asset-usdc { margin-left: -7px; }
+.asset-overlap { margin-left: -7px; }
+.asset-ticker { background: var(--violet-deep); color: var(--text); font: 700 7px/1 var(--font-data); letter-spacing: -.02em; }
 .market-meta {
   display: block; margin: 5px 0 0 54px; color: var(--text-dim);
   font-family: var(--font-ui); font-size: 10px; font-weight: 400;

@@ -8,11 +8,11 @@ web
 
 ## Users
 
-Crypto-native borrowers and lenders evaluating fixed-rate, fixed-maturity BTC credit in a local or testnet environment. They need to compare a market, understand PAT coverage, preview every transaction step, and inspect their positions without mistaking mock data for production state.
+Crypto-native borrowers and lenders evaluating fixed-rate, fixed-maturity credit against BTC or tokenized securities in a local or testnet environment. They need to compare a market, understand PAT coverage, preview every transaction step, and inspect their positions without mistaking mock data for production state.
 
 ## Product Purpose
 
-Awakening provides non-liquidative BTC-backed credit. The local v0.1 experience lets users explore markets and complete Borrow, Lend, and Portfolio preview flows before Sepolia contracts are deployed.
+Awakening provides non-liquidative, PAT-backed credit. The local v0.1 experience lets users explore markets and complete Borrow, Lend, and Portfolio preview flows before Sepolia contracts are deployed.
 
 ## Positioning
 
@@ -27,7 +27,7 @@ Users operate a dense financial dashboard on desktop and mobile, compare exact d
 - Markets, Borrow, Lend, and Portfolio are required first-round surfaces.
 - The default local runtime uses deterministic mock/API data; no Sepolia deployment exists yet.
 - Contract addresses are nullable and live transactions remain disabled until a safe deployed integration exists.
-- Single BTC collateral and USDC principal only.
+- The deterministic preview catalog includes BTC/USDC plus QQQB, SPCXB, NVDAB, and BNCB examples settled in USDC or USDT; these are mock terms, not live Binance or on-chain markets.
 - Never expose the legacy unsafe `take()` or `repay()` paths.
 - Decimal-string precision and OpenAPI wire compatibility must be preserved.
 

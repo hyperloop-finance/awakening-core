@@ -182,7 +182,7 @@ export function CreditFlow({ marketId, side, embedded = false }: { marketId: str
           <section className="transaction-ticket" aria-labelledby="transaction-ticket-title">
             <div className="ticket-heading">
               <h2 id="transaction-ticket-title">Transaction ticket</h2>
-              <span className="ticket-mode">MOCK · {side} / USDC</span>
+              <span className="ticket-mode">MOCK · {side} / {marketState.market.principalAsset}</span>
             </div>
             <div className="warning-callout">
               {liveContractsReady
@@ -190,7 +190,7 @@ export function CreditFlow({ marketId, side, embedded = false }: { marketId: str
                 : "Complete, non-zero deployment addresses are not available. Simulation is local only."}
             </div>
             <label className="form-label" htmlFor="amount">
-              USDC amount
+              {marketState.market.principalAsset} amount
             </label>
             <div className="amount-field">
               <input
@@ -203,12 +203,12 @@ export function CreditFlow({ marketId, side, embedded = false }: { marketId: str
                   clearQuote();
                 }}
               />
-              <span>USDC</span>
+              <span>{marketState.market.principalAsset}</span>
             </div>
             {amountError ? (
               <p className="field-help field-error">{amountError}</p>
             ) : (
-              <p className="field-help">Indicative quotes expire after five minutes · minimum {marketState.market.minimumAmount} USDC.</p>
+              <p className="field-help">Indicative quotes expire after five minutes · minimum {marketState.market.minimumAmount} {marketState.market.principalAsset}.</p>
             )}
             <button
               className="secondary-button standalone-action"
@@ -225,7 +225,7 @@ export function CreditFlow({ marketId, side, embedded = false }: { marketId: str
               <div className="quote-result">
                 <div className="quote-result-head"><span>INDICATIVE QUOTE</span><time>{quote.expiresAt.slice(11, 16)} UTC expiry</time></div>
                 <div className="preview-box">
-                  {quoteSummary(quote).map(([label, value]) => (
+                  {quoteSummary(quote, marketState.market).map(([label, value]) => (
                     <div className="preview-row" key={label}>
                       <span>{label}</span><b>{value}</b>
                     </div>

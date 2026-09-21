@@ -24,6 +24,14 @@ const nextMarket: MarketSummary = {
   fixedApr: "0.18",
   availableLiquidity: "7.250000",
 };
+const stockMarket: MarketSummary = {
+  ...market,
+  id: `0x${"c".repeat(64)}`,
+  collateralAsset: "SPCXB",
+  principalAsset: "USDT",
+  maturity: "2027-03-26T00:00:00Z",
+  availableLiquidity: "95000.00",
+};
 const detail = (value: MarketSummary): MarketDetail => ({ ...value, collateralRatio: "1.5000", patCoverage: "0.9500", strike: "60000.00", patStatus: "VERIFIED_PREVIEW", patSource: "ATTESTED_CUSTODIAN_PREVIEW", borrowLevels: [], lendLevels: [], minimumAmount: "100.00" });
 
 function deferred<T>() {
@@ -78,9 +86,22 @@ describe("MarketsScreen", () => {
       target: { value: "ETH" },
     });
 
-    expect(screen.getByText("No BTC markets match this filter")).toBeInTheDocument();
+    expect(screen.getByText("No markets match this filter")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Clear search" }));
     expect(screen.getByRole("table")).toBeInTheDocument();
+  });
+
+  it("renders tokenized-stock markets and their actual settlement asset", async () => {
+    vi.spyOn(awakeningApi, "markets").mockResolvedValue([market, stockMarket]);
+    vi.spyOn(awakeningApi, "market").mockImplementation(async (id) => detail(id === market.id ? market : stockMarket));
+    render(<MarketsScreen />);
+
+    const table = await screen.findByRole("table", { name: "Available markets" });
+    expect(within(table).getByText("SPCXB / USDT")).toBeInTheDocument();
+    expect(within(table).getByText("95,000 USDT")).toBeInTheDocument();
+    expect(screen.getByLabelText("SPCXB token")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Tether" })).toBeInTheDocument();
+    expect(within(table).getAllByText(/PREVIEW PAT/).length).toBeGreaterThan(0);
   });
 
   it("derives overview metrics from the full API catalog", async () => {
@@ -90,7 +111,7 @@ describe("MarketsScreen", () => {
 
     await screen.findByRole("table");
     expect(screen.getByText("Total available").nextElementSibling).toHaveTextContent(
-      "9,007,199,254,741,000.25 USDC",
+      "9,007,199,254,741,000.25 stablecoin units",
     );
     expect(screen.getByText("Market count").nextElementSibling).toHaveTextContent("2");
     expect(screen.getByText("Average fixed APR").nextElementSibling).toHaveTextContent("15%");
@@ -105,7 +126,9 @@ describe("MarketsScreen", () => {
 
     expect(await screen.findByText("No markets available")).toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
-    expect(screen.getByText("Total available").nextElementSibling).toHaveTextContent("0 USDC");
+    expect(screen.getByText("Total available").nextElementSibling).toHaveTextContent(
+      "0 stablecoin units",
+    );
     expect(screen.getByText("Market count").nextElementSibling).toHaveTextContent("0");
     expect(screen.getByText("Average fixed APR").nextElementSibling).toHaveTextContent("—");
   });

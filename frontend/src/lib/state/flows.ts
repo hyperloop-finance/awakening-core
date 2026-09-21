@@ -47,16 +47,16 @@ export function canSimulateSubmit({
   return !amountError && previewed;
 }
 
-export function quoteSummary(quote: Quote): [string, string][] {
+export function quoteSummary(quote: Quote, market: Pick<MarketSummary, "collateralAsset" | "principalAsset">): [string, string][] {
   return [
-    ["Principal", `${formatDecimal(quote.principal)} USDC`],
-    ["BTC collateral", `${formatDecimal(quote.collateralRequirement, 8)} BTC`],
+    ["Principal", `${formatDecimal(quote.principal)} ${market.principalAsset}`],
+    [`${market.collateralAsset} collateral`, `${formatDecimal(quote.collateralRequirement, 8)} ${market.collateralAsset}`],
     ["Fixed APR", formatRateAsPercent(quote.apr)],
-    ["Interest", `${formatDecimal(quote.interest)} USDC`],
-    ["Protocol fee", `${formatDecimal(quote.protocolFee)} USDC`],
+    ["Interest", `${formatDecimal(quote.interest)} ${market.principalAsset}`],
+    ["Protocol fee", `${formatDecimal(quote.protocolFee)} ${market.principalAsset}`],
     [
       quote.side === "BORROW" ? "Total due at maturity" : "Total payout",
-      `${formatDecimal(quote.totalDueOrPayout)} USDC`,
+      `${formatDecimal(quote.totalDueOrPayout)} ${market.principalAsset}`,
     ],
     ["Maturity", `${quote.maturity.slice(0, 10)} UTC`],
   ];

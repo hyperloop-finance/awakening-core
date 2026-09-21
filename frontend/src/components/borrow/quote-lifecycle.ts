@@ -10,9 +10,10 @@ export function borrowDetails({
   minimumAmount,
   patCoverage,
   collateralRatio,
-}: Pick<MarketDetail, "minimumAmount" | "patCoverage" | "collateralRatio">): [string, string][] {
+  principalAsset,
+}: Pick<MarketDetail, "minimumAmount" | "patCoverage" | "collateralRatio" | "principalAsset">): [string, string][] {
   return [
-    ["Minimum amount", `${minimumAmount} USDC`],
+    ["Minimum amount", `${minimumAmount} ${principalAsset}`],
     ["Collateral ratio", `${collateralRatio}x`],
     ["PAT coverage", formatRateAsPercent(patCoverage)],
   ];

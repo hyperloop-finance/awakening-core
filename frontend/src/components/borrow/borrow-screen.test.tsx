@@ -163,4 +163,18 @@ describe("CreditFlow", () => {
     await waitFor(() => expect(screen.queryByText("1,000 USDC")).not.toBeInTheDocument());
     expect(screen.queryByRole("button", { name: "Simulate borrow" })).not.toBeInTheDocument();
   });
+
+  it("renders tokenized-stock and USDT terms from the selected market", async () => {
+    const stockMarket = { ...market, collateralAsset: "SPCXB", principalAsset: "USDT", strike: "425.00" };
+    vi.spyOn(awakeningApi, "market").mockResolvedValue(stockMarket);
+    vi.spyOn(awakeningApi, "quote").mockResolvedValue({ ...quote("1000"), collateralRequirement: "3.76470588" });
+
+    render(<CreditFlow marketId={marketId} side="BORROW" />);
+
+    expect(await screen.findByLabelText("USDT amount")).toBeInTheDocument();
+    expect(screen.getByText("MOCK · BORROW / USDT")).toBeInTheDocument();
+    expect(screen.getByText("100.000000 USDT")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Calculate quote" }));
+    expect(await screen.findByText("3.76470588 SPCXB")).toBeInTheDocument();
+  });
 });
