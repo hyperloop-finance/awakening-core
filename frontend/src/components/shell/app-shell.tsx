@@ -74,18 +74,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="site-header">
         <div className="header-inner">
           <Link className="brand" href="/markets" aria-label="Awakening markets">
-            <svg
-              className="brand-mark"
-              viewBox="0 0 32 32"
-              aria-hidden="true"
-              fill="none"
-            >
-              <path d="M4 16h7M21 16h7M16 4v7M16 21v7" />
-              <circle cx="16" cy="16" r="6.5" />
-              <path d="M12.5 16c1.4-2.8 5.6-2.8 7 0-1.4 2.8-5.6 2.8-7 0Z" />
-            </svg>
-            <span>AWAKENING</span>
-            <small>v0.1</small>
+            HYPERLOOP
           </Link>
           <nav aria-label="Primary">
             {navigation.map((item) => {
