@@ -15,6 +15,7 @@ import { awakeningApi } from "@/lib/api/client";
 import type { RuntimeConfig } from "@/lib/api/types";
 import { contractsAreReady } from "@/lib/contracts/config";
 import { WalletControls } from "./wallet";
+import { AccountBoundary } from "./account-boundary";
 
 const navigation = [
   { href: "/markets", label: "Markets" },
@@ -62,7 +63,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (runtime.kind === "loading") return "Loading runtime config";
     if (runtime.kind === "error") return "Runtime unavailable · simulation only";
     return runtime.liveContractsReady
-      ? "Contracts ready · simulation only"
+      ? "Addresses configured · transactions disabled"
       : "Preview only";
   }, [runtime]);
 
@@ -108,7 +109,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
-      <main className="app-main">{children}</main>
+      <main className="app-main"><AccountBoundary pathname={pathname}>{children}</AccountBoundary></main>
     </RuntimeContext.Provider>
   );
 }

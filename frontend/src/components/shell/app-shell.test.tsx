@@ -4,7 +4,7 @@ import { awakeningApi } from "@/lib/api/client";
 import { AppShell } from "./app-shell";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/markets" }));
-vi.mock("./wallet", () => ({ WalletControls: () => <button>Wallet</button> }));
+vi.mock("./wallet", () => ({ WalletControls: () => <button>Wallet</button>, useWalletIdentity: () => ({wallet:undefined,chainId:undefined,openWallet:vi.fn()}) }));
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -39,7 +39,7 @@ describe("AppShell", () => {
     });
     render(<AppShell>content</AppShell>);
 
-    expect(await screen.findByText("Contracts ready · simulation only")).toBeInTheDocument();
+    expect(await screen.findByText("Addresses configured · transactions disabled")).toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "Primary" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Markets" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Awakening markets" })).toContainElement(

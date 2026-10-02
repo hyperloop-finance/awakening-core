@@ -9,7 +9,7 @@ const walletState = vi.hoisted(() => ({ wallet: undefined as string | undefined 
 vi.mock("@/components/shell/wallet", () => ({
   useWalletIdentity: () => ({
     wallet: walletState.wallet,
-    setDemoEnabled: vi.fn(),
+    openWallet: vi.fn(),
   }),
 }));
 

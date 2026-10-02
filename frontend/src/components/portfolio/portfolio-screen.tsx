@@ -70,7 +70,7 @@ function PositionList({
 }
 
 export function PortfolioScreen() {
-  const { wallet, setDemoEnabled } = useWalletIdentity();
+  const { wallet, openWallet } = useWalletIdentity();
   const [state, setState] = useState<PortfolioState>({ kind: "disconnected" });
   const controllerRef = useRef<AbortController | undefined>(undefined);
   const generationRef = useRef(0);
@@ -119,8 +119,8 @@ export function PortfolioScreen() {
   if (currentState.kind === "disconnected") {
     content = (
       <EmptyState title="Connect a wallet to view positions">
-        <button className="inline-button" onClick={() => setDemoEnabled(true)}>
-          Use demo wallet
+        <button className="inline-button" onClick={() => openWallet()}>
+          Connect wallet
         </button>
       </EmptyState>
     );

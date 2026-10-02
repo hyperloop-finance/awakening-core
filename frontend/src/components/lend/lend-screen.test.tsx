@@ -9,7 +9,7 @@ const walletState = vi.hoisted(() => ({
 }));
 
 vi.mock("@/components/shell/wallet", () => ({
-  useWalletIdentity: () => ({ wallet: walletState.wallet, setDemoEnabled: vi.fn() }),
+  useWalletIdentity: () => ({ wallet: walletState.wallet, openWallet: vi.fn() }),
 }));
 
 const marketId = `0x${"a".repeat(64)}`;
@@ -27,6 +27,7 @@ const market: MarketDetail = {
   collateralRatio: "1.500000",
   patCoverage: "0.95",
   minimumAmount: "100.000000",
+  strike: "50000", patStatus: "VERIFIED_PREVIEW", patSource: "ATTESTED_CUSTODIAN_PREVIEW", borrowLevels: [], lendLevels: [],
 };
 
 const quote: Quote = {

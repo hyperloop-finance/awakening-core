@@ -19,6 +19,7 @@ const market: MarketDetail = {
   collateralRatio: "1.5000",
   patCoverage: "0.95",
   minimumAmount: "100.000000",
+  strike: "50000", patStatus: "VERIFIED_PREVIEW", patSource: "ATTESTED_CUSTODIAN_PREVIEW", borrowLevels: [], lendLevels: [],
 };
 
 const quote = (principal: string): Quote => ({
