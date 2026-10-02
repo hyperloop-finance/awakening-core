@@ -31,6 +31,7 @@ const directionContractScript = `document.body.insertBefore(document.createComme
 )}), document.body.firstChild);`;
 
 export const metadata: Metadata = {
+  icons: { icon: [{ url: '/icon.svg', type: 'image/svg+xml' }], shortcut: '/icon.svg' },
   title: "Awakening — fixed-maturity protected credit",
   description: "Fixed-rate credit against BTC and tokenized securities with deterministic preview markets.",
 };
