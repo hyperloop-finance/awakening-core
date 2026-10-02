@@ -1,85 +1,35 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { useAccount, useConnect, useDisconnect } from "wagmi";
-import { DEMO_WALLET } from "@/lib/api/mock";
+import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { useAccount } from 'wagmi';
+import { WalletDialog } from './wallet-dialog';
+import { NetworkSelector } from './network-selector';
 
-type DemoWalletContextValue = {
-  demoEnabled: boolean;
-  setDemoEnabled: (value: boolean) => void;
-};
+const WalletContext = createContext<{openWallet:()=>void} | undefined>(undefined);
 
-const DemoWalletContext = createContext<DemoWalletContextValue | undefined>(undefined);
-
-export function DemoWalletProvider({ children }: { children: ReactNode }) {
-  const [demoEnabled, setDemoEnabled] = useState(false);
-  useEffect(() => {
-    setDemoEnabled(window.localStorage.getItem("awakening-demo-wallet") === "true");
-  }, []);
-
-  const setPersistedDemoEnabled = (value: boolean) => {
-    setDemoEnabled(value);
-    window.localStorage.setItem("awakening-demo-wallet", String(value));
-  };
-
-  return (
-    <DemoWalletContext.Provider
-      value={{ demoEnabled, setDemoEnabled: setPersistedDemoEnabled }}
-    >
-      {children}
-    </DemoWalletContext.Provider>
-  );
+export function WalletProvider({children}:{children:ReactNode}) {
+  const [open,setOpen]=useState(false);
+  const openWallet=useCallback(()=>setOpen(true),[]);
+  const close=useCallback(()=>setOpen(false),[]);
+  return <WalletContext.Provider value={{openWallet}}>
+    {children}
+    {open && <WalletDialog onClose={close} />}
+  </WalletContext.Provider>;
 }
 
 export function useWalletIdentity() {
-  const account = useAccount();
-  const context = useContext(DemoWalletContext);
-  if (!context) throw new Error("DemoWalletProvider is required");
-  return {
-    wallet: account.address ?? (context.demoEnabled ? DEMO_WALLET : undefined),
-    isDemo: !account.address && context.demoEnabled,
-    setDemoEnabled: context.setDemoEnabled,
-  };
+  const account=useAccount();
+  const context=useContext(WalletContext);
+  if (!context) throw new Error('WalletProvider is required');
+  return {wallet:account.isConnected?account.address:undefined,chainId:account.chainId,openWallet:context.openWallet};
 }
 
 export function WalletControls() {
-  const { address } = useAccount();
-  const { connect, connectors, isPending } = useConnect();
-  const { disconnect } = useDisconnect();
-  const { isDemo, setDemoEnabled } = useWalletIdentity();
-  const connector = connectors[0];
-  const display = address
-    ? `${address.slice(0, 6)}…${address.slice(-4)}`
-    : isDemo
-      ? "Demo wallet"
-      : undefined;
-
-  if (display) {
-    return (
-      <button
-        className="wallet-button wallet-button-muted"
-        onClick={() => (address ? disconnect() : setDemoEnabled(false))}
-      >
-        {display} · disconnect
-      </button>
-    );
-  }
-
-  return (
-    <div className="wallet-controls">
-      <button
-        className="wallet-button wallet-button-muted"
-        onClick={() => setDemoEnabled(true)}
-      >
-        Use demo wallet
-      </button>
-      <button
-        className="wallet-button"
-        disabled={!connector || isPending}
-        onClick={() => connector && connect({ connector })}
-      >
-        {isPending ? "Connecting…" : "Connect wallet"}
-      </button>
-    </div>
-  );
+  const {wallet,openWallet}=useWalletIdentity();
+  return <div className="wallet-controls">
+    <NetworkSelector />
+    <button className="wallet-button" aria-label={wallet?'Manage wallet':'Connect wallet'} onClick={openWallet}>
+      {wallet?`${wallet.slice(0,6)}…${wallet.slice(-4)}`:'Connect wallet'}
+    </button>
+  </div>;
 }
