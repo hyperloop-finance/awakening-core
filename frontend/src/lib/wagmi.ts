@@ -1,21 +1,16 @@
-import { defineChain, http } from 'viem';
-import { injected } from '@wagmi/core';
+import { http } from 'viem';
 import { createConfig } from 'wagmi';
-import { sepolia } from 'wagmi/chains';
+import { bscTestnet } from 'wagmi/chains';
+import { injected, walletConnect } from 'wagmi/connectors';
 
-export const anvil = defineChain({
-  id: 31337,
-  name: 'Local Anvil',
-  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-  rpcUrls: { default: { http: [process.env.NEXT_PUBLIC_ANVIL_RPC_URL ?? 'http://127.0.0.1:8545'] } },
-});
+const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID?.trim();
 
 export const wagmiConfig = createConfig({
-  chains: [anvil, sepolia],
-  connectors: [injected()],
+  chains: [bscTestnet],
+  multiInjectedProviderDiscovery: true,
+  connectors: [injected(), ...(projectId ? [walletConnect({ projectId, showQrModal: true })] : [])],
   transports: {
-    [anvil.id]: http(process.env.NEXT_PUBLIC_ANVIL_RPC_URL ?? 'http://127.0.0.1:8545'),
-    [sepolia.id]: http(process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL),
+    [bscTestnet.id]: http(process.env.NEXT_PUBLIC_BSC_TESTNET_RPC_URL ?? 'https://bsc-testnet.bnbchain.org', { timeout: 10_000, retryCount: 1 }),
   },
   ssr: true,
 });
