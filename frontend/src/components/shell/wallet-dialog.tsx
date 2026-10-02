@@ -5,6 +5,7 @@ import { useAccount, useBalance, useConnect, useDisconnect, useSwitchChain, type
 import { formatUnits } from 'viem';
 import { ACTIVE_CHAIN_ID, isSupportedWalletChain } from '@/lib/networks';
 import { WalletModal, walletError } from './wallet-modal';
+import { useWalletConnection } from './wallet';
 
 export function WalletDialog({onClose}:{onClose:()=>void}) {
   const {address,chainId,isConnected}=useAccount();
@@ -16,6 +17,7 @@ export function WalletDialog({onClose}:{onClose:()=>void}) {
 function WalletContent({onClose}:{onClose:()=>void}) {
   const {address,chainId,isConnected}=useAccount();
   const {connectors,connectAsync}=useConnect();
+  const connection=useWalletConnection();
   const {disconnectAsync}=useDisconnect();
   const {switchChainAsync}=useSwitchChain();
   const supported=isSupportedWalletChain(chainId);
@@ -49,13 +51,13 @@ function WalletContent({onClose}:{onClose:()=>void}) {
 
   if(!isConnected || !address)return <>
     <p className="wallet-help">Choose your wallet. Connecting does not authorize a transaction or give Hyperloop access to your funds.</p>
-    <div className="wallet-options">{available.map(connector=><button className="wallet-option" key={connector.uid} aria-label={connector.name==='Injected'?'Browser wallet':connector.name} disabled={!!pending}
-      onClick={()=>void perform(connector.name,()=>connectAsync({connector}),true)}>
-      <span>{connector.name==='Injected'?'Browser wallet':connector.name}</span><small>{pending===connector.name?'Check wallet…':connector.type==='walletConnect'?'QR / Mobile':'Detected'}</small>
+    <div className="wallet-options">{available.map(connector=><button className="wallet-option" key={connector.uid} aria-label={connector.name==='Injected'?'Browser wallet':connector.name} disabled={!!connection.pendingConnection}
+      onClick={()=>void connection.connect(connector.name,()=>connectAsync({connector}))}>
+      <span>{connector.name==='Injected'?'Browser wallet':connector.name}</span><small>{connection.pendingConnection===connector.name?'Check wallet…':connector.type==='walletConnect'?'QR / Mobile':'Detected'}</small>
     </button>)}</div>
     {discovering?<p className="wallet-help" role="status">Looking for wallets…</p>:!available.length&&<p className="wallet-help">No browser wallet detected. Install MetaMask or Rabby, then reload this page.</p>}
-    {!!pending&&<p className="wallet-help" role="status">Approve the connection in your wallet. No signature is requested.</p>}
-    {error&&<p className="wallet-error" role="alert">{error}</p>}
+    {!!connection.pendingConnection&&<p className="wallet-help" role="status">Approve the connection in your wallet. No signature is requested.</p>}
+    {connection.connectionError&&<p className="wallet-error" role="alert">{connection.connectionError}</p>}
     <p className="wallet-footnote">BNB Testnet · Test assets only</p>
   </>;
 

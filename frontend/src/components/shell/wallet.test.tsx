@@ -24,6 +24,23 @@ beforeEach(() => {
   state.connect.mockResolvedValue({}); state.switchChain.mockResolvedValue({id:97}); state.disconnect.mockResolvedValue(undefined);
 });
 describe('real wallet controls', () => {
+  it('keeps the pending connection lock across closing and reopening the dialog', async () => {
+    let resolve!: (value: unknown) => void;
+    state.connect.mockImplementationOnce(() => new Promise(accept => { resolve = accept; }));
+    mount();
+    fireEvent.click(screen.getByRole('button', {name:'Connect wallet'}));
+    fireEvent.click(await screen.findByRole('button', {name:'MetaMask'}));
+    expect(screen.getByRole('button', {name:'Rabby'})).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', {name:'Close'}));
+    fireEvent.click(screen.getByRole('button', {name:'Connect wallet'}));
+    const other = await screen.findByRole('button', {name:'Rabby'});
+    expect(other).toBeDisabled();
+    expect(screen.getByRole('status')).toHaveTextContent(/Approve the connection/);
+    fireEvent.click(other);
+    expect(state.connect).toHaveBeenCalledTimes(1);
+    resolve({});
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
   it('offers discovered wallets, never a demo identity', async () => {
     mount();
     expect(screen.queryByText('Use demo wallet')).not.toBeInTheDocument();
