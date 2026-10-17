@@ -1,13 +1,16 @@
-import { getDefaultConfig } from '@rainbow-me/rainbowkit';
-import { sepolia } from 'wagmi/chains';
 import { http } from 'viem';
+import { createConfig } from 'wagmi';
+import { bscTestnet } from 'wagmi/chains';
+import { injected, walletConnect } from 'wagmi/connectors';
 
-export const wagmiConfig = getDefaultConfig({
-  appName: 'Awakening',
-  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? 'PLACEHOLDER',
-  chains: [sepolia],
+const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID?.trim();
+
+export const wagmiConfig = createConfig({
+  chains: [bscTestnet],
+  multiInjectedProviderDiscovery: true,
+  connectors: [injected(), ...(projectId ? [walletConnect({ projectId, showQrModal: true })] : [])],
   transports: {
-    [sepolia.id]: http(process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL),
+    [bscTestnet.id]: http(process.env.NEXT_PUBLIC_BSC_TESTNET_RPC_URL ?? 'https://bsc-testnet.bnbchain.org', { timeout: 10_000, retryCount: 1 }),
   },
   ssr: true,
 });

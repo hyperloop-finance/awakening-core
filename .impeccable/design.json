@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-02T00:00:00-07:00",
+  "title": "Design System: Awakening",
+  "extensions": {
+    "colorMeta": {
+      "bg": { "role": "neutral", "displayName": "Cosmic Ground", "canonical": "#04060c", "tonalRamp": ["#020308", "#04060c", "#0c0614", "#120a1e", "#190e27", "#746681", "#a694b7", "#ffffff"] },
+      "violet": { "role": "primary", "displayName": "Protocol Violet", "canonical": "#9300e4", "tonalRamp": ["#1e0030", "#39005b", "#550088", "#6f00ad", "#9300e4", "#b44dff", "#d4b3ff", "#f3eaff"] },
+      "success": { "role": "secondary", "displayName": "Resolved Green", "canonical": "#48dea4", "tonalRamp": ["#062c20", "#0b573f", "#16835f", "#25ad7d", "#48dea4", "#7de8bd", "#b7f4dd", "#ecfff7"] },
+      "warning": { "role": "tertiary", "displayName": "Preview Amber", "canonical": "#f0bb5d", "tonalRamp": ["#302006", "#60400d", "#90601c", "#bf8c34", "#f0bb5d", "#f6d99f", "#fae9c5", "#fff9ea"] },
+      "danger": { "role": "tertiary", "displayName": "Exception Red", "canonical": "#ff8181", "tonalRamp": ["#350c0c", "#651b1b", "#932f2f", "#c94e4e", "#ff8181", "#ffc1c1", "#ffe0e0", "#fff5f5"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Observatory Display", "purpose": "Product promises and page-level headings." },
+      "headline": { "displayName": "Panel Headline", "purpose": "Section and transaction-ticket headings." },
+      "body": { "displayName": "Operational Body", "purpose": "Explanations, safety notes, and supporting copy." },
+      "label": { "displayName": "Instrument Label", "purpose": "Compact field, state, and metadata labels." },
+      "data": { "displayName": "Financial Data", "purpose": "Exact values, rates, IDs, equations, dates, and table cells." }
+    },
+    "shadows": [
+      { "name": "primary-action-glow", "value": "0 8px 24px -12px rgba(180, 77, 255, 0.78)", "purpose": "Primary action at rest; intensifies slightly on hover." },
+      { "name": "ticket-lift", "value": "0 28px 68px -42px rgba(147, 0, 228, 0.5)", "purpose": "The sticky transaction ticket only." }
+    ],
+    "motion": [
+      { "name": "interaction", "value": "150ms ease", "purpose": "Buttons, links, rows, borders, and background state changes." },
+      { "name": "hero-reveal", "value": "680ms cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "Single restrained page-heading reveal." },
+      { "name": "loading-spin", "value": "800ms linear infinite", "purpose": "Loading indicator only; disabled by reduced-motion rules." }
+    ],
+    "breakpoints": [
+      { "name": "wide-to-stacked", "value": "1100px" },
+      { "name": "tablet", "value": "860px" },
+      { "name": "mobile-card-layout", "value": "640px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The explicit advance action for quote, preview, and wallet flows.",
+      "html": "<button class=\"ds-btn-primary\">Preview quote</button>",
+      "css": ".ds-btn-primary { min-height: 44px; padding: 10px 15px; border: 1px solid transparent; border-radius: 9px; background: linear-gradient(135deg, #9300e4 0%, #6f00ad 100%); box-shadow: 0 8px 24px -12px rgba(180,77,255,.78); color: #fff; font: 650 12px Inter, Arial, sans-serif; transition: transform 150ms ease, box-shadow 150ms ease; } .ds-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 30px -12px rgba(180,77,255,.9); } .ds-btn-primary:focus-visible { outline: 2px solid #d4b3ff; outline-offset: 3px; } .ds-btn-primary:disabled { cursor: not-allowed; opacity: .42; }"
+    },
+    {
+      "name": "Amount Field",
+      "kind": "input",
+      "refersTo": "field-amount",
+      "description": "Mono quote entry paired with a compact asset unit.",
+      "html": "<label class=\"ds-field\">USDC amount<input value=\"1000.00\" aria-label=\"USDC amount\" /><span>USDC</span></label>",
+      "css": ".ds-field { display: flex; min-height: 48px; align-items: center; gap: 8px; overflow: hidden; padding-left: 13px; border: 1px solid rgba(171,61,239,.28); border-radius: 10px; background: rgba(4,6,12,.68); color: #a694b7; font: 600 10px Inter, Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; } .ds-field:focus-within { border-color: rgba(190,102,255,.48); box-shadow: 0 0 0 3px rgba(180,77,255,.08); } .ds-field input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: #fff; font: 500 20px JetBrains Mono, monospace; } .ds-field span { margin-right: 8px; padding: 7px 9px; border: 1px solid rgba(147,0,228,.16); border-radius: 6px; background: rgba(147,0,228,.08); color: #d4b3ff; font: 650 10px JetBrains Mono, monospace; letter-spacing: 0; }"
+    },
+    {
+      "name": "Protocol Status",
+      "kind": "chip",
+      "refersTo": "status-success",
+      "description": "Small evidence badge for a resolved, healthy state.",
+      "html": "<span class=\"ds-status\"><i></i>OPEN</span>",
+      "css": ".ds-status { display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px; border: 1px solid rgba(171,61,239,.28); border-radius: 5px; background: rgba(72,222,164,.095); color: #48dea4; font: 650 10px JetBrains Mono, monospace; letter-spacing: .04em; } .ds-status i { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }"
+    },
+    {
+      "name": "Protocol Navigation",
+      "kind": "nav",
+      "refersTo": "navigation-primary",
+      "description": "Sticky header navigation with a compact active-line treatment.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Primary\"><a class=\"ds-nav-link ds-nav-active\" href=\"#\">Markets</a><a class=\"ds-nav-link\" href=\"#\">Portfolio</a></nav>",
+      "css": ".ds-nav { display: flex; gap: 4px; padding: 6px; background: rgba(4,6,12,.82); } .ds-nav-link { position: relative; display: inline-flex; min-height: 44px; align-items: center; padding: 8px 14px; border-radius: 8px; color: #a694b7; font: 500 13px Inter, Arial, sans-serif; text-decoration: none; transition: color 160ms ease, background-color 160ms ease; } .ds-nav-link:hover { background: rgba(147,0,228,.07); color: #eadff7; } .ds-nav-active { background: rgba(147,0,228,.12); color: #fff; } .ds-nav-active::after { position: absolute; right: 14px; bottom: 4px; left: 14px; height: 1px; background: #b44dff; content: \"\"; } .ds-nav-link:focus-visible { outline: 2px solid #d4b3ff; outline-offset: 3px; }"
+    },
+    {
+      "name": "Ledger Surface",
+      "kind": "card",
+      "refersTo": "card-surface",
+      "description": "A dark financial container whose hierarchy comes from tone and hairlines.",
+      "html": "<section class=\"ds-ledger\"><span>FIXED APR</span><strong>8.50%</strong><small>Market indicative quote</small></section>",
+      "css": ".ds-ledger { min-width: 180px; padding: 22px; border: 1px solid rgba(147,0,228,.16); border-radius: 14px; background: rgba(12,6,20,.68); color: #fff; } .ds-ledger span { display: block; margin-bottom: 10px; color: #b44dff; font: 650 9px JetBrains Mono, monospace; letter-spacing: .12em; } .ds-ledger strong { display: block; font: 500 25px JetBrains Mono, monospace; letter-spacing: -.025em; } .ds-ledger small { display: block; margin-top: 8px; color: #746681; font: 400 10px Inter, Arial, sans-serif; }"
+    },
+    {
+      "name": "Preview Step",
+      "kind": "custom",
+      "refersTo": "transaction-preview-step",
+      "description": "Ordered local-preview disclosure, used to make an action sequence inspectable before signing.",
+      "html": "<ol class=\"ds-steps\"><li>Calculate indicative repayment and PAT terms</li><li>Review unsigned transaction preview</li></ol>",
+      "css": ".ds-steps { margin: 0; padding: 0; list-style: none; counter-reset: ds-step; } .ds-steps li { position: relative; min-height: 37px; padding: 8px 0 8px 35px; border-bottom: 1px solid rgba(147,0,228,.16); color: #a694b7; font: 400 11px Inter, Arial, sans-serif; counter-increment: ds-step; } .ds-steps li::before { position: absolute; top: 6px; left: 0; display: flex; width: 25px; height: 25px; align-items: center; justify-content: center; border: 1px solid rgba(171,61,239,.28); border-radius: 50%; color: #b44dff; font: 400 8px JetBrains Mono, monospace; content: counter(ds-step, decimal-leading-zero); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Protected Settlement Observatory",
+    "overview": "Awakening is an operate-first financial console set against a near-black cosmic ground. Its visual language carries a high-fidelity evolution of the awakening-mvp reference: precise violet and lavender hierarchy, restrained ambient light, dense market ledgers, and transaction detail that earns trust by making the mechanism legible rather than decorative. The system should feel like a calm observation deck for protected settlement. Financial numbers, maturity dates, and PAT states stay sharper and more literal than the atmospheric framing around them.",
+    "keyCharacteristics": ["Near-black cosmic atmosphere with two diffuse violet ambient layers.", "Dense, ledger-like information surfaces with thin violet dividers instead of roomy marketing cards.", "Violet directs attention; lavender carries hierarchy; semantic green, amber, and red communicate state.", "Preview/mock status is persistent, specific, and never styled as live protocol confirmation.", "Desktop prioritizes a wide data shell; mobile retains the information model through cards and stacked controls."],
+    "rules": [
+      { "name": "The Violet Rarity Rule", "body": "Let dark ground and text carry most of a screen. Use bright violet to identify hierarchy, interaction, and protocol logic—not to flood surfaces or replace semantic state colors.", "section": "colors" },
+      { "name": "The Instrument Rule", "body": "If a value can be compared, signed, settled, or audited, present it in the data role; interpretation belongs beside it in the body role.", "section": "typography" },
+      { "name": "The Dense-Until-Narrow Rule", "body": "Preserve data density when there is room for it. Change the container model on small screens; do not merely shrink the desktop ledger until it becomes illegible.", "section": "layout" },
+      { "name": "The Resting-Flat Rule", "body": "At rest, depth comes from panel tone, translucency, and hairlines. Shadows are reserved for the sticky decision surface and active primary action—not ordinary cards, rows, or badges.", "section": "elevation" }
+    ],
+    "dos": ["Do keep the near-black ground, fixed ambient violet layers, and restrained violet accents together as one cosmic operating environment.", "Do use display type for promises and panel titles, Inter for explanation, and the mono role for every exact market, quote, and position value.", "Do keep PAT coverage, maturity, and preview/mock state adjacent to the decisions they qualify.", "Do preserve semantic HTML tables on desktop and their labeled card transformation on mobile.", "Do retain visible keyboard focus, reduced-motion support, and 44px minimum controls on mobile."],
+    "donts": ["Don't turn the ledger into a sparse grid of generic white or pastel SaaS cards.", "Don't use success green, rich violet, or glowing primary buttons to imply a live transaction, signature, or deployed-contract state.", "Don't hide deterministic, mock, unsigned, or disabled status behind a tooltip, wallet state, or secondary screen.", "Don't replace exact decimal values or mono protocol labels with vague, rounded marketing copy.", "Don't add continuous animation, parallax, or decorative motion; preserve the existing short reveal and spinner behavior, then honor reduced-motion preferences."]
+  }
+}

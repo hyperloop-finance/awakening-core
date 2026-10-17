@@ -1,10 +1,8 @@
 # Awakening Frontend
 
-Next.js 15 (App Router) + TypeScript + Tailwind + wagmi v2 + RainbowKit.
+Next.js 15 (App Router) + TypeScript + Tailwind + wagmi v2.
 
-See `../Awakening Implementation Plan.md` §Phase 3 for the milestone plan.
-This scaffold delivers Milestone 3A (setup) + empty page shells for
-Milestones 3B / 3C / 3D / 3E. No live data yet.
+The default `mock` profile provides deterministic Markets, Orders, Positions, Settlement, Borrow and Lend states without an RPC node or deployment. `api` connects to the local Spring backend.
 
 ## Prerequisites
 
@@ -17,10 +15,8 @@ Milestones 3B / 3C / 3D / 3E. No live data yet.
    ```bash
    cp .env.local.example .env.local
    ```
-2. Fill in `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` — get one at
-   https://cloud.walletconnect.com. Without this, wallet connect UI will
-   render but connections will fail.
-3. Optionally set `NEXT_PUBLIC_SEPOLIA_RPC_URL` (defaults to `https://sepolia.drpc.org`).
+2. Keep `NEXT_PUBLIC_DATA_PROFILE=mock`, or use `api` with a running local backend.
+3. Optionally set Anvil and Sepolia RPC URLs for injected-wallet connectivity. No contract address is supplied or inferred; live submission stays disabled until a complete deployment configuration exists.
 
 ## Development
 
@@ -30,6 +26,8 @@ pnpm dev
 ```
 
 Serves on http://localhost:3000.
+
+Core routes: `/markets`, `/orders`, `/positions`, and `/settlement`. Choose **Use demo wallet** for `0xde00000000000000000000000000000000000001`. Order and settlement mutations are preview-only and send no signature or transaction.
 
 ## Build
 
@@ -44,17 +42,20 @@ pnpm start
 src/
 ├── app/
 │   ├── layout.tsx          Root layout + <Providers>
-│   ├── page.tsx            Landing page with ConnectButton
-│   ├── providers.tsx       Wagmi + RainbowKit + react-query providers
-│   ├── markets/            Milestone 3B
-│   ├── borrow/[marketId]/  Milestone 3C
-│   ├── lend/[marketId]/    Milestone 3D
-│   └── portfolio/          Milestone 3E
+│   ├── page.tsx            Redirects to Markets
+│   ├── providers.tsx       Wagmi + demo-wallet + react-query providers
+│   ├── markets/            Market catalogue and take/order actions
+│   ├── orders/             Borrow/Lend order management
+│   ├── positions/          Credit, debt, collateral and PAT
+│   ├── settlement/         Preview maturity actions
+│   ├── borrow/[marketId]/  Quote and simulated preview
+│   ├── lend/[marketId]/    Quote and simulated signing preview
+│   └── portfolio/          Compatibility redirect to Positions
 └── lib/
-    └── wagmi.ts            Chain + RPC + wallet config
+    ├── api/                 Typed API, parsing and mock parity
+    └── contracts/           Chain + wallet configuration
 ```
 
-## Deployment
+## Safety
 
-Vercel (per Appendix B decision). Set the three
-`NEXT_PUBLIC_*` env vars in the Vercel project.
+The UI never calls legacy `take()` or `repay()` contract paths. When addresses are absent (the default), it clearly labels workflows as preview/simulation and blocks live submission.
