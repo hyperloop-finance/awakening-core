@@ -3,12 +3,16 @@
 import { Fragment, type ReactNode } from 'react';
 import { useWalletIdentity } from './wallet';
 import { EmptyState } from './states';
+import type {RuntimeConfig} from '@/lib/api/types';
+import {ChainWorkspace} from '@/components/chain/chain-workspace';
 
 const accountPages:Record<string,string>={orders:'Orders',positions:'Positions',settlement:'Settlement',portfolio:'Positions'};
 
-export function AccountBoundary({pathname,children}:{pathname:string;children:ReactNode}) {
+export function AccountBoundary({pathname,children,config}:{pathname:string;children:ReactNode;config?:RuntimeConfig}) {
   const {wallet,chainId,openWallet}=useWalletIdentity();
   const title=accountPages[pathname.split('/')[1]];
+  if(pathname==='/faucet')return <>{children}</>;
+  if(config?.profile==='bsc-testnet')return <ChainWorkspace key={`${wallet??'disconnected'}:${chainId??'none'}:${pathname}`} pathname={pathname} config={config}/>;
   // Do not mount mock-backed account components while live integration is absent.
   // The next integration phase replaces this boundary with verified chain queries.
   if(title)return <>

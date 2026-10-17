@@ -73,16 +73,12 @@ export function MarketsScreen() {
         <div className="markets-hero-copy">
           <div className="hero-title-line">
             <h1 className="page-heading" id="markets-title">
-              Borrow against bStocks.<br />
+              Borrow against crypto.<br />
               <span>Never get liquidated.</span>
             </h1>
-            <div className="preview-status">
-              <span aria-hidden="true" />
-              DETERMINISTIC PREVIEW · NO LIVE TVL
-            </div>
           </div>
           <p className="page-subtitle">
-            Fixed-rate, fixed-maturity credit for bStocks. Every quote carries explicit put
+            Fixed-rate, fixed-maturity credit for crypto. Every quote carries explicit put
             attribution, with no health checks or margin calls during the term.
           </p>
           <div className="invariant-panel" aria-label="Protocol repayment invariant">

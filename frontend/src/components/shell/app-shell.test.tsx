@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { awakeningApi } from "@/lib/api/client";
 import { AppShell } from "./app-shell";
@@ -9,6 +9,13 @@ vi.mock("./wallet", () => ({ WalletControls: () => <button>Wallet</button>, useW
 afterEach(() => vi.restoreAllMocks());
 
 describe("AppShell", () => {
+  it("does not mount legacy market children before runtime identity is known", () => {
+    vi.spyOn(awakeningApi,"runtimeConfig").mockReturnValue(new Promise(()=>{}));
+    render(<AppShell><div>legacy market content</div></AppShell>);
+    expect(screen.queryByText("legacy market content")).not.toBeInTheDocument();
+    expect(screen.getByRole('status',{name:'Loading page'})).toHaveClass('runtime-loading');
+    expect(screen.queryByText('Loading network configuration…')).not.toBeInTheDocument();
+  });
   it("loads runtime config and requires both backend readiness and non-zero addresses", async () => {
     vi.spyOn(awakeningApi, "runtimeConfig").mockResolvedValue({
       profile: "api",
@@ -22,11 +29,13 @@ describe("AppShell", () => {
     });
     render(<AppShell>content</AppShell>);
 
-    expect(screen.getByRole("status")).toHaveTextContent("Loading runtime config");
-    expect(await screen.findByText("Preview only")).toBeInTheDocument();
+    expect(screen.getByRole('status',{name:'Loading page'})).toBeInTheDocument();
+    expect(await screen.findByText('content')).toBeInTheDocument();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(screen.queryByText("Preview only")).not.toBeInTheDocument();
   });
 
-  it("exposes ready runtime status while the navigation remains semantic", async () => {
+  it("keeps navigation and wallet controls without a redundant runtime badge", async () => {
     vi.spyOn(awakeningApi, "runtimeConfig").mockResolvedValue({
       profile: "api",
       chainId: 11155111,
@@ -39,8 +48,11 @@ describe("AppShell", () => {
     });
     render(<AppShell>content</AppShell>);
 
-    expect(await screen.findByText("Addresses configured · transactions disabled")).toBeInTheDocument();
+    expect(await screen.findByText('content')).toBeInTheDocument();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(screen.getByRole('button',{name:'Wallet'})).toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "Primary" })).toBeInTheDocument();
+    expect(within(screen.getByRole('navigation',{name:'Primary'})).getAllByRole('link').map(link=>link.textContent)).toEqual(['Markets','Orders','Positions','Settlement','Faucet']);
     expect(screen.getByRole("link", { name: "Markets" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Awakening markets" })).toContainElement(
       screen.getByRole("img", { name: "Hyperloop" }),

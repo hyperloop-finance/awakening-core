@@ -1,0 +1,52 @@
+import {render,screen,waitFor,fireEvent,within} from '@testing-library/react';
+import {beforeEach,it,expect,vi} from 'vitest';
+import {ChainWorkspace} from './chain-workspace';
+import {deployment} from '@/lib/contracts/generated';
+import type {RuntimeConfig} from '@/lib/api/types';
+const api=vi.hoisted(()=>({markets:vi.fn(),orders:vi.fn(),account:vi.fn()}));
+vi.mock('@/lib/api/chain',()=>({chainApi:api}));
+vi.mock('@/components/shell/wallet',()=>({useWalletIdentity:()=>({wallet:undefined,chainId:97,openWallet:vi.fn()})}));
+vi.mock('wagmi',()=>({useAccount:()=>({address:undefined,chainId:97}),usePublicClient:()=>undefined,useWalletClient:()=>({data:undefined})}));
+const config:RuntimeConfig={profile:'bsc-testnet',chainId:97,rpcUrlConfigured:true,contractsReady:true,verificationStatus:'VERIFIED',transactionsEnabled:false,awakeningAddress:deployment.contracts.Awakening,settlementAddress:deployment.contracts.AwakeningSettlement,patAddress:deployment.contracts.AttestedPAT,optionVaultAddress:deployment.contracts.OptionVault,ratifierAddress:deployment.contracts.EcrecoverRatifier};
+beforeEach(()=>{vi.clearAllMocks();api.orders.mockResolvedValue({chainId:97,orders:[]});api.markets.mockResolvedValue({chainId:97,observedBlock:123,markets:[{...deployment.markets[0],totalUnits:'0',withdrawable:'0',tickSpacing:'4'}]});});
+it('shows only chain markets and never invents APR or liquidity without orders',async()=>{
+  render(<ChainWorkspace pathname="/markets" config={config}/>);
+  await waitFor(()=>expect(screen.getByText('tBTC / tUSDC')).toBeInTheDocument());
+  expect(screen.queryByText(/800,000/)).not.toBeInTheDocument();
+  expect(screen.getByRole('button',{name:'Borrow now'})).toBeDisabled();
+  expect(screen.getByRole('button',{name:'Refresh chain data'})).toBeEnabled();
+});
+it('does not present unavailable chain data as zero balances',async()=>{
+  api.markets.mockRejectedValue(Error('RPC unavailable. Please retry.'));
+  render(<ChainWorkspace pathname="/markets" config={config}/>);
+  expect(await screen.findByText('RPC unavailable. Please retry.')).toBeInTheDocument();
+  expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  api.markets.mockResolvedValue({chainId:97,observedBlock:124,markets:[{...deployment.markets[0],totalUnits:'0',withdrawable:'0',tickSpacing:'4'}]});
+  fireEvent.click(screen.getByRole('button',{name:'Try again'}));
+  expect(await screen.findByRole('table',{name:'Available markets'})).toBeInTheDocument();
+});
+it('requires a wallet before querying personal positions',async()=>{
+  render(<ChainWorkspace pathname="/positions" config={config}/>);
+  expect(await screen.findByRole('button',{name:'Connect wallet'})).toBeInTheDocument();
+  expect(api.account).not.toHaveBeenCalled();
+});
+it('restores the original invariant, overview, token pair and full market ledger using chain values',async()=>{
+  api.markets.mockResolvedValue({chainId:97,observedBlock:123,markets:[{...deployment.markets[0],totalUnits:'1234567890',withdrawable:'25000000',tickSpacing:'4'}]});
+  render(<ChainWorkspace pathname="/markets" config={config}/>);
+  await screen.findByRole('table',{name:'Available markets'});
+  expect(screen.getByLabelText('Protocol repayment invariant')).toHaveTextContent('min(S, K)');
+  expect(screen.getByRole('region',{name:'Market overview'})).toHaveTextContent('1,234.56789 tUSDC');
+  expect(screen.getByRole('img',{name:'Bitcoin test token'})).toBeInTheDocument();
+  expect(screen.getByRole('img',{name:'USD Coin test token'})).toHaveClass('asset-overlap');
+  const table=screen.getByRole('table',{name:'Available markets'});
+  expect(within(table).getAllByRole('columnheader')).toHaveLength(8);
+  expect(within(table).getByRole('columnheader',{name:'FIXED APR'})).toBeInTheDocument();
+  expect(within(table).getByRole('columnheader',{name:'STRIKE / PAT'})).toBeInTheDocument();
+  expect(screen.queryByText('800,000')).not.toBeInTheDocument();
+  expect(screen.queryByText('API catalog preview')).not.toBeInTheDocument();
+  fireEvent.change(screen.getByRole('textbox',{name:'Filter markets'}),{target:{value:'QQQB'}});
+  expect(screen.getByText('No markets match this filter')).toBeInTheDocument();
+  expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button',{name:'Clear search'}));
+  expect(screen.getByRole('table',{name:'Available markets'})).toBeInTheDocument();
+});

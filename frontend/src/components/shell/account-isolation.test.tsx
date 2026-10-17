@@ -2,9 +2,14 @@ import { useEffect, useState } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, expect, it, vi } from 'vitest';
 import { AccountBoundary } from './account-boundary';
+import type {RuntimeConfig} from '@/lib/api/types';
 const identity=vi.hoisted(()=>({wallet:undefined as string|undefined,chainId:97,openWallet:vi.fn()}));
 vi.mock('./wallet',()=>({useWalletIdentity:()=>identity}));
 beforeEach(()=>{identity.wallet=undefined;identity.chainId=97;vi.clearAllMocks();});
+it('renders Faucet independently of market and position indexing',()=>{
+  render(<AccountBoundary pathname="/faucet" config={{profile:'bsc-testnet'} as RuntimeConfig}><div>Dedicated faucet</div></AccountBoundary>);
+  expect(screen.getByText('Dedicated faucet')).toBeInTheDocument();
+});
 it('does not mount account data or simulation actions even after wallet connection',()=>{
   const mounted=vi.fn();function DangerousPreview(){useEffect(mounted,[]);return <button>Repay simulated debt</button>;}
   const view=render(<AccountBoundary pathname="/settlement"><DangerousPreview/></AccountBoundary>);

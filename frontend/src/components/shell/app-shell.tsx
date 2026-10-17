@@ -7,7 +7,6 @@ import {
   createContext,
   useContext,
   useEffect,
-  useMemo,
   useState,
   type ReactNode,
 } from "react";
@@ -22,6 +21,7 @@ const navigation = [
   { href: "/orders", label: "Orders" },
   { href: "/positions", label: "Positions" },
   { href: "/settlement", label: "Settlement" },
+  { href: "/faucet", label: "Faucet" },
 ];
 
 type RuntimeState =
@@ -59,14 +59,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     return () => controller.abort();
   }, []);
 
-  const runtimeLabel = useMemo(() => {
-    if (runtime.kind === "loading") return "Loading runtime config";
-    if (runtime.kind === "error") return "Runtime unavailable · simulation only";
-    return runtime.liveContractsReady
-      ? "Addresses configured · transactions disabled"
-      : "Preview only";
-  }, [runtime]);
-
   return (
     <RuntimeContext.Provider value={runtime}>
       <div className="ambient" aria-hidden="true">
@@ -101,15 +93,15 @@ export function AppShell({ children }: { children: ReactNode }) {
             })}
           </nav>
           <div className="header-actions">
-            <span className="network-badge" role="status">
-              <i className={runtime.kind === "ready" && runtime.liveContractsReady ? "" : "muted"} />
-              {runtimeLabel}
-            </span>
             <WalletControls />
           </div>
         </div>
       </header>
-      <main className="app-main"><AccountBoundary pathname={pathname}>{children}</AccountBoundary></main>
+      <main className="app-main">{runtime.kind==='ready'
+        ? <AccountBoundary pathname={pathname} config={runtime.config}>{children}</AccountBoundary>
+        : runtime.kind==='loading'
+          ? <div className="runtime-loading" role="status" aria-label="Loading page"><span className="runtime-spinner" aria-hidden="true"/></div>
+          : <p>Network configuration unavailable. Reload to retry; no transactions are enabled.</p>}</main>
     </RuntimeContext.Provider>
   );
 }
