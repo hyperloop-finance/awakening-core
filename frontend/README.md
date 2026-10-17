@@ -1,5 +1,13 @@
 # Awakening Frontend
 
+## Current BNB testnet application
+
+Use [the unified workspace startup guide](../LOCAL-BSC-TESTNET.md) for the current application, real wallet interactions, and BNB testnet deployment. The frontend runs from this directory; no separate Git worktree is required. The current environment template selects `api` and the local backend on port 8082. Routes include `/faucet` as well as Markets, Orders, Positions, and Settlement.
+
+The notes below describe the original mock/preview workflow, not the current testnet deployment or wallet UI. For current architecture and transaction safeguards, see [ARCHITECTURE-OVERVIEW.md](../ARCHITECTURE-OVERVIEW.md).
+
+## Original preview workflow (historical reference)
+
 Next.js 15 (App Router) + TypeScript + Tailwind + wagmi v2.
 
 The default `mock` profile provides deterministic Markets, Orders, Positions, Settlement, Borrow and Lend states without an RPC node or deployment. `api` connects to the local Spring backend.

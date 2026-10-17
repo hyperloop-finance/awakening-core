@@ -1,5 +1,13 @@
 # Awakening Backend
 
+## Current BNB testnet application
+
+Use [the unified workspace startup guide](../LOCAL-BSC-TESTNET.md) for the `bsc-testnet` profile, PostgreSQL setup, and local API on port 8082. The backend runs from this directory; no separate Git worktree is required. This profile indexes real BNB testnet contract state and persists signed orders; it is distinct from the original in-memory preview API below.
+
+See [ARCHITECTURE-OVERVIEW.md](../ARCHITECTURE-OVERVIEW.md) for the current API, wallet, and contract boundaries.
+
+## Original preview workflow (historical reference)
+
 Java 21 + Spring Boot 3 preview API for the Awakening hackathon product loop.
 
 ## Prerequisites
