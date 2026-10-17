@@ -214,6 +214,11 @@ export function parseRuntimeConfig(value: unknown): RuntimeConfig {
   const config = object(value, "RuntimeConfig");
   return {
     profile: text(config.profile, "RuntimeConfig profile"),
+    verificationStatus: config.verificationStatus == null ? undefined : text(config.verificationStatus, "RuntimeConfig verificationStatus"),
+    transactionsEnabled: config.transactionsEnabled == null ? false : bool(config.transactionsEnabled, "RuntimeConfig transactionsEnabled"),
+    ratifierAddress: optionalAddress(config.ratifierAddress, "RuntimeConfig ratifierAddress"),
+    observedBlock: config.observedBlock == null ? undefined : integer(config.observedBlock, "RuntimeConfig observedBlock"),
+    deploymentBlock: config.deploymentBlock == null ? undefined : integer(config.deploymentBlock, "RuntimeConfig deploymentBlock"),
     chainId: integer(config.chainId, "RuntimeConfig chainId"),
     rpcUrlConfigured: bool(config.rpcUrlConfigured, "RuntimeConfig rpcUrlConfigured"),
     contractsReady: bool(config.contractsReady, "RuntimeConfig contractsReady"),

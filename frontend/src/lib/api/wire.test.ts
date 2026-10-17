@@ -35,6 +35,11 @@ const quote = {
 };
 
 describe("OpenAPI wire adapters", () => {
+  it("preserves verified testnet capabilities without enabling missing flags",()=>{
+    const raw={profile:'bsc-testnet',chainId:97,rpcUrlConfigured:true,contractsReady:true,verificationStatus:'VERIFIED',observedBlock:123,transactionsEnabled:false,ratifierAddress:'0x1111111111111111111111111111111111111111'};
+    expect(parseRuntimeConfig(raw).verificationStatus).toBe('VERIFIED');
+    expect(parseRuntimeConfig(raw).transactionsEnabled).toBe(false);
+  });
   it("accepts the current MarketsResponse fixture and rejects legacy field names", () => {
     const response = parseMarketsResponse({
       data: [market],

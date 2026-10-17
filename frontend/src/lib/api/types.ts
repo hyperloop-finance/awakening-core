@@ -105,6 +105,11 @@ export type RuntimeConfig = {
   settlementAddress?: string | null;
   patAddress?: string | null;
   optionVaultAddress?: string | null;
+  ratifierAddress?: string | null;
+  deploymentBlock?: number;
+  observedBlock?: number;
+  verificationStatus?: string;
+  transactionsEnabled?: boolean;
 };
 
 export type SignedOffer = {

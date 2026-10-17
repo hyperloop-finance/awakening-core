@@ -1,0 +1,64 @@
+{
+  "chainId": 97,
+  "tokens": [
+    {
+      "symbol": "BTC",
+      "onchainSymbol": "tBTC",
+      "name": "Bitcoin",
+      "decimals": 8,
+      "address": "0xb58381352b4e4690817e9688071afa29088095b4",
+      "logo": "/tokens/btc.svg",
+      "marketEnabled": true,
+      "claimTx": "0x8c5963aa502c97c050abc84c8db778d0bc3dbf3b29a3fa4cebfdafd95c3a21c2",
+      "claimAmount": "1000"
+    },
+    {
+      "symbol": "USDC",
+      "onchainSymbol": "tUSDC",
+      "name": "USDC",
+      "decimals": 6,
+      "address": "0x0ab622f5c6622ec6c38d20d4064a5425a95feda7",
+      "logo": "/tokens/usdc.svg",
+      "marketEnabled": true,
+      "claimTx": "0x8e3a7e1a44a041549f67de3aa53b31fe05352e203dd45fee47713ae6e2949d25",
+      "claimAmount": "1000"
+    },
+    {
+      "symbol": "USDT",
+      "onchainSymbol": "tUSDT",
+      "name": "USDT",
+      "decimals": 6,
+      "logo": "/tokens/usdt.svg",
+      "marketEnabled": false,
+      "address": "0xc79e45fadef75576cd8c1de3e59516ca2a02bb55",
+      "deploymentTx": "0xbbf70f8676f78f774955712581115e7fa3d6a399ca2694338e5923c5af1f3b26",
+      "claimTx": "0xe9f80d6644ba711b4b8f7957343682368cc531c9a7236eb114d458b7020b3468",
+      "claimAmount": "1000"
+    },
+    {
+      "symbol": "bTesla",
+      "onchainSymbol": "bTesla",
+      "name": "bTesla",
+      "decimals": 18,
+      "logo": "/tokens/tesla.svg",
+      "marketEnabled": false,
+      "address": "0x8f5520a441a7b6b22b7c6713dfbcd8e6cc3bfe7a",
+      "deploymentTx": "0x3e2e0f4c69bba399b34e16b8903c76d0a17b3324ffdcfa4ba53410e36d21f3c0",
+      "claimTx": "0x01123b38b0ce5aac33db6bde91518bb39fdbb928423ab3666fc70d9f823e1416",
+      "claimAmount": "1000"
+    },
+    {
+      "symbol": "bNVIDIA",
+      "onchainSymbol": "bNVIDIA",
+      "name": "bNVIDIA",
+      "decimals": 18,
+      "logo": "/tokens/nvidia.svg",
+      "marketEnabled": false,
+      "address": "0x1f5f1ce279a218bd379a7de620632b42528dbca3",
+      "deploymentTx": "0x2abedcb297fe824d335f2ff0a950d801a82250304358f7bf33618b2d5832569c",
+      "claimTx": "0x86d405791e99fd6ae34d9c0965b2c2d7bb9bbb5397295a33d2e0e72523f2a042",
+      "claimAmount": "1000"
+    }
+  ],
+  "verifiedAt": "2026-10-17T11:59:55.889Z"
+}
