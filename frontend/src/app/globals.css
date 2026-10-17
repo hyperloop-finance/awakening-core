@@ -98,7 +98,7 @@ button:disabled { cursor: not-allowed; opacity: 0.42; }
 a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--lavender); outline-offset: 3px; }
 
 .app-main {
-  position: relative; z-index: 1; width: min(100%, var(--content)); margin: 0 auto; padding: 36px 24px 80px;
+  position: relative; z-index: 1; width: min(100%, var(--content)); margin: 0 auto; padding: 36px 24px 0;
 }
 .page-heading {
   max-width: 780px; margin: 12px 0 14px; font-size: clamp(38px, 4.3vw, 62px); font-weight: 690;
@@ -265,6 +265,7 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
 .status-matured { border-color: var(--line-medium); background: rgba(147, 0, 228, 0.07); color: var(--warning); }
 .status-matured i { background: var(--warning); }
 .market-actions { display: flex; justify-content: flex-end; gap: 7px; }
+.market-actions > .small-action { width: 96px; flex-shrink: 0; justify-content: center; white-space: nowrap; }
 .small-action {
   display: inline-flex; align-items: center; padding: 8px 11px; border: 1px solid var(--line-medium);
   border-radius: 7px; color: var(--lavender); font-family: var(--font-ui);
@@ -503,6 +504,8 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
   to { opacity: 1; transform: translateY(0); clip-path: inset(0); }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+.runtime-loading { position: fixed; inset: 0; display: grid; place-items: center; pointer-events: none; }
+.runtime-spinner { display: block; width: 52px; height: 52px; border: 4px solid var(--line-medium); border-top-color: var(--lavender); border-radius: 50%; animation: spin 800ms linear infinite; }
 
 @media (max-width: 1100px) {
   .markets-hero { grid-template-columns: 1fr; gap: 28px; }
@@ -516,10 +519,10 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
 @media (max-width: 860px) {
   .header-inner { flex-wrap: wrap; gap: 2px 12px; padding: 8px 18px; }
   .brand { margin-right: auto; }
-  .site-header nav { order: 3; width: 100%; }
+  .site-header nav { order: 3; width: 100%; min-width: 0; overflow-x: auto; }
   .nav-link { flex: 1; justify-content: center; }
   .network-badge { display: none; }
-  .app-main { padding: 28px 18px 60px; }
+  .app-main { padding: 28px 18px 0; }
   .flow-grid { grid-template-columns: minmax(0, 1fr); }
   .transaction-ticket { position: static; min-width: 0; }
 }
@@ -580,7 +583,7 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
     grid-column: 1 / -1; padding-bottom: 0; border-top: 1px solid var(--line); text-align: left;
   }
   .market-table .market-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); justify-content: stretch; }
-  .market-table .small-action { justify-content: center; }
+  .market-table .small-action { width: 100%; justify-content: center; }
 }
 
 .wallet-overlay { position: fixed; inset: 0; z-index: 1100; display: grid; place-items: center; padding: 20px; background: rgba(6, 2, 12, .76); }
@@ -617,4 +620,94 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
     scroll-behavior: auto !important; animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important; transition-duration: 0.01ms !important;
   }
+}
+
+/* Chain integration reuses the established product surfaces and button hierarchy. */
+.chain-workspace { min-width: 0; }
+.faucet-page { max-width: 1120px; margin: 0 auto; padding-bottom: 36px; }
+.faucet-header { display: flex; justify-content: space-between; align-items: center; gap: 32px; padding: 24px 0 44px; }
+.faucet-header .page-heading { font-size: clamp(36px, 4vw, 52px); margin-top: 0; }
+.faucet-network { display: grid; gap: 5px; text-align: right; }
+.faucet-network > span { color: var(--lavender); font-size: 16px; }
+.faucet-network strong { font-size: 19px; font-weight: 550; }
+.faucet-network small { color: var(--text-muted); }
+.faucet-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 12px; }
+.faucet-toolbar h2, .faucet-footer h2 { margin: 0; font-size: 18px; font-weight: 550; }
+.faucet-ledger { border: 1px solid var(--line-medium); border-radius: var(--radius); overflow: hidden; background: var(--panel); }
+.faucet-columns, .faucet-row { display: grid; grid-template-columns: minmax(210px,1.35fr) minmax(140px,1fr) minmax(140px,.85fr) 152px; gap: 24px; align-items: center; padding: 22px 28px; }
+.faucet-columns { padding-block: 14px; color: var(--text-muted); font-size: 12px; background: var(--panel-high); }
+.faucet-row { border-top: 1px solid var(--line); transition: background-color 160ms ease; }
+.faucet-row:hover { background: var(--panel-high); }
+.faucet-asset { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.faucet-logo { width: 40px; height: 40px; flex: 0 0 40px; display: grid; place-items: center; border-radius: 50%; overflow: hidden; }
+.faucet-logo img { display: block; width: 40px; height: 40px; object-fit: contain; }
+.faucet-logo-tesla { background: #e82127; }
+.faucet-logo-nvidia { background: #76b900; }
+.faucet-logo-tesla img, .faucet-logo-nvidia img { width: 25px; height: 25px; filter: invert(1); }
+.faucet-link-icon { display: inline-block; width: 14px; height: 14px; vertical-align: -2px; flex: none; }
+.faucet-asset h3 { margin: 0 0 3px; font-size: 16px; font-weight: 600; }
+.faucet-asset-title { display: flex; align-items: center; gap: 8px; }
+.faucet-asset-title h3 { margin: 0; }
+.faucet-add { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; padding: 5px; border: 1px solid var(--line-medium); border-radius: 50%; background: rgba(212,179,255,.1); color: var(--text-mid); }
+.faucet-add svg { width: 14px; height: 14px; flex: none; }
+@media (pointer: coarse) { .faucet-add { width: 44px; height: 44px; } }
+.faucet-add:not(:disabled):hover { background: var(--panel-high); color: var(--text); }
+.faucet-asset a { color: var(--text-muted); font-size: 12px; text-decoration: none; }
+.faucet-asset a:hover { color: var(--lavender); text-decoration: underline; }
+.faucet-number { min-width: 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.faucet-number strong { font-size: 14px; font-weight: 500; }
+.faucet-number strong span { color: var(--text-muted); }
+.faucet-mobile-label { display: none; }
+.faucet-claim { width: 100%; box-shadow: none; background: var(--violet-deep); }
+.faucet-feedback { color: var(--lavender); overflow-wrap: anywhere; }
+.faucet-feedback p { margin: 18px 0; }
+.faucet-feedback a { color: var(--text); text-underline-offset: 4px; }
+.faucet-footer { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; padding-top: 28px; }
+.faucet-footer p { color: var(--text-muted); font-size: 13px; line-height: 1.7; margin: 8px 0 12px; max-width: 65ch; }
+.faucet-footer > p { margin-top: 0; }
+.faucet-footer a { display: inline-flex; gap: 10px; align-items: center; min-height: 44px; color: var(--lavender); text-decoration: none; }
+@media(max-width: 900px) {
+  .faucet-columns, .faucet-row { gap: 16px; padding-inline: 18px; grid-template-columns: minmax(180px,1.3fr) minmax(110px,1fr) minmax(110px,.8fr) 132px; }
+}
+@media(max-width: 700px) {
+  .faucet-header { align-items: flex-start; padding: 8px 0 32px; }
+  .faucet-network { font-size: 12px; gap: 3px; padding-top: 4px; }
+  .faucet-network strong { font-size: 13px; white-space: nowrap; }
+  .faucet-header .page-heading { font-size: 34px; }
+  .faucet-toolbar h2 { font-size: 16px; }
+  .faucet-columns { display: none; }
+  .faucet-row { grid-template-columns: 1fr 1fr; padding: 20px; gap: 18px; }
+  .faucet-row:first-of-type { border-top: 0; }
+  .faucet-asset { grid-column: 1 / -1; }
+  .faucet-mobile-label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 5px; }
+  .faucet-claim { grid-column: 1 / -1; min-height: 46px; }
+  .faucet-footer { grid-template-columns: 1fr; gap: 18px; }
+}
+.chain-workspace > .instrument-panel { margin-block: 24px; }
+.chain-workspace .instrument-panel { padding: 24px; }
+.chain-workspace h2 { margin: 0 0 16px; font-size: 20px; }
+.chain-workspace .chain-note { display: block; color: var(--text-muted); font-size: 13px; line-height: 1.6; font-weight: 400; letter-spacing: normal; }
+.chain-message { padding: 16px 0; color: var(--text-mid); overflow-wrap: anywhere; }
+.chain-message p { margin: 0 0 8px; }
+.chain-message a { color: var(--lavender); }
+.chain-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+.chain-workspace .small-action { width: 112px; min-height: 44px; }
+.chain-workspace .market-actions > .small-action { width: 96px; }
+.chain-market-source { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-md, 18px); margin-top: 14px; }
+.chain-market-source p { margin: 0; color: var(--text-muted); font-size: 11px; }
+.chain-workspace .inline-execution .order-ticket { position: static; }
+@media(max-width: 640px) {
+  .chain-workspace .market-actions > .small-action { width: 100%; }
+}
+.chain-ledger-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-block: 18px; border-top: 1px solid var(--line); }
+.chain-ledger-row > div { min-width: 0; overflow-wrap: anywhere; }
+.chain-workspace .order-ticket select { width: 100%; min-height: 46px; border: 1px solid var(--line-medium); border-radius: 10px; background: var(--panel); color: var(--text); padding: 10px 13px; }
+.chain-workspace .order-ticket { align-self: start; }
+.chain-workspace input, .chain-workspace select { font-size: 16px; }
+.chain-faucet { border-top: 1px solid var(--line); margin-top: 32px; padding-block: 20px; }
+.chain-faucet .chain-actions { justify-content: flex-start; }
+@media(max-width: 700px) {
+  .chain-ledger-row { align-items: flex-start; flex-direction: column; gap: 12px; }
+  .chain-actions { justify-content: flex-start; }
+  .chain-workspace .instrument-panel { padding: 20px; }
 }

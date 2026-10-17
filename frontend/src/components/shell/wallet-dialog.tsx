@@ -74,6 +74,6 @@ function WalletContent({onClose}:{onClose:()=>void}) {
     </div>
     {pending&&<p role="status" className="wallet-help">Check your wallet…</p>}
     {error&&<p role="alert" className="wallet-error">{error}</p>}
-    <p className="wallet-footnote">Wallet connected. Protocol transactions are not live yet.</p>
+    <p className="wallet-footnote">Test assets only. Review the network, amount and contract in your wallet before signing.</p>
   </>;
 }

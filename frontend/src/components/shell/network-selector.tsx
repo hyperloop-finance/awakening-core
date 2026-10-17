@@ -25,7 +25,7 @@ export function NetworkSelector() {
       {label}<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.5"/></svg>
     </button>
     {open&&<WalletModal title="Select network" onClose={()=>setOpen(false)}>
-      <p className="wallet-help">BNB Testnet is available for wallet connection. Protocol transactions are not live yet.</p>
+      <p className="wallet-help">BNB Testnet supports test-asset transactions when the deployed contracts are verified. Other networks are coming soon.</p>
       <div className="network-options">{NETWORKS.map(network=><button key={network.key} className="wallet-option" disabled={network.status==='coming-soon'||pending}
         aria-label={network.status==='enabled'&&isConnected&&!supported?'Switch to BNB Testnet':undefined}
         onClick={()=>void switchNetwork()}>
