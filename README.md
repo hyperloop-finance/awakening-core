@@ -27,13 +27,15 @@ A non-liquidative, fixed-rate, fixed-maturity lending protocol on EVM.
 
 **Under active development. Not audited. Not deployed to any mainnet.**
 
+The frontend and backend now run from this single checkout. BNB Testnet (chain 97) supports signed orders, borrowing/lending positions, repayment, payouts and a five-asset faucet. PAT protection is simulated and operator-completed; this is not live Deribit protection. See [local setup](LOCAL-BSC-TESTNET.md) and [architecture](ARCHITECTURE-OVERVIEW.md).
+
 ## Repository structure
 
 ```
 awakening-core/
 ├── contracts/    Solidity contracts (Foundry). Based on Morpho Midnight + PAT layer.
-├── frontend/     Web UI. Not yet started.
-├── backend/      Indexer / attestation service / router. Not yet started.
+├── frontend/     Next.js UI, wallet signing, markets, orders, positions, settlement and faucet.
+├── backend/      Spring Boot API, PostgreSQL event index and signed-order relay.
 ├── audits/       Audit reports (as they arrive).
 └── ops/          Deployment scripts and infrastructure.
 ```
