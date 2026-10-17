@@ -1,0 +1,161 @@
+{
+  "network": "bsc-testnet",
+  "chainId": 97,
+  "deploymentDate": "2026-10-02",
+  "sourceCommit": "7ccd958710ae1d6ef703659624a172f9defa3c52",
+  "script": "script/Deploy.s.sol:Deploy",
+  "compiler": "0.8.34",
+  "evmVersion": "osaka",
+  "optimizerRuns": 800,
+  "viaIR": true,
+  "deployer": "0x7E406D8d82a7Cf4139d1d6e84EA085A7f60F1591",
+  "contracts": {
+    "Awakening": "0x99Cc7186E22F6d717FF7692d7e09F8cEd223f3C9",
+    "OptionVault": "0xA205D1E7774C37bf6962c5d387ECFd2B7Be95462",
+    "AttestedPAT": "0x82659fF769E3b8DC80E0EA1a3f4D23c1751DCE6D",
+    "AwakeningSettlement": "0x0427C5Ae7672d5f4E13D3FFb39Af3E493AB23e99",
+    "AwakeningLoans": "0xeC626Cb70caC2CdE1fF904944bCa07Fd0bf13CBA",
+    "EcrecoverRatifier": "0x6914b10398fc4aeee2475bed12d5a76c91d33ab1",
+    "TestBTC": "0xb58381352b4e4690817e9688071afa29088095b4",
+    "TestUSDC": "0x0ab622f5c6622ec6c38d20d4064a5425a95feda7",
+    "TestOracle": "0x414849f8082f595e922968e4c51a790b6adbff98"
+  },
+  "testAssets": {
+    "collateral": {
+      "symbol": "tBTC",
+      "decimals": 8,
+      "address": "0xb58381352b4e4690817e9688071afa29088095b4"
+    },
+    "loan": {
+      "symbol": "tUSDC",
+      "decimals": 6,
+      "address": "0x0ab622f5c6622ec6c38d20d4064a5425a95feda7"
+    },
+    "notice": "Permissionless faucet tokens with no monetary value. Protection is simulated, not a Deribit execution."
+  },
+  "markets": [
+    {
+      "id": "0x9551bfd843d3232ff74554e725e47f5c92175f34cdde03dbd76a5b29a70adf2d",
+      "label": "tBTC / tUSDC",
+      "purpose": "normal",
+      "market": {
+        "loanToken": "0x0ab622f5c6622ec6c38d20d4064a5425a95feda7",
+        "collateralParams": [
+          {
+            "token": "0xb58381352b4e4690817e9688071afa29088095b4",
+            "oracle": "0x414849f8082f595e922968e4c51a790b6adbff98"
+          }
+        ],
+        "maturity": "1793534400",
+        "maxStrike": "400000000000000000000000000000000000000",
+        "penaltyPct": "50000000000000000",
+        "enterGate": "0x0000000000000000000000000000000000000000"
+      }
+    },
+    {
+      "id": "0x9eda4dfbf15a522701cd144560ca6ca76f6aa940b7150ca7463e7c4defdfb5c3",
+      "label": "tBTC / tUSDC",
+      "purpose": "short-expiry",
+      "market": {
+        "loanToken": "0x0ab622f5c6622ec6c38d20d4064a5425a95feda7",
+        "collateralParams": [
+          {
+            "token": "0xb58381352b4e4690817e9688071afa29088095b4",
+            "oracle": "0x414849f8082f595e922968e4c51a790b6adbff98"
+          }
+        ],
+        "maturity": "1790956800",
+        "maxStrike": "400000000000000000000000000000000000000",
+        "penaltyPct": "50000000000000000",
+        "enterGate": "0x0000000000000000000000000000000000000000"
+      }
+    },
+    {
+      "id": "0x2fad2ff854da476374db607f1f20df8a7df5969624e0c91101d5c23805f7f216",
+      "label": "tBTC / tUSDC",
+      "purpose": "acceptance-short-expiry",
+      "market": {
+        "loanToken": "0x0ab622f5c6622ec6c38d20d4064a5425a95feda7",
+        "collateralParams": [
+          {
+            "token": "0xb58381352b4e4690817e9688071afa29088095b4",
+            "oracle": "0x414849f8082f595e922968e4c51a790b6adbff98"
+          }
+        ],
+        "maturity": "1790993579",
+        "maxStrike": "400000000000000000000000000000000000000",
+        "penaltyPct": "50000000000000000",
+        "enterGate": "0x0000000000000000000000000000000000000000"
+      }
+    }
+  ],
+  "bootstrapTransactions": [
+    "0x2b4e8226f48e88711421e8f8692b24203dadb3fbbad1b35220855fc4e7e5fb6e",
+    "0xc7151e60e4777df1894ad93e4cc5edf80a63515058ebe98217ad422ec8c66255",
+    "0x2beb829a3be485421561c3701340b507d969a3d4ebf7051f98dfa8a82db2b370",
+    "0x06669dfc8aaea680cbbdbab5086c42562c2772698ac86ae50e2bfa2b07a466b5",
+    "0x20b1a09af05a0bd9e50fbdd5b780570cce9839a43003c8a546ea172d08804f62",
+    "0x4df46c7abb2ee99a352635a65db58601ac543c90a31532436f482e1efeb26cf7",
+    "0x7fe8cedaf8723939eae2071d813b136243eabeea0cedbe93d33752f56a9f8d82",
+    "0x508b87075633d750a0ec3e3facfefc1dbe75bb8d45bccabc4637494c705916d2"
+  ],
+  "roles": {
+    "roleSetter": "0x7E406D8d82a7Cf4139d1d6e84EA085A7f60F1591",
+    "feeSetter": "0x7E406D8d82a7Cf4139d1d6e84EA085A7f60F1591",
+    "optionKeeper": "0x7E406D8d82a7Cf4139d1d6e84EA085A7f60F1591",
+    "custodian": "0x7E406D8d82a7Cf4139d1d6e84EA085A7f60F1591"
+  },
+  "firstBlock": 134429832,
+  "lastBlock": 134429916,
+  "gasPaidTBNB": "0.0009755965",
+  "transactions": [
+    {
+      "action": "deploy Awakening (including AwakeningLoans)",
+      "hash": "0x8cb9c0fcbfab88e36918f2169ad5c9c1013460afba2e7665025a7c178b2d391a"
+    },
+    {
+      "action": "deploy OptionVault",
+      "hash": "0xe59f4ac358c2816137862419f6b8d0f53ceb2b563d5387afabf1b8614dbdeb1b"
+    },
+    {
+      "action": "deploy AttestedPAT",
+      "hash": "0x111127b15364b51655b322791e50f991104b3df75aaa339ff502438a5a0e969a"
+    },
+    {
+      "action": "deploy AwakeningSettlement",
+      "hash": "0x70e1fdff8cc7a8e7a76f091437b488019a695bedc59930e8c4caf6f532aadae5"
+    },
+    {
+      "action": "setOptionKeeper",
+      "hash": "0xa7f5b2581ff154e957af40a7422c133f5af968d1ce883df84930b8a69b1d46e9"
+    },
+    {
+      "action": "setOptionVault",
+      "hash": "0x4851fdd635346d32077b43f0fa33f70d890532e674e0dea832f81120fb4f3c3a"
+    },
+    {
+      "action": "setPat",
+      "hash": "0xe0013b9698d586d16c19a8da689d7cfcebe0356724d33b27129e3239a529598e"
+    },
+    {
+      "action": "setSettlement",
+      "hash": "0xd0160c42b67f3118394159b46b969364d729142cf7b02364f19b3598c0c81bf1"
+    },
+    {
+      "action": "setFeeSetter",
+      "hash": "0xaca09aa5041018bdb412b971f33a062245c4af0d3a9b2fd28e27df4a7145362e"
+    }
+  ],
+  "verification": {
+    "successfulReceipts": 9,
+    "topLevelContractCodePresent": true,
+    "rolesAndContractLinksReadBack": true,
+    "focusedTestsPassed": 78,
+    "explorerSourceVerificationCompleted": false,
+    "frontendBackendIntegrationCompleted": true,
+    "integrationProtection": "SIMULATED_TEST_PROTECTION",
+    "injectedWalletBrowserE2E": false,
+    "integrationReceipts": "bsc-integration-receipts.json"
+  },
+  "securityNotice": "Disposable test deployment only. The deployer key was disclosed in chat; all privileged roles use that address at the user's explicit request. No real assets. This is not a security audit or production deployment."
+}

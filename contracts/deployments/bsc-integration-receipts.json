@@ -1,0 +1,353 @@
+{
+  "chainId": 97,
+  "startedAt": "2026-10-03T01:03:37.090Z",
+  "protection": "SIMULATED_TEST_PROTECTION",
+  "transactions": [
+    {
+      "label": "Fund ephemeral test wallet",
+      "actor": "0x7E406D8d82a7Cf4139d1d6e84EA085A7f60F1591",
+      "to": "0xB7269fE04Bc11B883a99E3C537FE97fe1Db25513",
+      "hash": "0xec6a991535e059e5fcfc430ddbe4472dd507ccfc9c655c402904af65a3f1bf1c",
+      "block": 134547364,
+      "status": "success"
+    },
+    {
+      "label": "Fund ephemeral test wallet",
+      "actor": "0x7E406D8d82a7Cf4139d1d6e84EA085A7f60F1591",
+      "to": "0xA6fB41371B8Ea239ae4F4E71F2037BeC66ebCDb8",
+      "hash": "0x281488486006fc362bfcdcd38d15b64f1b6308adde199925ee5c8c84675c3555",
+      "block": 134547372,
+      "status": "success"
+    },
+    {
+      "label": "Mint valueless test USDC",
+      "actor": "0xB7269fE04Bc11B883a99E3C537FE97fe1Db25513",
+      "to": "0x0ab622f5c6622ec6c38d20d4064a5425a95feda7",
+      "hash": "0x0d7ce64419cf707c10af4de17a6e828be2d4fd1f7b79da257ee557be51aabf3e",
+      "block": 134547379,
+      "status": "success"
+    },
+    {
+      "label": "Mint valueless test USDC",
+      "actor": "0xA6fB41371B8Ea239ae4F4E71F2037BeC66ebCDb8",
+      "to": "0x0ab622f5c6622ec6c38d20d4064a5425a95feda7",
+      "hash": "0x5d98f751c8da64d443246455487c9dfd26273cd0bfa81ac1fc48e046c6741941",
+      "block": 134547386,
+      "status": "success"
+    },
+    {
+      "label": "Mint valueless test USDC",
+      "actor": "0x7E406D8d82a7Cf4139d1d6e84EA085A7f60F1591",
+      "to": "0x0ab622f5c6622ec6c38d20d4064a5425a95feda7",
+      "hash": "0x454d7664221f13f1ec1c80af1e488257c82d22a7ed22a21e589cf610ce9ae378",
+      "block": 134547392,
+      "status": "success"
+    },
+    {
+      "label": "Mint valueless test BTC",
+      "actor": "0xA6fB41371B8Ea239ae4F4E71F2037BeC66ebCDb8",
+      "to": "0xb58381352b4e4690817e9688071afa29088095b4",
+      "hash": "0xb4f91752f16bfe5005d951e054ecfd09e943020d40862748e949a9642390d0b8",
+      "block": 134547399,
+      "status": "success"
+    },
+    {
+      "label": "approve",
+      "actor": "0xB7269fE04Bc11B883a99E3C537FE97fe1Db25513",
+      "to": "0x0ab622f5c6622ec6c38d20d4064a5425a95feda7",
+      "hash": "0x4f88ac792f0ed7c623f82b0945ec1b752de4c4651d26f05c87aee2431a4434f8",
+      "block": 134547408,
+      "status": "success"
+    },
+    {
+      "label": "approve",
+      "actor": "0xA6fB41371B8Ea239ae4F4E71F2037BeC66ebCDb8",
+      "to": "0xb58381352b4e4690817e9688071afa29088095b4",
+      "hash": "0x7a1e5f80863fccf7643bfe03914badc3f50a29ed9fbd11465e28c2a9101f0588",
+      "block": 134547413,
+      "status": "success"
+    },
+    {
+      "label": "setIsAuthorized",
+      "actor": "0xB7269fE04Bc11B883a99E3C537FE97fe1Db25513",
+      "to": "0x99Cc7186E22F6d717FF7692d7e09F8cEd223f3C9",
+      "hash": "0xc147a6967c6b73eb795d35331126bcebb37cbdeb99cba197f047ffc712737272",
+      "block": 134547420,
+      "status": "success"
+    },
+    {
+      "label": "Borrow against lender signed offer",
+      "actor": "0xA6fB41371B8Ea239ae4F4E71F2037BeC66ebCDb8",
+      "to": "0x99Cc7186E22F6d717FF7692d7e09F8cEd223f3C9",
+      "hash": "0x84181c18aeb28c0f4232d7870398557c6e2b6b0ba084fb34a0fb39af85c5d560",
+      "block": 134547446,
+      "status": "success"
+    },
+    {
+      "label": "Complete simulated test protection",
+      "actor": "0x7E406D8d82a7Cf4139d1d6e84EA085A7f60F1591",
+      "to": "0x99Cc7186E22F6d717FF7692d7e09F8cEd223f3C9",
+      "hash": "0x316236002c09313232b43bd2c19ac151f46a25a14e9e3753df4a2cf691fcf940",
+      "block": 134547503,
+      "status": "success"
+    },
+    {
+      "label": "approve",
+      "actor": "0xA6fB41371B8Ea239ae4F4E71F2037BeC66ebCDb8",
+      "to": "0x0ab622f5c6622ec6c38d20d4064a5425a95feda7",
+      "hash": "0x36e1966d88f8ebd89a4e4cdd85f8b8b616fa4ab2d81a8e34c05ac6fcf5964c81",
+      "block": 134547566,
+      "status": "success"
+    },
+    {
+      "label": "Partial repay through settlement",
+      "actor": "0xA6fB41371B8Ea239ae4F4E71F2037BeC66ebCDb8",
+      "to": "0x0427C5Ae7672d5f4E13D3FFb39Af3E493AB23e99",
+      "hash": "0x1b862c135b0f3325e27d00f7d9a5dabfac05463c7c048933bc6f0ee3fb4cac8b",
+      "block": 134547573,
+      "status": "success"
+    },
+    {
+      "label": "Full repayment",
+      "actor": "0xA6fB41371B8Ea239ae4F4E71F2037BeC66ebCDb8",
+      "to": "0x0427C5Ae7672d5f4E13D3FFb39Af3E493AB23e99",
+      "hash": "0xbf84a9dc8903e1d72c891366a18d4f23ae9c7cad8927f41164d3f04f6c50a8d2",
+      "block": 134547581,
+      "status": "success"
+    },
+    {
+      "label": "Claim lender payout",
+      "actor": "0xB7269fE04Bc11B883a99E3C537FE97fe1Db25513",
+      "to": "0x99Cc7186E22F6d717FF7692d7e09F8cEd223f3C9",
+      "hash": "0xd3a4b4187b542f3899277ffb4e7cc05141a5eca474334e4fde7e605ff98f5fe3",
+      "block": 134547588,
+      "status": "success"
+    },
+    {
+      "label": "approve",
+      "actor": "0x7E406D8d82a7Cf4139d1d6e84EA085A7f60F1591",
+      "to": "0x0ab622f5c6622ec6c38d20d4064a5425a95feda7",
+      "hash": "0xfcf0a0b9612977ee8e3a05612ac7dd5906aaeb79f3b04beaa204bc03d0f2fbfd",
+      "block": 134547595,
+      "status": "success"
+    },
+    {
+      "label": "Report simulated put resale",
+      "actor": "0x7E406D8d82a7Cf4139d1d6e84EA085A7f60F1591",
+      "to": "0x0427C5Ae7672d5f4E13D3FFb39Af3E493AB23e99",
+      "hash": "0xb0eda745f06698b5fd94160f1c24570aa3b2652372505d00e139b108e2b98f83",
+      "block": 134547601,
+      "status": "success"
+    },
+    {
+      "label": "Claim residual proceeds",
+      "actor": "0xA6fB41371B8Ea239ae4F4E71F2037BeC66ebCDb8",
+      "to": "0x99Cc7186E22F6d717FF7692d7e09F8cEd223f3C9",
+      "hash": "0xf40ddaea53319321ff6190f5d43935d5f56aa417b6d948a38e9527edb1f97de1",
+      "block": 134547608,
+      "status": "success"
+    },
+    {
+      "label": "Cancel signed order on-chain",
+      "actor": "0xB7269fE04Bc11B883a99E3C537FE97fe1Db25513",
+      "to": "0x6914b10398fc4aeee2475bed12d5a76c91d33ab1",
+      "hash": "0x693d6c30315c94f3258a9687e6a7356359ccb067a6668504619091decfdd9122",
+      "block": 134547615,
+      "status": "success"
+    },
+    {
+      "label": "approve",
+      "actor": "0xB7269fE04Bc11B883a99E3C537FE97fe1Db25513",
+      "to": "0x0ab622f5c6622ec6c38d20d4064a5425a95feda7",
+      "hash": "0x7eb5ef1ae88006415388d74beaff551102a66d7a8ae21e9031757c1d27c330df",
+      "block": 134547624,
+      "status": "success"
+    },
+    {
+      "label": "approve",
+      "actor": "0xA6fB41371B8Ea239ae4F4E71F2037BeC66ebCDb8",
+      "to": "0xb58381352b4e4690817e9688071afa29088095b4",
+      "hash": "0xf539fd6be9a53c74d8c19b472ef5cbac0b3a91450744c63f93a1a3bdc7ae3da4",
+      "block": 134547630,
+      "status": "success"
+    },
+    {
+      "label": "takeInit",
+      "actor": "0xA6fB41371B8Ea239ae4F4E71F2037BeC66ebCDb8",
+      "to": "0x99Cc7186E22F6d717FF7692d7e09F8cEd223f3C9",
+      "hash": "0x345e60e4f7aadbd00edcaa84d1a4f55578aec9504d89191cf5f58522b079c8fc",
+      "block": 134547637,
+      "status": "success"
+    },
+    {
+      "label": "Refund pending escrow",
+      "actor": "0x7E406D8d82a7Cf4139d1d6e84EA085A7f60F1591",
+      "to": "0x99Cc7186E22F6d717FF7692d7e09F8cEd223f3C9",
+      "hash": "0xfc3ad1ddde0385a3dbfd6451eca1999c5d38503ad3172a55135733ca0265aba9",
+      "block": 134547644,
+      "status": "success"
+    },
+    {
+      "label": "Create short-maturity acceptance market",
+      "actor": "0x7E406D8d82a7Cf4139d1d6e84EA085A7f60F1591",
+      "to": "0x99Cc7186E22F6d717FF7692d7e09F8cEd223f3C9",
+      "hash": "0x2974fe6730dd579c71a37bac991f1fe27c93778cd56acd936d083339f661418d",
+      "block": 134547651,
+      "status": "success"
+    },
+    {
+      "label": "setIsAuthorized",
+      "actor": "0xA6fB41371B8Ea239ae4F4E71F2037BeC66ebCDb8",
+      "to": "0x99Cc7186E22F6d717FF7692d7e09F8cEd223f3C9",
+      "hash": "0x47c70e56b31de6e8c8102f6cbba44e305cc265bb819ae9fd53da126c078c3cf7",
+      "block": 134547659,
+      "status": "success"
+    },
+    {
+      "label": "approve",
+      "actor": "0xA6fB41371B8Ea239ae4F4E71F2037BeC66ebCDb8",
+      "to": "0xb58381352b4e4690817e9688071afa29088095b4",
+      "hash": "0x308cdeba53b3d96784ad8cfdcfd32481f02b5c2e15fb97059af60d51097110f5",
+      "block": 134547667,
+      "status": "success"
+    },
+    {
+      "label": "approve",
+      "actor": "0xB7269fE04Bc11B883a99E3C537FE97fe1Db25513",
+      "to": "0x0ab622f5c6622ec6c38d20d4064a5425a95feda7",
+      "hash": "0x59fa7d57f66b84226569e0c8418f7bac39e703bb260b72a4d56476e7a8f8aab8",
+      "block": 134547674,
+      "status": "success"
+    },
+    {
+      "label": "Lend against borrower signed offer",
+      "actor": "0xB7269fE04Bc11B883a99E3C537FE97fe1Db25513",
+      "to": "0x99Cc7186E22F6d717FF7692d7e09F8cEd223f3C9",
+      "hash": "0x74bdd6de2254b2bf1817aa7e314e2f376bdaa81278f9ce20e3f71beaca4ad1fa",
+      "block": 134547681,
+      "status": "success"
+    },
+    {
+      "label": "Complete simulated test protection",
+      "actor": "0x7E406D8d82a7Cf4139d1d6e84EA085A7f60F1591",
+      "to": "0x99Cc7186E22F6d717FF7692d7e09F8cEd223f3C9",
+      "hash": "0x1bdde95bcd3a10e90b228678ca5c410ea8e72576de9345ad826dfeb48ad2afce",
+      "block": 134547696,
+      "status": "success"
+    },
+    {
+      "label": "readOracleAtMaturity",
+      "actor": "0xA6fB41371B8Ea239ae4F4E71F2037BeC66ebCDb8",
+      "to": "0x0427C5Ae7672d5f4E13D3FFb39Af3E493AB23e99",
+      "hash": "0x441a9267b251f7494cb8808beb0de91d7e2a357e222da9c63c787194200e693b",
+      "block": 134548064,
+      "status": "success"
+    },
+    {
+      "label": "redeemPATs",
+      "actor": "0x7E406D8d82a7Cf4139d1d6e84EA085A7f60F1591",
+      "to": "0x0427C5Ae7672d5f4E13D3FFb39Af3E493AB23e99",
+      "hash": "0x6529b6c049b9d4a0bbd1a6a02b07e4fd83b10b77835bf2e09df0042ae4d03894",
+      "block": 134548073,
+      "status": "success"
+    },
+    {
+      "label": "approve",
+      "actor": "0x7E406D8d82a7Cf4139d1d6e84EA085A7f60F1591",
+      "to": "0x0ab622f5c6622ec6c38d20d4064a5425a95feda7",
+      "hash": "0xa1b169b9b7dc6e9cbfdc9449a7980281ad930e8a94ec6dbd331a0c2a13202925",
+      "block": 134548079,
+      "status": "success"
+    },
+    {
+      "label": "Settle matured test loan with simulated proceeds",
+      "actor": "0x7E406D8d82a7Cf4139d1d6e84EA085A7f60F1591",
+      "to": "0x0427C5Ae7672d5f4E13D3FFb39Af3E493AB23e99",
+      "hash": "0x2d610c03739163778fafb2173a0c1e395238c31bccda7cb388ff1300961aa8b0",
+      "block": 134548086,
+      "status": "success"
+    },
+    {
+      "label": "Claim matured lender payout",
+      "actor": "0xB7269fE04Bc11B883a99E3C537FE97fe1Db25513",
+      "to": "0x99Cc7186E22F6d717FF7692d7e09F8cEd223f3C9",
+      "hash": "0x63af56bba52289bc2cf4bb21486032f701390a3d5c1c8594d8a9f16da4c2000a",
+      "block": 134548092,
+      "status": "success"
+    }
+  ],
+  "checks": [
+    "Disposable operator identity",
+    "Test operator has bounded gas budget",
+    "Test gas funding",
+    "Test gas funding",
+    "Mint valueless test USDC",
+    "Mint valueless test USDC",
+    "Mint valueless test USDC",
+    "Mint valueless test BTC",
+    "approve",
+    "approve",
+    "setIsAuthorized",
+    "Relay duplicate submission is idempotent",
+    "API quote matches Solidity price",
+    "Borrow against lender signed offer",
+    "Pending escrow is not active debt",
+    "Backend displays pending escrow",
+    "Complete simulated test protection",
+    "Backend displays completed loan",
+    "approve",
+    "Partial repay through settlement",
+    "Partial repayment reduces debt",
+    "Full repayment",
+    "Full repayment returns collateral",
+    "Claim lender payout",
+    "approve",
+    "Report simulated put resale",
+    "Claim residual proceeds",
+    "Cancel signed order on-chain",
+    "Root cancellation confirmed",
+    "approve",
+    "approve",
+    "takeInit",
+    "Refund pending escrow",
+    "Create short-maturity acceptance market",
+    "setIsAuthorized",
+    "approve",
+    "approve",
+    "Lend against borrower signed offer",
+    "Complete simulated test protection",
+    "readOracleAtMaturity",
+    "redeemPATs",
+    "approve",
+    "Settle matured test loan with simulated proceeds",
+    "Claim matured lender payout",
+    "Maturity settlement clears debt",
+    "Backend clears completed and cancelled pending takes"
+  ],
+  "complete": true,
+  "actors": {
+    "operator": "0x7E406D8d82a7Cf4139d1d6e84EA085A7f60F1591",
+    "lender": "0xB7269fE04Bc11B883a99E3C537FE97fe1Db25513",
+    "borrower": "0xA6fB41371B8Ea239ae4F4E71F2037BeC66ebCDb8"
+  },
+  "normalLoanId": "0x0000000000000000000000000000000000000000000000000000000000000002",
+  "shortMarket": {
+    "id": "0x2fad2ff854da476374db607f1f20df8a7df5969624e0c91101d5c23805f7f216",
+    "label": "tBTC / tUSDC",
+    "purpose": "acceptance-short-expiry",
+    "market": {
+      "loanToken": "0x0ab622f5c6622ec6c38d20d4064a5425a95feda7",
+      "collateralParams": [
+        {
+          "token": "0xb58381352b4e4690817e9688071afa29088095b4",
+          "oracle": "0x414849f8082f595e922968e4c51a790b6adbff98"
+        }
+      ],
+      "maturity": "1790993579",
+      "maxStrike": "400000000000000000000000000000000000000",
+      "penaltyPct": "50000000000000000",
+      "enterGate": "0x0000000000000000000000000000000000000000"
+    }
+  },
+  "finishedAt": "2026-10-03T02:13:14.165Z"
+}
