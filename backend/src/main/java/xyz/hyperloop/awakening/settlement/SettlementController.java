@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@org.springframework.context.annotation.Profile("!bsc-testnet")
 @RequestMapping("/api/v1/settlements")
 public class SettlementController {
 	private final SettlementService settlements;

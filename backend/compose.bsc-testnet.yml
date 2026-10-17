@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "127.0.0.1:55432:5432"
+    environment:
+      POSTGRES_DB: awakening_bsc
+      POSTGRES_USER: awakening
+      POSTGRES_PASSWORD: ${AWAKENING_DATABASE_PASSWORD:-awakening-local-test-only}
+    volumes:
+      - ./.runtime/bsc-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U awakening -d awakening_bsc"]
+      interval: 5s
+      timeout: 3s
+      retries: 20

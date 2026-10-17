@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@org.springframework.context.annotation.Profile("!bsc-testnet")
 @RequestMapping("/api/v1/offers")
 public class OfferController {
 	private final OfferService offerService;

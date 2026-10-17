@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@org.springframework.context.annotation.Profile("!bsc-testnet")
 @RequestMapping("/api/v1/markets")
 public class MarketController {
 	private final MarketService marketService;

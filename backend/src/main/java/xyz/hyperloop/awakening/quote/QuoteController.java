@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@org.springframework.context.annotation.Profile("!bsc-testnet")
 @RequestMapping("/api/v1/markets/{marketId}/quote")
 public class QuoteController {
 	private final QuoteService quoteService;

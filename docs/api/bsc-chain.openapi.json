@@ -1,0 +1,794 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Awakening BNB Testnet Chain API",
+    "version": "0.1.0",
+    "description": "Only active in bsc-testnet profile. No signing keys accepted. SignedOrder listings are stored signatures, NOT executable liquidity; obtain a fresh quote and simulate before wallet signing. Test protection is simulated, not Deribit execution. Legacy mock endpoints are not active in this profile."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8082"
+    }
+  ],
+  "paths": {
+    "/api/v1/chain/markets": {
+      "get": {
+        "operationId": "chainMarkets",
+        "responses": {
+          "200": {
+            "description": "Chain-scoped response. Integer token amounts are minimum-unit strings.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Markets"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or non-executable request"
+          },
+          "503": {
+            "description": "RPC/index unavailable; no mock fallback"
+          }
+        }
+      }
+    },
+    "/api/v1/chain/accounts/{wallet}": {
+      "get": {
+        "operationId": "chainAccount",
+        "parameters": [
+          {
+            "name": "wallet",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^0x[0-9a-fA-F]{40}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chain-scoped response. Integer token amounts are minimum-unit strings.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or non-executable request"
+          },
+          "503": {
+            "description": "RPC/index unavailable; no mock fallback"
+          }
+        }
+      }
+    },
+    "/api/v1/chain/orders": {
+      "get": {
+        "operationId": "chainOrders",
+        "description": "At most 100 stored signatures; current implementation has no pagination.",
+        "parameters": [
+          {
+            "name": "maker",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^0x[0-9a-fA-F]{40}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chain-scoped response. Integer token amounts are minimum-unit strings.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or non-executable request"
+          },
+          "503": {
+            "description": "RPC/index unavailable; no mock fallback"
+          }
+        }
+      },
+      "post": {
+        "operationId": "submitChainOrder",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderSubmission"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Chain-scoped response. Integer token amounts are minimum-unit strings.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignedOrder"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or non-executable request"
+          },
+          "503": {
+            "description": "RPC/index unavailable; no mock fallback"
+          }
+        }
+      }
+    },
+    "/api/v1/chain/orders/{root}/quote": {
+      "get": {
+        "operationId": "chainQuote",
+        "parameters": [
+          {
+            "name": "root",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^0x[0-9a-fA-F]{64}$"
+            }
+          },
+          {
+            "name": "units",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$"
+            }
+          },
+          {
+            "name": "collateral",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$"
+            }
+          },
+          {
+            "name": "taker",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^0x[0-9a-fA-F]{40}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chain-scoped response. Integer token amounts are minimum-unit strings.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Quote"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or non-executable request"
+          },
+          "503": {
+            "description": "RPC/index unavailable; no mock fallback"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Market": {
+        "type": "object",
+        "required": [
+          "loanToken",
+          "collateralParams",
+          "maturity",
+          "maxStrike",
+          "penaltyPct",
+          "enterGate"
+        ],
+        "properties": {
+          "loanToken": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "collateralParams": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "token",
+                "oracle"
+              ],
+              "properties": {
+                "token": {
+                  "type": "string",
+                  "pattern": "^0x[0-9a-fA-F]{40}$"
+                },
+                "oracle": {
+                  "type": "string",
+                  "pattern": "^0x[0-9a-fA-F]{40}$"
+                }
+              }
+            }
+          },
+          "maturity": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "maxStrike": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "penaltyPct": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "enterGate": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          }
+        }
+      },
+      "Offer": {
+        "type": "object",
+        "required": [
+          "market",
+          "buy",
+          "maker",
+          "start",
+          "expiry",
+          "tick",
+          "group",
+          "callback",
+          "callbackData",
+          "receiverIfMakerIsSeller",
+          "ratifier",
+          "reduceOnly",
+          "maxUnits",
+          "maxAssets"
+        ],
+        "properties": {
+          "market": {
+            "$ref": "#/components/schemas/Market"
+          },
+          "buy": {
+            "type": "boolean"
+          },
+          "maker": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "start": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "expiry": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "tick": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "group": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{64}$"
+          },
+          "callback": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "callbackData": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]*$"
+          },
+          "receiverIfMakerIsSeller": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "ratifier": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "reduceOnly": {
+            "type": "boolean"
+          },
+          "maxUnits": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "maxAssets": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          }
+        }
+      },
+      "OrderSubmission": {
+        "type": "object",
+        "required": [
+          "chainId",
+          "awakeningAddress",
+          "root",
+          "offer",
+          "signature"
+        ],
+        "properties": {
+          "chainId": {
+            "type": "integer",
+            "enum": [
+              97
+            ]
+          },
+          "awakeningAddress": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "root": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{64}$"
+          },
+          "offer": {
+            "$ref": "#/components/schemas/Offer"
+          },
+          "signature": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]*$"
+          }
+        }
+      },
+      "SignedOrder": {
+        "type": "object",
+        "required": [
+          "chainId",
+          "awakeningAddress",
+          "root",
+          "marketId",
+          "offer",
+          "signature",
+          "ratifierData",
+          "verifiedBlock"
+        ],
+        "properties": {
+          "chainId": {
+            "type": "integer",
+            "enum": [
+              97
+            ]
+          },
+          "awakeningAddress": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "root": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{64}$"
+          },
+          "marketId": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{64}$"
+          },
+          "offer": {
+            "$ref": "#/components/schemas/Offer"
+          },
+          "signature": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]*$"
+          },
+          "ratifierData": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]*$"
+          },
+          "verifiedBlock": {
+            "type": "integer"
+          }
+        }
+      },
+      "Markets": {
+        "type": "object",
+        "required": [
+          "chainId",
+          "observedBlock",
+          "dataSource",
+          "markets",
+          "testAssets"
+        ],
+        "properties": {
+          "chainId": {
+            "type": "integer",
+            "enum": [
+              97
+            ]
+          },
+          "observedBlock": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "dataSource": {
+            "type": "string",
+            "enum": [
+              "BSC_TESTNET"
+            ]
+          },
+          "markets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "label",
+                "purpose",
+                "market",
+                "totalUnits",
+                "withdrawable",
+                "tickSpacing",
+                "continuousFee",
+                "settlementFeeCbp",
+                "protectionSource"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^0x[0-9a-fA-F]{64}$"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "purpose": {
+                  "type": "string"
+                },
+                "market": {
+                  "$ref": "#/components/schemas/Market"
+                },
+                "totalUnits": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "withdrawable": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "tickSpacing": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "continuousFee": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "settlementFeeCbp": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[0-9]+$"
+                  }
+                },
+                "protectionSource": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "testAssets": {
+            "type": "object"
+          }
+        }
+      },
+      "Account": {
+        "type": "object",
+        "required": [
+          "chainId",
+          "observedBlock",
+          "dataSource",
+          "account",
+          "positions",
+          "loans",
+          "pendingTakes"
+        ],
+        "properties": {
+          "chainId": {
+            "type": "integer",
+            "enum": [
+              97
+            ]
+          },
+          "observedBlock": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "dataSource": {
+            "type": "string",
+            "enum": [
+              "BSC_TESTNET"
+            ]
+          },
+          "account": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "positions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "marketId",
+                "credit",
+                "pendingFee",
+                "lastAccrual",
+                "debt",
+                "collateral"
+              ],
+              "properties": {
+                "marketId": {
+                  "type": "string",
+                  "pattern": "^0x[0-9a-fA-F]{64}$"
+                },
+                "credit": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "pendingFee": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "lastAccrual": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "debt": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "collateral": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                }
+              }
+            }
+          },
+          "loans": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "loanId",
+                "marketId",
+                "borrower",
+                "principal",
+                "collateral",
+                "strike",
+                "premium",
+                "expiry",
+                "pat",
+                "patTokenId",
+                "lastRepaid",
+                "claimablePutProceeds",
+                "protectionSource"
+              ],
+              "properties": {
+                "loanId": {
+                  "type": "string",
+                  "pattern": "^0x[0-9a-fA-F]{64}$"
+                },
+                "marketId": {
+                  "type": "string",
+                  "pattern": "^0x[0-9a-fA-F]{64}$"
+                },
+                "borrower": {
+                  "type": "string",
+                  "pattern": "^0x[0-9a-fA-F]{40}$"
+                },
+                "principal": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "collateral": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "strike": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "premium": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "expiry": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "pat": {
+                  "type": "string",
+                  "pattern": "^0x[0-9a-fA-F]{40}$"
+                },
+                "patTokenId": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "lastRepaid": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "claimablePutProceeds": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "protectionSource": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "pendingTakes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "pendingId",
+                "marketId",
+                "borrower",
+                "lender",
+                "units",
+                "collateral",
+                "escrowed",
+                "settlementFee",
+                "deadline"
+              ],
+              "properties": {
+                "pendingId": {
+                  "type": "string",
+                  "pattern": "^0x[0-9a-fA-F]{64}$"
+                },
+                "marketId": {
+                  "type": "string",
+                  "pattern": "^0x[0-9a-fA-F]{64}$"
+                },
+                "borrower": {
+                  "type": "string",
+                  "pattern": "^0x[0-9a-fA-F]{40}$"
+                },
+                "lender": {
+                  "type": "string",
+                  "pattern": "^0x[0-9a-fA-F]{40}$"
+                },
+                "units": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "collateral": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "escrowed": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "settlementFee": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "deadline": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                }
+              }
+            }
+          }
+        }
+      },
+      "OrderList": {
+        "type": "object",
+        "required": [
+          "chainId",
+          "dataSource",
+          "orders"
+        ],
+        "properties": {
+          "chainId": {
+            "type": "integer",
+            "enum": [
+              97
+            ]
+          },
+          "dataSource": {
+            "type": "string",
+            "enum": [
+              "SIGNED_ORDER_RELAY"
+            ]
+          },
+          "orders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SignedOrder"
+            }
+          }
+        }
+      },
+      "Quote": {
+        "type": "object",
+        "required": [
+          "chainId",
+          "observedBlock",
+          "taker",
+          "units",
+          "collateral",
+          "buyerAssets",
+          "sellerAssetsBeforeProtection",
+          "settlementFee",
+          "price",
+          "expiresAt",
+          "order"
+        ],
+        "properties": {
+          "chainId": {
+            "type": "integer",
+            "enum": [
+              97
+            ]
+          },
+          "observedBlock": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "taker": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "units": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "collateral": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "buyerAssets": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "sellerAssetsBeforeProtection": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "settlementFee": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "price": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "expiresAt": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "order": {
+            "$ref": "#/components/schemas/SignedOrder"
+          }
+        }
+      }
+    }
+  }
+}

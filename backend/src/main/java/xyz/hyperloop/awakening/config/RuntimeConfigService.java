@@ -1,6 +1,7 @@
 package xyz.hyperloop.awakening.config;
 
 import java.util.Optional;
+import xyz.hyperloop.awakening.chain.*;
 
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -9,13 +10,26 @@ import org.springframework.stereotype.Service;
 public class RuntimeConfigService {
 	private final AwakeningProperties properties;
 	private final Environment environment;
+    private volatile DeploymentVerifier.Result verified;
+    private volatile long checkedAt;
 
 	public RuntimeConfigService(AwakeningProperties properties, Environment environment) {
+		var profiles = java.util.Arrays.asList(environment.getActiveProfiles());
+		if (profiles.contains("bsc-testnet") && (profiles.contains("mock") || profiles.contains("test")))
+			throw new IllegalStateException("Live and mock/test profiles cannot be combined");
 		this.properties = properties;
 		this.environment = environment;
 	}
 
 	public RuntimeConfig getConfig() {
+        if ("bsc-testnet".equals(activeProfile())) {
+            var manifest = DeploymentManifest.load();
+            var state = chainVerification();
+            return new RuntimeConfig("bsc-testnet",97,nullable(properties.rpc().url())!=null,state.coreVerified(),
+                manifest.address("Awakening"),manifest.address("AwakeningSettlement"),manifest.address("AttestedPAT"),manifest.address("OptionVault"),
+                nullable(manifest.address("EcrecoverRatifier")),manifest.startBlock(),state.observedBlock(),state.reason(),
+                canTransact(environment.getProperty("awakening.transactions-enabled",Boolean.class,false),state));
+        }
 		String awakening = configuredAddress(properties.contracts().awakeningAddress());
 		String settlement = configuredAddress(properties.contracts().settlementAddress());
 		String pat = configuredAddress(properties.contracts().patAddress());
@@ -26,11 +40,25 @@ public class RuntimeConfigService {
 	}
 
 	public boolean contractsReady() {
+        if ("bsc-testnet".equals(activeProfile())) return chainVerification().coreVerified();
 		return isValidAddress(properties.contracts().awakeningAddress()) && isValidAddress(properties.contracts().settlementAddress())
 				&& isValidAddress(properties.contracts().patAddress()) && isValidAddress(properties.contracts().optionVaultAddress());
 	}
 
+    private synchronized DeploymentVerifier.Result chainVerification() {
+        long now=System.nanoTime();
+        if (verified!=null && now-checkedAt<5_000_000_000L) return verified;
+        try { verified=new DeploymentVerifier(new ChainGateway(properties.rpc().url()),DeploymentManifest.load()).verify(); }
+        catch (RuntimeException e) { verified=new DeploymentVerifier.Result(false,false,0,"RPC_UNAVAILABLE"); }
+        checkedAt=System.nanoTime();
+        return verified;
+    }
+    static boolean canTransact(boolean enabled,DeploymentVerifier.Result state) {
+        return enabled && state.coreVerified() && state.ratifierVerified() && "VERIFIED".equals(state.reason());
+    }
+
 	private String activeProfile() {
+		if (java.util.Arrays.asList(environment.getActiveProfiles()).contains("bsc-testnet")) return "bsc-testnet";
 		return Optional.of(environment.getActiveProfiles()).filter(profiles -> profiles.length > 0)
 				.map(profiles -> profiles[0]).orElse("mock");
 	}

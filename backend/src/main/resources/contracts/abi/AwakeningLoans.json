@@ -1,0 +1,776 @@
+[
+  {
+    "type": "function",
+    "name": "accrueSettlementFee",
+    "inputs": [
+      {
+        "name": "loanToken",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "cancelTake",
+    "inputs": [
+      {
+        "name": "pendingId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "claimPutProceeds",
+    "inputs": [
+      {
+        "name": "loanId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "receiver",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "completeTake",
+    "inputs": [
+      {
+        "name": "pendingId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "premium",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "tradeId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "attestation",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "repayLoan",
+    "inputs": [
+      {
+        "name": "loanId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "units",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "payer",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "reportPutResale",
+    "inputs": [
+      {
+        "name": "loanId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "proceeds",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "settleLoan",
+    "inputs": [
+      {
+        "name": "loanId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "collateralReceiver",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "takeInit",
+    "inputs": [
+      {
+        "name": "offer",
+        "type": "tuple",
+        "internalType": "struct Offer",
+        "components": [
+          {
+            "name": "market",
+            "type": "tuple",
+            "internalType": "struct Market",
+            "components": [
+              {
+                "name": "loanToken",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "collateralParams",
+                "type": "tuple[]",
+                "internalType": "struct CollateralParams[]",
+                "components": [
+                  {
+                    "name": "token",
+                    "type": "address",
+                    "internalType": "address"
+                  },
+                  {
+                    "name": "oracle",
+                    "type": "address",
+                    "internalType": "address"
+                  }
+                ]
+              },
+              {
+                "name": "maturity",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "maxStrike",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "penaltyPct",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "enterGate",
+                "type": "address",
+                "internalType": "address"
+              }
+            ]
+          },
+          {
+            "name": "buy",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "maker",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "start",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "expiry",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "tick",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "group",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "callback",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "callbackData",
+            "type": "bytes",
+            "internalType": "bytes"
+          },
+          {
+            "name": "receiverIfMakerIsSeller",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "ratifier",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "reduceOnly",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "maxUnits",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxAssets",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      },
+      {
+        "name": "ratifierData",
+        "type": "bytes",
+        "internalType": "bytes"
+      },
+      {
+        "name": "units",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "collateral",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "taker",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "pendingId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "event",
+    "name": "LoanCreated",
+    "inputs": [
+      {
+        "name": "loanId",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "id_",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "borrower",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "principal",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "collateral",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "strike",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "premium",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "expiry",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "pat",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "patTokenId",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "LoanRepaid",
+    "inputs": [
+      {
+        "name": "loanId",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "id_",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "borrower",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "units",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "remaining",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "LoanSettled",
+    "inputs": [
+      {
+        "name": "loanId",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "id_",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "borrower",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "principal",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "collateralReceiver",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PutProceedsClaimed",
+    "inputs": [
+      {
+        "name": "loanId",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "id_",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "borrower",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "receiver",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "proceeds",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PutResaleReported",
+    "inputs": [
+      {
+        "name": "loanId",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "id_",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "proceeds",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "TakeCancelled",
+    "inputs": [
+      {
+        "name": "pendingId",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "TakeCompleted",
+    "inputs": [
+      {
+        "name": "pendingId",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "premium",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "pat",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "patTokenId",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "TakeInitiated",
+    "inputs": [
+      {
+        "name": "pendingId",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "id_",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "borrower",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "lender",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "units",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "collateral",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "escrowed",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "settlementFee",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "deadline",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "error",
+    "name": "ApproveReturnedFalse",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BuyerGatedFromIncreasingCredit",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "CannotIncreaseDebtPostMaturity",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "CastOverflow",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ConsumedAssets",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ConsumedUnits",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidOfferCaps",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "LoanAlreadyExists",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "LoanNotFound",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "LoanNotFullyRepaid",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NoCode",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NotOptionKeeper",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NothingToClaim",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OfferExpired",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OfferNotStarted",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OnlyBorrower",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OnlySettlement",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "PendingTakeExpired",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "PendingTakeNotFound",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "PremiumTooHigh",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "RatifierFail",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "RatifierUnauthorized",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "RepayExceedsRemaining",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "SelfTake",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "SellerGatedFromIncreasingDebt",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "StrikeExceedsMax",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TakerUnauthorized",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TickNotAccessible",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TickOutOfRange",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TooManyActivatedCollaterals",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TransferFromReturnedFalse",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TransferReturnedFalse",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ZeroCollateral",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ZeroOptionVault",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ZeroPat",
+    "inputs": []
+  }
+]

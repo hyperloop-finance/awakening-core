@@ -1,0 +1,3528 @@
+[
+  {
+    "type": "constructor",
+    "inputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "AWAKENING_LOANS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "INITIAL_CHAIN_ID",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "accrueSettlementFee",
+    "inputs": [
+      {
+        "name": "loanToken",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "borrowerLoan",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "borrower",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "cancelTake",
+    "inputs": [
+      {
+        "name": "pendingId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "claimContinuousFee",
+    "inputs": [
+      {
+        "name": "market",
+        "type": "tuple",
+        "internalType": "struct Market",
+        "components": [
+          {
+            "name": "loanToken",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "collateralParams",
+            "type": "tuple[]",
+            "internalType": "struct CollateralParams[]",
+            "components": [
+              {
+                "name": "token",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "oracle",
+                "type": "address",
+                "internalType": "address"
+              }
+            ]
+          },
+          {
+            "name": "maturity",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxStrike",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "penaltyPct",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "enterGate",
+            "type": "address",
+            "internalType": "address"
+          }
+        ]
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "receiver",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "claimPutProceeds",
+    "inputs": [
+      {
+        "name": "loanId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "receiver",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "claimSettlementFee",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "receiver",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "claimableSettlementFee",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "collateral",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "user",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "index",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint128",
+        "internalType": "uint128"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "collateralBitmap",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "user",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint128",
+        "internalType": "uint128"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "completeTake",
+    "inputs": [
+      {
+        "name": "pendingId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "premium",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "tradeId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "attestation",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "consumed",
+    "inputs": [
+      {
+        "name": "user",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "group",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "continuousFee",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "continuousFeeCredit",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint128",
+        "internalType": "uint128"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "creditOf",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "user",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint128",
+        "internalType": "uint128"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "debtOf",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "user",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint128",
+        "internalType": "uint128"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "defaultContinuousFee",
+    "inputs": [
+      {
+        "name": "loanToken",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "defaultSettlementFeeCbp",
+    "inputs": [
+      {
+        "name": "loanToken",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint16",
+        "internalType": "uint16"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "feeClaimer",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "feeSetter",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "flashLoan",
+    "inputs": [
+      {
+        "name": "tokens",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "assets",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "callback",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "data",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "isAuthorized",
+    "inputs": [
+      {
+        "name": "authorizer",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "authorized",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "lastAccrual",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "user",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint128",
+        "internalType": "uint128"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "loans",
+    "inputs": [
+      {
+        "name": "loanId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct Loan",
+        "components": [
+          {
+            "name": "id",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "borrower",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "principal",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "collateral",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "strike",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "premium",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "expiry",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "pat",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "patTokenId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "lastRepaid",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "claimablePutProceeds",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "marketLoanCount",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "marketLoanIds",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "index",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "marketState",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "totalUnits",
+        "type": "uint128",
+        "internalType": "uint128"
+      },
+      {
+        "name": "withdrawable",
+        "type": "uint128",
+        "internalType": "uint128"
+      },
+      {
+        "name": "continuousFeeCredit",
+        "type": "uint128",
+        "internalType": "uint128"
+      },
+      {
+        "name": "settlementFeeCbp0",
+        "type": "uint16",
+        "internalType": "uint16"
+      },
+      {
+        "name": "settlementFeeCbp1",
+        "type": "uint16",
+        "internalType": "uint16"
+      },
+      {
+        "name": "settlementFeeCbp2",
+        "type": "uint16",
+        "internalType": "uint16"
+      },
+      {
+        "name": "settlementFeeCbp3",
+        "type": "uint16",
+        "internalType": "uint16"
+      },
+      {
+        "name": "settlementFeeCbp4",
+        "type": "uint16",
+        "internalType": "uint16"
+      },
+      {
+        "name": "settlementFeeCbp5",
+        "type": "uint16",
+        "internalType": "uint16"
+      },
+      {
+        "name": "settlementFeeCbp6",
+        "type": "uint16",
+        "internalType": "uint16"
+      },
+      {
+        "name": "continuousFee",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "tickSpacing",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "multicall",
+    "inputs": [
+      {
+        "name": "calls",
+        "type": "bytes[]",
+        "internalType": "bytes[]"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "optionKeeper",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "optionVault",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "pat",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "pendingFee",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "user",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint128",
+        "internalType": "uint128"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "pendingNonce",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "pendingTakes",
+    "inputs": [
+      {
+        "name": "pendingId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct PendingTake",
+        "components": [
+          {
+            "name": "id",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "offer",
+            "type": "tuple",
+            "internalType": "struct Offer",
+            "components": [
+              {
+                "name": "market",
+                "type": "tuple",
+                "internalType": "struct Market",
+                "components": [
+                  {
+                    "name": "loanToken",
+                    "type": "address",
+                    "internalType": "address"
+                  },
+                  {
+                    "name": "collateralParams",
+                    "type": "tuple[]",
+                    "internalType": "struct CollateralParams[]",
+                    "components": [
+                      {
+                        "name": "token",
+                        "type": "address",
+                        "internalType": "address"
+                      },
+                      {
+                        "name": "oracle",
+                        "type": "address",
+                        "internalType": "address"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "maturity",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                  },
+                  {
+                    "name": "maxStrike",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                  },
+                  {
+                    "name": "penaltyPct",
+                    "type": "uint256",
+                    "internalType": "uint256"
+                  },
+                  {
+                    "name": "enterGate",
+                    "type": "address",
+                    "internalType": "address"
+                  }
+                ]
+              },
+              {
+                "name": "buy",
+                "type": "bool",
+                "internalType": "bool"
+              },
+              {
+                "name": "maker",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "start",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "expiry",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "tick",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "group",
+                "type": "bytes32",
+                "internalType": "bytes32"
+              },
+              {
+                "name": "callback",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "callbackData",
+                "type": "bytes",
+                "internalType": "bytes"
+              },
+              {
+                "name": "receiverIfMakerIsSeller",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "ratifier",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "reduceOnly",
+                "type": "bool",
+                "internalType": "bool"
+              },
+              {
+                "name": "maxUnits",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "maxAssets",
+                "type": "uint256",
+                "internalType": "uint256"
+              }
+            ]
+          },
+          {
+            "name": "units",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "borrower",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "lender",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "collateral",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "escrowed",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "settlementFee",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "premiumQuote",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "deadline",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "position",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "user",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "credit",
+        "type": "uint128",
+        "internalType": "uint128"
+      },
+      {
+        "name": "pendingFee",
+        "type": "uint128",
+        "internalType": "uint128"
+      },
+      {
+        "name": "lastAccrual",
+        "type": "uint128",
+        "internalType": "uint128"
+      },
+      {
+        "name": "debt",
+        "type": "uint128",
+        "internalType": "uint128"
+      },
+      {
+        "name": "collateralBitmap",
+        "type": "uint128",
+        "internalType": "uint128"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "repay",
+    "inputs": [
+      {
+        "name": "market",
+        "type": "tuple",
+        "internalType": "struct Market",
+        "components": [
+          {
+            "name": "loanToken",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "collateralParams",
+            "type": "tuple[]",
+            "internalType": "struct CollateralParams[]",
+            "components": [
+              {
+                "name": "token",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "oracle",
+                "type": "address",
+                "internalType": "address"
+              }
+            ]
+          },
+          {
+            "name": "maturity",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxStrike",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "penaltyPct",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "enterGate",
+            "type": "address",
+            "internalType": "address"
+          }
+        ]
+      },
+      {
+        "name": "units",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "onBehalf",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "callback",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "data",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "repayLoan",
+    "inputs": [
+      {
+        "name": "loanId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "units",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "payer",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "reportPutResale",
+    "inputs": [
+      {
+        "name": "loanId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "proceeds",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "roleSetter",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "setConsumed",
+    "inputs": [
+      {
+        "name": "group",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "onBehalf",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setDefaultContinuousFee",
+    "inputs": [
+      {
+        "name": "loanToken",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "newContinuousFee",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setDefaultSettlementFee",
+    "inputs": [
+      {
+        "name": "loanToken",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "index",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "newSettlementFee",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setFeeClaimer",
+    "inputs": [
+      {
+        "name": "newFeeClaimer",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setFeeSetter",
+    "inputs": [
+      {
+        "name": "newFeeSetter",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setIsAuthorized",
+    "inputs": [
+      {
+        "name": "authorized",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "newIsAuthorized",
+        "type": "bool",
+        "internalType": "bool"
+      },
+      {
+        "name": "onBehalf",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setMarketContinuousFee",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "newContinuousFee",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setMarketSettlementFee",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "index",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "newSettlementFee",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setMarketTickSpacing",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "newTickSpacing",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setOptionKeeper",
+    "inputs": [
+      {
+        "name": "newOptionKeeper",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setOptionVault",
+    "inputs": [
+      {
+        "name": "newOptionVault",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setPat",
+    "inputs": [
+      {
+        "name": "newPat",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setRoleSetter",
+    "inputs": [
+      {
+        "name": "newRoleSetter",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setSettlement",
+    "inputs": [
+      {
+        "name": "newSettlement",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setTickSpacingSetter",
+    "inputs": [
+      {
+        "name": "newTickSpacingSetter",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "settleLoan",
+    "inputs": [
+      {
+        "name": "loanId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "collateralReceiver",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "settlement",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "settlementFee",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "timeToMaturity",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "settlementFeeCbps",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint16[7]",
+        "internalType": "uint16[7]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "supplyCollateral",
+    "inputs": [
+      {
+        "name": "market",
+        "type": "tuple",
+        "internalType": "struct Market",
+        "components": [
+          {
+            "name": "loanToken",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "collateralParams",
+            "type": "tuple[]",
+            "internalType": "struct CollateralParams[]",
+            "components": [
+              {
+                "name": "token",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "oracle",
+                "type": "address",
+                "internalType": "address"
+              }
+            ]
+          },
+          {
+            "name": "maturity",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxStrike",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "penaltyPct",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "enterGate",
+            "type": "address",
+            "internalType": "address"
+          }
+        ]
+      },
+      {
+        "name": "collateralIndex",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "assets",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "onBehalf",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "take",
+    "inputs": [
+      {
+        "name": "offer",
+        "type": "tuple",
+        "internalType": "struct Offer",
+        "components": [
+          {
+            "name": "market",
+            "type": "tuple",
+            "internalType": "struct Market",
+            "components": [
+              {
+                "name": "loanToken",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "collateralParams",
+                "type": "tuple[]",
+                "internalType": "struct CollateralParams[]",
+                "components": [
+                  {
+                    "name": "token",
+                    "type": "address",
+                    "internalType": "address"
+                  },
+                  {
+                    "name": "oracle",
+                    "type": "address",
+                    "internalType": "address"
+                  }
+                ]
+              },
+              {
+                "name": "maturity",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "maxStrike",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "penaltyPct",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "enterGate",
+                "type": "address",
+                "internalType": "address"
+              }
+            ]
+          },
+          {
+            "name": "buy",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "maker",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "start",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "expiry",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "tick",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "group",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "callback",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "callbackData",
+            "type": "bytes",
+            "internalType": "bytes"
+          },
+          {
+            "name": "receiverIfMakerIsSeller",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "ratifier",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "reduceOnly",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "maxUnits",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxAssets",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      },
+      {
+        "name": "ratifierData",
+        "type": "bytes",
+        "internalType": "bytes"
+      },
+      {
+        "name": "units",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "taker",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "receiverIfTakerIsSeller",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "takerCallback",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "takerCallbackData",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "takeInit",
+    "inputs": [
+      {
+        "name": "offer",
+        "type": "tuple",
+        "internalType": "struct Offer",
+        "components": [
+          {
+            "name": "market",
+            "type": "tuple",
+            "internalType": "struct Market",
+            "components": [
+              {
+                "name": "loanToken",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "collateralParams",
+                "type": "tuple[]",
+                "internalType": "struct CollateralParams[]",
+                "components": [
+                  {
+                    "name": "token",
+                    "type": "address",
+                    "internalType": "address"
+                  },
+                  {
+                    "name": "oracle",
+                    "type": "address",
+                    "internalType": "address"
+                  }
+                ]
+              },
+              {
+                "name": "maturity",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "maxStrike",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "penaltyPct",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "enterGate",
+                "type": "address",
+                "internalType": "address"
+              }
+            ]
+          },
+          {
+            "name": "buy",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "maker",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "start",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "expiry",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "tick",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "group",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "callback",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "callbackData",
+            "type": "bytes",
+            "internalType": "bytes"
+          },
+          {
+            "name": "receiverIfMakerIsSeller",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "ratifier",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "reduceOnly",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "maxUnits",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxAssets",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      },
+      {
+        "name": "ratifierData",
+        "type": "bytes",
+        "internalType": "bytes"
+      },
+      {
+        "name": "units",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "collateral",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "taker",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "pendingId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "tickSpacing",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "tickSpacingSetter",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "toId",
+    "inputs": [
+      {
+        "name": "market",
+        "type": "tuple",
+        "internalType": "struct Market",
+        "components": [
+          {
+            "name": "loanToken",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "collateralParams",
+            "type": "tuple[]",
+            "internalType": "struct CollateralParams[]",
+            "components": [
+              {
+                "name": "token",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "oracle",
+                "type": "address",
+                "internalType": "address"
+              }
+            ]
+          },
+          {
+            "name": "maturity",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxStrike",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "penaltyPct",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "enterGate",
+            "type": "address",
+            "internalType": "address"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "toMarket",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct Market",
+        "components": [
+          {
+            "name": "loanToken",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "collateralParams",
+            "type": "tuple[]",
+            "internalType": "struct CollateralParams[]",
+            "components": [
+              {
+                "name": "token",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "oracle",
+                "type": "address",
+                "internalType": "address"
+              }
+            ]
+          },
+          {
+            "name": "maturity",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxStrike",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "penaltyPct",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "enterGate",
+            "type": "address",
+            "internalType": "address"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "totalUnits",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint128",
+        "internalType": "uint128"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "touchMarket",
+    "inputs": [
+      {
+        "name": "market",
+        "type": "tuple",
+        "internalType": "struct Market",
+        "components": [
+          {
+            "name": "loanToken",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "collateralParams",
+            "type": "tuple[]",
+            "internalType": "struct CollateralParams[]",
+            "components": [
+              {
+                "name": "token",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "oracle",
+                "type": "address",
+                "internalType": "address"
+              }
+            ]
+          },
+          {
+            "name": "maturity",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxStrike",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "penaltyPct",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "enterGate",
+            "type": "address",
+            "internalType": "address"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "updatePosition",
+    "inputs": [
+      {
+        "name": "market",
+        "type": "tuple",
+        "internalType": "struct Market",
+        "components": [
+          {
+            "name": "loanToken",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "collateralParams",
+            "type": "tuple[]",
+            "internalType": "struct CollateralParams[]",
+            "components": [
+              {
+                "name": "token",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "oracle",
+                "type": "address",
+                "internalType": "address"
+              }
+            ]
+          },
+          {
+            "name": "maturity",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxStrike",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "penaltyPct",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "enterGate",
+            "type": "address",
+            "internalType": "address"
+          }
+        ]
+      },
+      {
+        "name": "user",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint128",
+        "internalType": "uint128"
+      },
+      {
+        "name": "",
+        "type": "uint128",
+        "internalType": "uint128"
+      },
+      {
+        "name": "",
+        "type": "uint128",
+        "internalType": "uint128"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "updatePositionView",
+    "inputs": [
+      {
+        "name": "market",
+        "type": "tuple",
+        "internalType": "struct Market",
+        "components": [
+          {
+            "name": "loanToken",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "collateralParams",
+            "type": "tuple[]",
+            "internalType": "struct CollateralParams[]",
+            "components": [
+              {
+                "name": "token",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "oracle",
+                "type": "address",
+                "internalType": "address"
+              }
+            ]
+          },
+          {
+            "name": "maturity",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxStrike",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "penaltyPct",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "enterGate",
+            "type": "address",
+            "internalType": "address"
+          }
+        ]
+      },
+      {
+        "name": "id",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "user",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint128",
+        "internalType": "uint128"
+      },
+      {
+        "name": "",
+        "type": "uint128",
+        "internalType": "uint128"
+      },
+      {
+        "name": "",
+        "type": "uint128",
+        "internalType": "uint128"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "withdraw",
+    "inputs": [
+      {
+        "name": "market",
+        "type": "tuple",
+        "internalType": "struct Market",
+        "components": [
+          {
+            "name": "loanToken",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "collateralParams",
+            "type": "tuple[]",
+            "internalType": "struct CollateralParams[]",
+            "components": [
+              {
+                "name": "token",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "oracle",
+                "type": "address",
+                "internalType": "address"
+              }
+            ]
+          },
+          {
+            "name": "maturity",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxStrike",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "penaltyPct",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "enterGate",
+            "type": "address",
+            "internalType": "address"
+          }
+        ]
+      },
+      {
+        "name": "units",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "onBehalf",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "receiver",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "withdrawCollateral",
+    "inputs": [
+      {
+        "name": "market",
+        "type": "tuple",
+        "internalType": "struct Market",
+        "components": [
+          {
+            "name": "loanToken",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "collateralParams",
+            "type": "tuple[]",
+            "internalType": "struct CollateralParams[]",
+            "components": [
+              {
+                "name": "token",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "oracle",
+                "type": "address",
+                "internalType": "address"
+              }
+            ]
+          },
+          {
+            "name": "maturity",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxStrike",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "penaltyPct",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "enterGate",
+            "type": "address",
+            "internalType": "address"
+          }
+        ]
+      },
+      {
+        "name": "collateralIndex",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "assets",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "onBehalf",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "receiver",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "withdrawable",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint128",
+        "internalType": "uint128"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "event",
+    "name": "ClaimContinuousFee",
+    "inputs": [
+      {
+        "name": "caller",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "id_",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "receiver",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ClaimSettlementFee",
+    "inputs": [
+      {
+        "name": "caller",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "receiver",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Constructor",
+    "inputs": [
+      {
+        "name": "roleSetter",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "initialChainId",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "FlashLoan",
+    "inputs": [
+      {
+        "name": "caller",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "tokens",
+        "type": "address[]",
+        "indexed": false,
+        "internalType": "address[]"
+      },
+      {
+        "name": "assets",
+        "type": "uint256[]",
+        "indexed": false,
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "callback",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MarketCreated",
+    "inputs": [
+      {
+        "name": "market",
+        "type": "tuple",
+        "indexed": false,
+        "internalType": "struct Market",
+        "components": [
+          {
+            "name": "loanToken",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "collateralParams",
+            "type": "tuple[]",
+            "internalType": "struct CollateralParams[]",
+            "components": [
+              {
+                "name": "token",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "oracle",
+                "type": "address",
+                "internalType": "address"
+              }
+            ]
+          },
+          {
+            "name": "maturity",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxStrike",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "penaltyPct",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "enterGate",
+            "type": "address",
+            "internalType": "address"
+          }
+        ]
+      },
+      {
+        "name": "id_",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Repay",
+    "inputs": [
+      {
+        "name": "caller",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "id_",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "units",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "onBehalf",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "payer",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SetConsumed",
+    "inputs": [
+      {
+        "name": "caller",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "group",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "onBehalf",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SetDefaultContinuousFee",
+    "inputs": [
+      {
+        "name": "loanToken",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newContinuousFee",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SetDefaultSettlementFee",
+    "inputs": [
+      {
+        "name": "loanToken",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "index",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "newSettlementFee",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SetFeeClaimer",
+    "inputs": [
+      {
+        "name": "feeClaimer",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SetFeeSetter",
+    "inputs": [
+      {
+        "name": "feeSetter",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SetIsAuthorized",
+    "inputs": [
+      {
+        "name": "caller",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "authorized",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newIsAuthorized",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      },
+      {
+        "name": "onBehalf",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SetMarketContinuousFee",
+    "inputs": [
+      {
+        "name": "id_",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "newContinuousFee",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SetMarketSettlementFee",
+    "inputs": [
+      {
+        "name": "id_",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "index",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "newSettlementFee",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SetMarketTickSpacing",
+    "inputs": [
+      {
+        "name": "id_",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "newTickSpacing",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SetOptionKeeper",
+    "inputs": [
+      {
+        "name": "optionKeeper",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SetOptionVault",
+    "inputs": [
+      {
+        "name": "optionVault",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SetPat",
+    "inputs": [
+      {
+        "name": "pat",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SetRoleSetter",
+    "inputs": [
+      {
+        "name": "roleSetter",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SetSettlement",
+    "inputs": [
+      {
+        "name": "settlement",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SetTickSpacingSetter",
+    "inputs": [
+      {
+        "name": "tickSpacingSetter",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SupplyCollateral",
+    "inputs": [
+      {
+        "name": "caller",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "id_",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "collateral",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "assets",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "onBehalf",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Take",
+    "inputs": [
+      {
+        "name": "caller",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "id_",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "units",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "taker",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "maker",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "offerIsBuy",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      },
+      {
+        "name": "group",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "buyerAssets",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "sellerAssets",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "consumed",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "buyerPendingFeeIncrease",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "sellerPendingFeeDecrease",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "buyerCreditIncrease",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "sellerCreditDecrease",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "receiver",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "payer",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "UpdatePosition",
+    "inputs": [
+      {
+        "name": "id_",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "user",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "creditDecrease",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "pendingFeeDecrease",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "accruedFee",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Withdraw",
+    "inputs": [
+      {
+        "name": "caller",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "id_",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "units",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "onBehalf",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "receiver",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "pendingFeeDecrease",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "WithdrawCollateral",
+    "inputs": [
+      {
+        "name": "caller",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "id_",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "collateral",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "assets",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "onBehalf",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "receiver",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "error",
+    "name": "AlreadyConsumed",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BuyerGatedFromIncreasingCredit",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "CannotIncreaseDebtPostMaturity",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "CastOverflow",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ConsumedAssets",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ConsumedUnits",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ContinuousFeeTooHigh",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "FeeNotMultipleOfFeeCbp",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "HasOutstandingDebt",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InconsistentInput",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidCollateralParams",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidFeeIndex",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidMaxStrike",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidOfferCaps",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidPenaltyPct",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidTickSpacing",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "LoanAlreadyExists",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "LoanNotFound",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "LoanNotFullyRepaid",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "MakerCreditOrDebtIncreased",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "MarketNotCreated",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "MaturityTooFar",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NoCode",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NotOptionKeeper",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NothingToClaim",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OfferExpired",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OfferNotStarted",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OnlyBorrower",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OnlyFeeClaimer",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OnlyFeeSetter",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OnlyRoleSetter",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OnlySettlement",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OnlyTickSpacingSetter",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "PendingTakeExpired",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "PendingTakeNotFound",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "PremiumTooHigh",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "RatifierFail",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "RatifierUnauthorized",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "RepayExceedsRemaining",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "SStore2DeploymentFailed",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "SelfTake",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "SellerGatedFromIncreasingDebt",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "SettlementFeeTooHigh",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "StrikeExceedsMax",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TakerUnauthorized",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TickNotAccessible",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TickOutOfRange",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TooManyActivatedCollaterals",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TransferFromReturnedFalse",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TransferReturnedFalse",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "Unauthorized",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "UnusedReceiverMustBeZero",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "WrongBuyCallbackReturnValue",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "WrongFlashLoanCallbackReturnValue",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "WrongRepayCallbackReturnValue",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "WrongSellCallbackReturnValue",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ZeroCollateral",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ZeroOptionVault",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ZeroPat",
+    "inputs": []
+  }
+]

@@ -1,0 +1,263 @@
+[
+  {
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "_awakening",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "AWAKENING",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "cancelRoot",
+    "inputs": [
+      {
+        "name": "maker",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "root",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "isRatified",
+    "inputs": [
+      {
+        "name": "offer",
+        "type": "tuple",
+        "internalType": "struct Offer",
+        "components": [
+          {
+            "name": "market",
+            "type": "tuple",
+            "internalType": "struct Market",
+            "components": [
+              {
+                "name": "loanToken",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "collateralParams",
+                "type": "tuple[]",
+                "internalType": "struct CollateralParams[]",
+                "components": [
+                  {
+                    "name": "token",
+                    "type": "address",
+                    "internalType": "address"
+                  },
+                  {
+                    "name": "oracle",
+                    "type": "address",
+                    "internalType": "address"
+                  }
+                ]
+              },
+              {
+                "name": "maturity",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "maxStrike",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "penaltyPct",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "enterGate",
+                "type": "address",
+                "internalType": "address"
+              }
+            ]
+          },
+          {
+            "name": "buy",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "maker",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "start",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "expiry",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "tick",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "group",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "callback",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "callbackData",
+            "type": "bytes",
+            "internalType": "bytes"
+          },
+          {
+            "name": "receiverIfMakerIsSeller",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "ratifier",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "reduceOnly",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "maxUnits",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxAssets",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      },
+      {
+        "name": "ratifierData",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "isRootCanceled",
+    "inputs": [
+      {
+        "name": "maker",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "root",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "event",
+    "name": "CancelRoot",
+    "inputs": [
+      {
+        "name": "caller",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "maker",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "root",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "error",
+    "name": "InvalidProof",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidSignature",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "LeafIndexOutOfRange",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "RootCanceled",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TreeTooHigh",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "Unauthorized",
+    "inputs": []
+  }
+]
