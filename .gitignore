@@ -8,6 +8,11 @@ todo.md
 .cursor/
 .superpowers/
 .worktrees/
+.local-runtime/
+.impeccable/
+frontend/.impeccable/
+*.tsbuildinfo
+/*.png
 
 # --- OS ---
 .DS_Store
