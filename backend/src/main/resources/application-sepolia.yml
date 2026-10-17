@@ -1,0 +1,4 @@
+awakening:
+  rpc:
+    url: ${AWAKENING_RPC_URL:}
+    chain-id: ${AWAKENING_CHAIN_ID:11155111}

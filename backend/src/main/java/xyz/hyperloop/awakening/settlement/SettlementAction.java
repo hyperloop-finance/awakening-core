@@ -1,0 +1,5 @@
+package xyz.hyperloop.awakening.settlement;
+
+public enum SettlementAction {
+	SIMULATE_REPAY_DEBT, SIMULATE_RECOVER_COLLATERAL, SIMULATE_CLAIM_LENDER_PAYOUT, SIMULATE_CLAIM_RESIDUAL_PROCEEDS
+}

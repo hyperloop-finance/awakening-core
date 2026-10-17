@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/awakening}
+    username: ${DATABASE_USER:awakening}
+    password: ${DATABASE_PASSWORD:awakening}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+awakening:
+  rpc:
+    url: ${AWAKENING_RPC_URL:http://localhost:8545}
+    chain-id: ${AWAKENING_CHAIN_ID:31337}

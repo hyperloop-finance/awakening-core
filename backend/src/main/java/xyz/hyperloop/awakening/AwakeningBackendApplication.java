@@ -2,8 +2,10 @@ package xyz.hyperloop.awakening;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 @SpringBootApplication
+@ConfigurationPropertiesScan
 public class AwakeningBackendApplication {
 
 	public static void main(String[] args) {
