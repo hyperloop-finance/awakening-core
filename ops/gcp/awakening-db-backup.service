@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily logical backup of Awakening testnet database
+After=postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/awakening-db-backup
+UMask=0077
+Nice=10
+IOSchedulingClass=idle
