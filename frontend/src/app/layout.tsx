@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import '@rainbow-me/rainbowkit/styles.css';
 import "./globals.css";
+import '@/components/shell/network-selector.css';
 import '@/components/chain/account-workspace.css';
 import { Providers } from "./providers";
 import { AppShell } from "@/components/shell/app-shell";

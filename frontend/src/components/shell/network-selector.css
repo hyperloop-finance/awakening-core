@@ -1,0 +1,17 @@
+.network-picker { position: relative; }
+.network-logo { width: 24px; height: 24px; flex: 0 0 24px; object-fit: contain; }
+.network-trigger .network-logo { width: 20px; height: 20px; flex-basis: 20px; }
+.network-popover { position: absolute; top: calc(100% + 8px); right: 0; z-index: 100; width: 320px; max-width: calc(100vw - 24px); max-height: calc(100dvh - 160px); overflow-y: auto; padding: 8px; border: 1px solid var(--line-medium); border-radius: 12px; background: var(--panel-high); color: var(--text); }
+.network-list { display: grid; gap: 4px; }
+.network-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; padding: 10px 12px; border: 0; border-radius: 8px; background: transparent; color: var(--text-mid); text-align: left; font-size: 14px; }
+.network-row-label { flex: 1; }
+.network-row small { color: var(--text-muted); font-size: 11px; white-space: nowrap; }
+.network-row:disabled { cursor: not-allowed; opacity: 1; }
+.network-row:not(:disabled):hover, .network-row-selected { background: rgba(147,0,228,.18); color: var(--text); }
+.network-check { color: var(--lavender); flex-shrink: 0; }
+.network-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 8px; padding: 4px; border-radius: 8px; background: var(--panel-inset); }
+.network-tabs button { min-height: 40px; border: 0; border-radius: 5px; background: transparent; color: var(--text-muted); font-size: 13px; font-weight: 500; }
+.network-tabs button[aria-selected="true"] { color: var(--text); background: var(--violet-deep); }
+.network-popover :focus-visible { outline: 2px solid var(--lavender); outline-offset: 2px; }
+.network-popover .wallet-error { margin: 8px 4px 4px; padding: 0; color: var(--danger); }
+@media (max-width: 600px) { .network-popover { right: auto; left: 0; } .network-tabs button { min-height: 44px; } }
