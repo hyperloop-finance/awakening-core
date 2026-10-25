@@ -150,3 +150,11 @@ It never restores database data over new orders. If backend readiness fails,
 the previous public proxy/frontend stays active; inspect logs, then retry or
 invoke rollback. Before replacing any cloud release, audit cloud differences
 against GitHub and reconcile intended changes locally and upstream first.
+
+Robinhood's backend RPC defaults to `https://robinhood-sepolia-rpc.publicnode.com`.
+The official public RPC produced intermittent verification failures under the
+cloud runtime. The replacement was checked with the actual Java gateway for
+chain ID 46630, deployed bytecode, and all contract links before switching.
+Runtime RPC overrides are recorded in the installed release's `release.json`;
+application artifact SHA and configuration commit SHA are recorded separately
+when only deployment configuration changes.

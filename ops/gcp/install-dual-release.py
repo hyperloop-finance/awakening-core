@@ -191,7 +191,7 @@ def main():
             existing[key] = value
     for key in ('AWAKENING_DATABASE_URL', 'AWAKENING_DATABASE_USER', 'AWAKENING_DATABASE_PASSWORD'):
         assert existing.get(key), 'Missing existing database configuration'
-    for profile, port, rpc in (('arbitrum-sepolia', 8083, 'https://sepolia-rollup.arbitrum.io/rpc'), ('robinhood-testnet', 8084, 'https://rpc.testnet.chain.robinhood.com')):
+    for profile, port, rpc in (('arbitrum-sepolia', 8083, 'https://sepolia-rollup.arbitrum.io/rpc'), ('robinhood-testnet', 8084, 'https://robinhood-sepolia-rpc.publicnode.com')):
         config = {key: value for key, value in existing.items() if key.startswith('AWAKENING_DATABASE_')}
         config.update(SPRING_PROFILES_ACTIVE=profile, PORT=str(port), SERVER_ADDRESS='127.0.0.1', AWAKENING_RPC_URL=rpc,
                       AWAKENING_CORS_ALLOWED_ORIGINS='https://app.hyperloop-fi.xyz', AWAKENING_TRANSACTIONS_ENABLED='true',
