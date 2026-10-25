@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.34;
 
-/// @notice Valueless, permissionless faucet token for chain 97/local integration tests only.
+/// @notice Valueless, permissionless faucet token for supported testnets and local integration tests only.
 contract TestToken {
     string public name;
     string public symbol;
@@ -12,7 +12,7 @@ contract TestToken {
     event Transfer(address indexed from, address indexed to, uint256 amount);
     event Approval(address indexed owner, address indexed spender, uint256 amount);
     constructor(string memory n, string memory s, uint8 d) {
-        require(block.chainid == 97 || block.chainid == 31337, "Testnet only");
+        require(block.chainid == 97 || block.chainid == 31337 || block.chainid == 421614 || block.chainid == 46630, "Testnet only");
         require(d <= 18,"Decimals"); name=n; symbol=s; decimals=d;
     }
     function faucet() external {

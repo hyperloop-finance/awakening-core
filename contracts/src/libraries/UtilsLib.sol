@@ -43,10 +43,22 @@ library UtilsLib {
         }
     }
 
-    /// @dev Assumes bitmap is not zero.
+    /// @dev Returns the highest set bit index, or type(uint256).max for zero.
     function msb(uint128 bitmap) internal pure returns (uint256 res) {
         assembly {
-            res := sub(255, clz(bitmap))
+            // Binary search the uint128 bitmap without the Osaka-only CLZ opcode.
+            // Preserve the original wrapped result for zero.
+            switch bitmap
+            case 0 { res := not(0) }
+            default {
+                if shr(64, bitmap) { bitmap := shr(64, bitmap) res := 64 }
+                if shr(32, bitmap) { bitmap := shr(32, bitmap) res := add(res, 32) }
+                if shr(16, bitmap) { bitmap := shr(16, bitmap) res := add(res, 16) }
+                if shr(8, bitmap) { bitmap := shr(8, bitmap) res := add(res, 8) }
+                if shr(4, bitmap) { bitmap := shr(4, bitmap) res := add(res, 4) }
+                if shr(2, bitmap) { bitmap := shr(2, bitmap) res := add(res, 2) }
+                if shr(1, bitmap) { res := add(res, 1) }
+            }
         }
     }
 

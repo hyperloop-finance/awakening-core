@@ -7,7 +7,7 @@ contract TestOracle {
     uint256 public price;
     event PriceSet(uint256 price);
     constructor(address operator,uint256 initialPrice) {
-        require(block.chainid==97 || block.chainid==31337,"Testnet only");
+        require(block.chainid==97 || block.chainid==31337 || block.chainid==421614 || block.chainid==46630,"Testnet only");
         require(operator!=address(0),"Zero owner"); owner=operator; price=initialPrice;
     }
     function setPrice(uint256 newPrice) external {

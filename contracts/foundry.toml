@@ -16,3 +16,8 @@ exclude_lints = [
     "incorrect-shift",
     "block-timestamp",
 ]
+
+[profile.multichain]
+evm_version = "cancun"
+out = "out-multichain"
+cache_path = "cache-multichain"
