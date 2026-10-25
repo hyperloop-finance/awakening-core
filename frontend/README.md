@@ -2,9 +2,9 @@
 
 ## Current BNB testnet application
 
-Use [the unified workspace startup guide](../LOCAL-BSC-TESTNET.md) for the current application, real wallet interactions, and BNB testnet deployment. The frontend runs from this directory; no separate Git worktree is required. The current environment template selects `api` and the local backend on port 8082. Routes include `/faucet` as well as Markets, Orders, Positions, and Settlement.
+Use [the unified workspace startup guide](../docs/local-bsc-testnet.md) for the current application, real wallet interactions, and BNB testnet deployment. The frontend runs from this directory; no separate Git worktree is required. The current environment template selects `api` and the local backend on port 8082. Routes include `/faucet` as well as Markets, Orders, Positions, and Settlement.
 
-The notes below describe the original mock/preview workflow, not the current testnet deployment or wallet UI. For current architecture and transaction safeguards, see [ARCHITECTURE-OVERVIEW.md](../ARCHITECTURE-OVERVIEW.md).
+The notes below describe the original mock/preview workflow, not the current testnet deployment or wallet UI. For current architecture and transaction safeguards, see [architecture overview](../docs/architecture-overview.md).
 
 ## Original preview workflow (historical reference)
 
@@ -67,3 +67,17 @@ src/
 ## Safety
 
 The UI never calls legacy `take()` or `repay()` contract paths. When addresses are absent (the default), it clearly labels workflows as preview/simulation and blocks live submission.
+
+## Live testnet builds
+
+Set `NEXT_PUBLIC_DATA_PROFILE=api` and select `NEXT_PUBLIC_TESTNET=arbitrum-sepolia`
+or `robinhood-testnet`. The build reads the selected real deployment and faucet
+manifests from `contracts/deployments/` and rejects a missing deployment.
+Arbitrum uses `/arbitrum` as its public API base; Robinhood uses `/robinhood`
+and serves pages under `/robinhood`. BNB is retained for compatibility and hidden
+from the public network selector. Deploy each network as a separate frontend and
+backend process. Test assets have no monetary value; PAT protection is simulated.
+
+Local on-chain acceptance receipts for both networks are recorded in
+`contracts/deployments/*-local-acceptance.json`. See `ops/gcp/README.md` for the
+exact-commit dual-chain release and rollback procedure.

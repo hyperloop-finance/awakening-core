@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@org.springframework.context.annotation.Profile("!bsc-testnet")
+@org.springframework.context.annotation.Profile("!bsc-testnet & !arbitrum-sepolia & !robinhood-testnet")
 @RequestMapping("/api/v1/portfolio")
 public class PortfolioController {
 	private final PortfolioService portfolioService;

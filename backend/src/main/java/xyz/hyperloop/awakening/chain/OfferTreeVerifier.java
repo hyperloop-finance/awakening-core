@@ -14,7 +14,7 @@ public class OfferTreeVerifier {
     private static void require(boolean condition,String reason) {if(!condition)throw new IllegalArgumentException(reason);}
     public ObjectNode verify(JsonNode submission,long block) {
         require(submission.isObject() && submission.toString().length()<24000,"Invalid order size");
-        require(submission.path("chainId").isIntegralNumber() && submission.path("chainId").asLong()==97,"Wrong order chain");
+        require(submission.path("chainId").isIntegralNumber() && submission.path("chainId").asLong()==manifest.chainId(),"Wrong order chain");
         require(manifest.address("Awakening").equalsIgnoreCase(submission.path("awakeningAddress").asText()),"Wrong deployment");
         JsonNode o=submission.path("offer");
         require(manifest.address("EcrecoverRatifier").equalsIgnoreCase(o.path("ratifier").asText()),"Wrong ratifier domain");
@@ -31,7 +31,7 @@ public class OfferTreeVerifier {
         require(units.signum()>0 && units.bitLength()<=128 && assets.signum()==0,"Only positive unit-capped orders supported");
         BigInteger tick=new BigInteger(o.path("tick").asText());
         require(tick.signum()>=0 && tick.compareTo(BigInteger.valueOf(5820))<=0,"Invalid tick");
-        if(rpc.chainId()!=97)throw new IllegalStateException("Wrong RPC chain");
+        if(rpc.chainId()!=manifest.chainId())throw new IllegalStateException("Wrong RPC chain");
         var header=rpc.request("eth_getBlockByNumber",List.of(ChainGateway.hex(block),false));
         long now=ChainGateway.integer(header.path("timestamp").asText()).longValueExact();
         long start=new BigInteger(o.path("start").asText()).longValueExact(),expiry=new BigInteger(o.path("expiry").asText()).longValueExact();

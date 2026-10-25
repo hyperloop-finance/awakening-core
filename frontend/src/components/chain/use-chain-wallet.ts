@@ -1,9 +1,9 @@
 "use client";
+import {ACTIVE_CHAIN_ID, ACTIVE_CHAIN_LABEL, ACTIVE_CHAIN} from '@/lib/networks';
 import {useEffect,useRef,useState} from 'react';
 import {useAccount,usePublicClient,useWalletClient} from 'wagmi';
 import {encodeFunctionData,erc20Abi,type Address,type Hex} from 'viem';
-import {bscTestnet} from 'viem/chains';
-import {deployment} from '@/lib/contracts/generated';
+import {deployment} from '@/lib/contracts/selected-deployment';
 import {isTrustedFaucetCall} from '@/lib/contracts/faucet';
 import {assertTrustedRuntime} from '@/lib/contracts/live-model';
 import {offerTypedData,type ChainOffer} from '@/lib/contracts/offer-tree';
@@ -12,7 +12,7 @@ import type {RuntimeConfig} from '@/lib/api/types';
 
 export function useChainWallet(config:RuntimeConfig) {
   const {address,chainId}=useAccount();
-  const publicClient=usePublicClient({chainId:97});
+  const publicClient=usePublicClient({chainId:ACTIVE_CHAIN_ID});
   const {data:walletClient}=useWalletClient();
   const last=useRef(''),epoch=useRef(0),identity=useRef('');
   const key=`${address??''}:${chainId??''}`;
@@ -26,19 +26,19 @@ export function useChainWallet(config:RuntimeConfig) {
   function session() {
     assertTrustedRuntime(config);
     if(!config.transactionsEnabled)throw Error('Transactions are not enabled until testnet acceptance is complete.');
-    if(!address||chainId!==97||!walletClient||!publicClient)throw Error('Connect your wallet on BNB Testnet.');
+    if(!address||chainId!==ACTIVE_CHAIN_ID||!walletClient||!publicClient)throw Error(`Connect your wallet on ${ACTIVE_CHAIN_LABEL}.`);
     const account=address,captured=identity.current;
     const check=()=>assertWalletIdentity(captured,()=>identity.current);
     const verifyWallet=async()=>{
       check();const [network,accounts]=await Promise.all([walletClient.getChainId(),walletClient.getAddresses()]);check();
-      if(network!==97||!accounts.some(a=>a.toLowerCase()===account.toLowerCase()))throw Error('Wallet network or account changed.');
+      if(network!==ACTIVE_CHAIN_ID||!accounts.some(a=>a.toLowerCase()===account.toLowerCase()))throw Error('Wallet network or account changed.');
     };
     async function tx(to:Address,data:Hex) {
       if(!Object.values(deployment.contracts).some(a=>a.toLowerCase()===to.toLowerCase())&&!isTrustedFaucetCall(to,data))throw Error('Untrusted transaction target');
       await verifyWallet();
-      return executeWalletTransaction({chainId:97,identity:captured,current:()=>identity.current,
+      return executeWalletTransaction({chainId:ACTIVE_CHAIN_ID,identity:captured,current:()=>identity.current,
         simulate:()=>publicClient!.call({account,to,data}),
-        write:async()=>{await verifyWallet();return walletClient!.sendTransaction({account,chain:bscTestnet,to,data,value:0n});},
+        write:async()=>{await verifyWallet();return walletClient!.sendTransaction({account,chain:ACTIVE_CHAIN,to,data,value:0n});},
         receipt:hash=>publicClient!.waitForTransactionReceipt({hash,confirmations:1,timeout:120000}),
         stage:(stage,hash)=>{check();setStatus({stage,hash});},
       });

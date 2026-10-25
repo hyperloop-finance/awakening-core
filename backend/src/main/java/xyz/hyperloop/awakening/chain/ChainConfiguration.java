@@ -9,17 +9,17 @@ import xyz.hyperloop.awakening.config.AwakeningProperties;
 import java.util.List;
 
 @Configuration
-@Profile("bsc-testnet")
+@Profile({"bsc-testnet","arbitrum-sepolia","robinhood-testnet"})
 @EnableScheduling
 public class ChainConfiguration {
-    @Bean DeploymentManifest deploymentManifest() { return DeploymentManifest.load(); }
+    @Bean DeploymentManifest deploymentManifest(org.springframework.core.env.Environment env) { return DeploymentManifest.load(DeploymentManifest.selectedProfile(env)); }
     @Bean ChainGateway chainGateway(AwakeningProperties p) { return new ChainGateway(p.rpc().url()); }
     @Bean ChainReadRepository chainReadRepository(JdbcTemplate db,DeploymentManifest m) {
-        return new ChainReadRepository(db,"97:"+m.address("Awakening").toLowerCase(java.util.Locale.ROOT));
+        return new ChainReadRepository(db,m.chainId()+":"+m.address("Awakening").toLowerCase(java.util.Locale.ROOT));
     }
     @Bean ChainEventIndexer chainEventIndexer(ChainGateway rpc,ChainReadRepository repo,PlatformTransactionManager manager,DeploymentManifest m) {
         return new ChainEventIndexer(rpc,repo,new TransactionTemplate(manager),m.startBlock(),
-            List.of(m.address("Awakening"),m.address("AwakeningSettlement"),m.address("AttestedPAT"),m.address("EcrecoverRatifier")),12);
+            List.of(m.address("Awakening"),m.address("AwakeningSettlement"),m.address("AttestedPAT"),m.address("EcrecoverRatifier")),12,m.chainId(),m.chainId()==97?50_000:1_000);
     }
     @Bean ChainRuntime chainRuntime(ChainGateway rpc,ChainReadRepository repo,ChainEventIndexer indexer,DeploymentManifest m) {
         return new ChainRuntime(rpc,new DeploymentVerifier(rpc,m),indexer,repo);

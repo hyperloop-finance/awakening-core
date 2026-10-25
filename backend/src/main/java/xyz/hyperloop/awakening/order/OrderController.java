@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@org.springframework.context.annotation.Profile("!bsc-testnet")
+@org.springframework.context.annotation.Profile("!bsc-testnet & !arbitrum-sepolia & !robinhood-testnet")
 @RequestMapping("/api/v1/orders")
 public class OrderController {
 	private final OrderService orders;

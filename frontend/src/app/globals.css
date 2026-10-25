@@ -195,6 +195,8 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
 .market-table tbody tr:hover { background: rgba(147, 0, 228, 0.055); }
 .market-name { min-width: 210px; color: var(--text); }
 .asset-pair { display: flex; align-items: center; }
+.option-venue { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-ui); font-size: 12px; color: var(--text-mid); }
+.option-venue img { flex: none; width: 22px; height: 22px; object-fit: contain; }
 .asset-pair b {
   margin-left: 11px; font-family: var(--font-ui); font-size: 13px; font-weight: 640;
 }
@@ -659,6 +661,7 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
 .faucet-number strong span { color: var(--text-muted); }
 .faucet-mobile-label { display: none; }
 .faucet-claim { width: 100%; box-shadow: none; background: var(--violet-deep); }
+.faucet-claim-waiting:disabled { opacity: 1; }
 .faucet-feedback { color: var(--lavender); overflow-wrap: anywhere; }
 .faucet-feedback p { margin: 18px 0; }
 .faucet-feedback a { color: var(--text); text-underline-offset: 4px; }

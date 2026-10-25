@@ -1,4 +1,6 @@
 "use client";
+import {assetPath} from '@/lib/networks';
+import {ACTIVE_CHAIN_ID, ACTIVE_CHAIN_LABEL, ACTIVE_PROFILE, EXPLORER_URL} from '@/lib/networks';
 
 import Image from 'next/image';
 import Link from 'next/link';
@@ -22,7 +24,7 @@ export function FaucetScreen({config}: {config:RuntimeConfig}) {
 }
 
 function FaucetSession({config,openWallet,wallet,chainId}:{config:RuntimeConfig;openWallet:()=>void;wallet?:`0x${string}`;chainId?:number}) {
-  const client = usePublicClient({chainId:97});
+  const client = usePublicClient({chainId:ACTIVE_CHAIN_ID});
   const {switchChainAsync} = useSwitchChain();
   const {data:walletClient} = useWalletClient();
   const signing = useChainWallet(config);
@@ -40,7 +42,7 @@ function FaucetSession({config,openWallet,wallet,chainId}:{config:RuntimeConfig;
     alive.current=true;
     return () => {alive.current=false; pendingReads.current++;};
   }, []);
-  const enabled = config.profile==='bsc-testnet' && config.chainId===97 && config.verificationStatus==='VERIFIED' && config.transactionsEnabled;
+  const enabled = config.profile===ACTIVE_PROFILE && config.chainId===ACTIVE_CHAIN_ID && config.verificationStatus==='VERIFIED' && config.transactionsEnabled;
   const refresh = useCallback(async () => {
     if(!wallet || !client) return;
     const version = ++reads.current;
@@ -62,16 +64,16 @@ function FaucetSession({config,openWallet,wallet,chainId}:{config:RuntimeConfig;
     if(lock.current) return;
     lock.current=true;setAdding(token.symbol);setWalletNotice(undefined);
     try {
-      if(chainId!==97) {
-        await switchChainAsync({chainId:97});
+      if(chainId!==ACTIVE_CHAIN_ID) {
+        await switchChainAsync({chainId:ACTIVE_CHAIN_ID});
         if(alive.current)setWalletNotice('Network switched. Click Add again to import the token.');
         return;
       }
       if(!walletClient) {setWalletNotice('Wallet is connecting. Try Add again in a moment.');return;}
       const [network,accounts]=await Promise.all([walletClient.getChainId(),walletClient.getAddresses()]);
       if(!alive.current)return;
-      if(network!==97 || !accounts.some(account=>account.toLowerCase()===wallet.toLowerCase())) {
-        setWalletNotice('Wallet changed. Select BNB Testnet and try again.');return;
+      if(network!==ACTIVE_CHAIN_ID || !accounts.some(account=>account.toLowerCase()===wallet.toLowerCase())) {
+        setWalletNotice(`Wallet changed. Select ${ACTIVE_CHAIN_LABEL} and try again.`);return;
       }
       const added=await walletClient.watchAsset({type:'ERC20',options:{address:token.address,symbol:token.onchainSymbol,decimals:token.decimals}});
       if(alive.current)setWalletNotice(added?`${token.onchainSymbol} added to your wallet.`:'Token was not added. You can try again when ready.');
@@ -89,7 +91,7 @@ function FaucetSession({config,openWallet,wallet,chainId}:{config:RuntimeConfig;
     if(lock.current) return;
     lock.current=true; setBusy(token.symbol); setError(undefined); setSuccess(undefined); signing.clearStatus();
     try {
-      if(chainId!==97) {await switchChainAsync({chainId:97}); return;}
+      if(chainId!==ACTIVE_CHAIN_ID) {await switchChainAsync({chainId:ACTIVE_CHAIN_ID}); return;}
       if(!enabled) throw Error('Testnet transactions are unavailable.');
       const session = signing.session();
       const hash = await session.tx(token.address,faucetCalldata);
@@ -112,21 +114,21 @@ function FaucetSession({config,openWallet,wallet,chainId}:{config:RuntimeConfig;
     <div className="faucet-ledger" aria-label="Test token faucets">
       <div className="faucet-columns" aria-hidden="true"><span>Asset</span><span>Wallet balance</span><span>Per claim</span><span/></div>
       {faucetTokens.map(token => <article className="faucet-row" key={token.address} aria-label={`${token.symbol} faucet`}>
-        <div className="faucet-asset"><span className={`faucet-logo${token.symbol==='bTesla'?' faucet-logo-tesla':token.symbol==='bNVIDIA'?' faucet-logo-nvidia':''}`}><Image src={token.logo} alt={token.name} width={40} height={40}/></span>
-          <div><div className="faucet-asset-title"><h3>{token.symbol}</h3><button className="faucet-add" aria-label={`Add ${token.symbol} to wallet`} aria-busy={adding===token.symbol} title="Add token to wallet" disabled={Boolean(busy||adding)} onClick={()=>void addToWallet(token)}>{/* Lucide wallet-minimal; ISC notice in public/icons/LUCIDE-LICENSE.txt. */}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M17 14h.01"/><path d="M7 7h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14"/></svg></button></div><a href={`https://testnet.bscscan.com/address/${token.address}`} target="_blank" rel="noreferrer">{token.onchainSymbol} · {token.symbol.startsWith('b')?'Simulated stock':'Test token'} <LinkArrow external/></a></div></div>
+        <div className="faucet-asset"><span className={`faucet-logo${token.symbol==='bTesla'?' faucet-logo-tesla':token.symbol==='bNVIDIA'?' faucet-logo-nvidia':''}`}><Image src={assetPath(token.logo)} alt={token.name} width={40} height={40}/></span>
+          <div><div className="faucet-asset-title"><h3>{token.symbol}</h3><button className="faucet-add" aria-label={`Add ${token.symbol} to wallet`} aria-busy={adding===token.symbol} title="Add token to wallet" disabled={Boolean(busy||adding)} onClick={()=>void addToWallet(token)}>{/* Lucide wallet-minimal; ISC notice in public/icons/LUCIDE-LICENSE.txt. */}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M17 14h.01"/><path d="M7 7h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14"/></svg></button></div><a href={`${EXPLORER_URL}/address/${token.address}`} target="_blank" rel="noreferrer">{token.onchainSymbol} · {token.symbol.startsWith('b')?'Simulated stock':'Test token'} <LinkArrow external/></a></div></div>
         <div className="faucet-number"><span className="faucet-mobile-label">Wallet balance</span><strong>{balances[token.symbol]===undefined?'—':`${balances[token.symbol]} ${token.symbol}`}</strong></div>
         <div className="faucet-number"><span className="faucet-mobile-label">Per claim</span><strong>1,000 <span>{token.symbol}</span></strong></div>
-        <button className="primary-button faucet-claim" disabled={Boolean(busy||adding) || Boolean(wallet && chainId===97 && !enabled)} onClick={() => void claim(token)} aria-label={!wallet?'Connect wallet':chainId!==97?'Switch to BNB Testnet':`Claim ${token.symbol}`}>
-          {busy===token.symbol?'Processing…':!wallet?'Connect wallet':chainId!==97?'Switch network':'Claim tokens'}</button>
+        <button className={`primary-button faucet-claim${busy && busy!==token.symbol && enabled?' faucet-claim-waiting':''}`} aria-busy={busy===token.symbol} disabled={Boolean(busy||adding) || Boolean(wallet && chainId===ACTIVE_CHAIN_ID && !enabled)} onClick={() => void claim(token)} aria-label={!wallet?'Connect wallet':chainId!==ACTIVE_CHAIN_ID?`Switch to ${ACTIVE_CHAIN_LABEL}`:`Claim ${token.symbol}`}>
+          {busy===token.symbol?'Processing…':!wallet?'Connect wallet':chainId!==ACTIVE_CHAIN_ID?'Switch network':'Claim tokens'}</button>
       </article>)}
     </div>
     <div className="faucet-feedback" hidden>
       {adding && <p role="status">Confirm token import in your wallet.</p>}
       {walletNotice && <p role="status">{walletNotice}</p>}
-      {busy && <p role="status">{chainId!==97?'Confirm the network switch in your wallet.':pendingText}</p>}
-      {success && <p role="status">1,000 {success.symbol} received successfully. <a href={`https://testnet.bscscan.com/tx/${success.hash}`} target="_blank" rel="noreferrer">View transaction</a></p>}
+      {busy && <p role="status">{chainId!==ACTIVE_CHAIN_ID?'Confirm the network switch in your wallet.':pendingText}</p>}
+      {success && <p role="status">1,000 {success.symbol} received successfully. <a href={`${EXPLORER_URL}/tx/${success.hash}`} target="_blank" rel="noreferrer">View transaction</a></p>}
       {error && <p role="alert">{error}</p>}
-      {!success && signing.status?.hash && <p><a href={`https://testnet.bscscan.com/tx/${signing.status.hash}`} target="_blank" rel="noreferrer">View submitted transaction</a> · A submitted transaction may still confirm; check its status before retrying.</p>}
+      {!success && signing.status?.hash && <p><a href={`${EXPLORER_URL}/tx/${signing.status.hash}`} target="_blank" rel="noreferrer">View submitted transaction</a> · A submitted transaction may still confirm; check its status before retrying.</p>}
       {balanceError && <p role="alert">Balances unavailable. Check your connection and refresh balances.</p>}
       {!enabled && <p>Testnet transactions are currently unavailable. Reload once the runtime is ready.</p>}
     </div>

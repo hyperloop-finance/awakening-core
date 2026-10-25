@@ -22,7 +22,7 @@ public class ChainOrderService {
     }
     public ObjectNode list(String maker) {
         if(maker!=null)OfferCodec.address(maker);
-        var result=json.createObjectNode().put("chainId",97).put("dataSource","SIGNED_ORDER_RELAY");var data=result.putArray("orders");
+        var result=json.createObjectNode().put("chainId",manifest.chainId()).put("dataSource","SIGNED_ORDER_RELAY");var data=result.putArray("orders");
         for(var row:repo.orders()) {
             JsonNode order=parse((String)row.get("payload"));
             if(maker==null || maker.equalsIgnoreCase(order.path("offer").path("maker").asText())) data.add(order);
@@ -72,7 +72,7 @@ public class ChainOrderService {
         BigInteger balance=call(makerToken,"balanceOf(address)",OfferCodec.address(maker),block);
         BigInteger allowance=call(makerToken,"allowance(address,address)",OfferCodec.address(maker)+OfferCodec.address(core),block);
         require(balance.compareTo(needed)>=0&&allowance.compareTo(needed)>=0,"Maker balance or approval is insufficient");
-        var result=json.createObjectNode().put("chainId",97).put("dataSource","BSC_TESTNET").put("observedBlock",block)
+        var result=json.createObjectNode().put("chainId",manifest.chainId()).put("dataSource",manifest.dataSource()).put("observedBlock",block)
             .put("taker",taker).put("units",unitsValue).put("collateral",collateralValue).put("buyerAssets",buyerAssets.toString())
             .put("sellerAssetsBeforeProtection",sellerAssets.toString()).put("settlementFee",buyerAssets.subtract(sellerAssets).toString())
             .put("price",price.toString()).put("expiresAt",Long.toString(Math.min(now+30,new BigInteger(o.path("expiry").asText()).longValueExact())))

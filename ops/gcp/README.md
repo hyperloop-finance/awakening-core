@@ -97,3 +97,56 @@ The initial deployment used a dedicated instance-level SSH public key expiring
 after 24 hours. Other users' SSH keys were preserved, and project-wide SSH
 metadata was not changed. Local deployment keys, known-host records, and the
 database snapshot live in ignored `.local-runtime/`; none belong in Git.
+
+## Arbitrum + Robinhood exact-commit update
+
+`build-dual-release.sh CHECKOUT STAGING FULL_GIT_SHA` runs on Linux with Java 21,
+Node 22 and pnpm. Fetch the deployment branch and verify its remote SHA first.
+The script requires `HEAD` at that SHA and a remote tracking branch containing it,
+then builds a `git archive` of the commit so ignored/local modifications cannot
+enter the artifact. Tests must pass before the commit is pushed. It packages one
+backend JAR and two standalone frontends, with `/arbitrum` and `/robinhood` API
+prefixes and Robinhood's `/robinhood` Next.js base path. Record the output SHA.
+
+The installer interface on the named VM, as root:
+
+```bash
+python3 STAGING/ops/gcp/install-dual-release.py STAGING RELEASE_ID FULL_GIT_SHA
+```
+
+`STAGING` contains `backend.jar`, `source-sha.txt`, `artifacts.sha256`,
+`frontend-arbitrum/`, `frontend-robinhood/` and `ops/gcp/`. Each frontend contains
+`server.js`, `.next/static`, `public` and traced dependencies. Every artifact file
+must have a SHA-256 entry. `--check-only` checks hashes and both packaged real
+contract manifests without changing the server. Reusing a release ID is allowed
+only for the same SHA and unchanged artifact files. No credentials belong here.
+
+The updater retains `/opt/awakening/current`, `awakening-backend` and port 8082.
+It installs immutable `/opt/awakening/multichain-releases/RELEASE_ID`, records
+Git SHA/checksums in `release.json`, creates two backend services on 8083/8084,
+and reuses the existing root-only database credential from
+`/etc/awakening/backend.env`. PostgreSQL remains `awakening_bsc`; Flyway/Hikari
+select `awakening_arbitrum` and `awakening_robinhood` schemas respectively. No
+snapshot is restored and existing orders are preserved. New configuration files
+remain mode 0600. Each backend uses a 384 MB heap/800 MB service memory limit;
+frontend services use 450 MB limits. Check total VM memory before installation.
+
+Backends must become VERIFIED and serve indexed markets before frontend/proxy
+switching. Arbitrum uses frontend port 3000; Robinhood uses 3001. API prefixes
+are stripped by Caddy before proxying to the matching backend. Actuator and
+unprefixed/legacy API paths remain private. Verify public config/markets on both
+prefixes and both frontend pages/assets after installation. The updater does
+not claim wallet transaction acceptance.
+
+Previous service files, Caddy config and symlink targets are retained under
+`/opt/awakening/rollback/RELEASE_ID` (root only). To restore:
+
+```bash
+python3 STAGING/ops/gcp/rollback-dual-release.py RELEASE_ID
+```
+
+Rollback restores the prior frontend/proxy and stops newly introduced services.
+It never restores database data over new orders. If backend readiness fails,
+the previous public proxy/frontend stays active; inspect logs, then retry or
+invoke rollback. Before replacing any cloud release, audit cloud differences
+against GitHub and reconcile intended changes locally and upstream first.

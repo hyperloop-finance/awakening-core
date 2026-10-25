@@ -1,3 +1,4 @@
+import {ACTIVE_CHAIN_ID} from '@/lib/networks';
 import { encodeAbiParameters, hashStruct, parseAbiParameters, parseSignature, type Address, type Hex } from 'viem';
 
 export type ChainMarket = {
@@ -24,7 +25,7 @@ export function hashOffer(offer:ChainOffer):Hex {
   return hashStruct({data:offer,primaryType:'Offer',types:offerTypes});
 }
 export function offerTypedData(offer:ChainOffer) {
-  return {domain:{chainId:97,verifyingContract:offer.ratifier},types:offerTypes,primaryType:'OfferTree' as const,message:{offerTree:offer}};
+  return {domain:{chainId:ACTIVE_CHAIN_ID,verifyingContract:offer.ratifier},types:offerTypes,primaryType:'OfferTree' as const,message:{offerTree:offer}};
 }
 export function ratifierData(offer:ChainOffer,signature:Hex):Hex {
   const sig=parseSignature(signature);

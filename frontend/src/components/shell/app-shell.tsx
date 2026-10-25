@@ -1,4 +1,5 @@
 "use client";
+import {assetPath} from '@/lib/networks';
 
 import Link from "next/link";
 import Image from "next/image";
@@ -70,7 +71,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link className="brand" href="/markets" aria-label="Awakening markets">
             <Image
               className="brand-logo"
-              src="/hyperloop-logo.svg"
+              src={assetPath('/hyperloop-logo.svg')}
               alt="Hyperloop"
               width={180}
               height={19}

@@ -1,4 +1,5 @@
 "use client";
+import {assetPath} from '@/lib/networks';
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -10,6 +11,7 @@ import { deriveMarketsOverview, filterMarkets } from "@/lib/state/flows";
 import { EmptyState, ErrorState, LoadingState } from "@/components/shell/states";
 import { CreditFlow } from "@/components/borrow/borrow-screen";
 import type { QuoteSide } from "@/lib/api/types";
+import { OptionVenue } from "./option-venue";
 
 type MarketsState =
   | { kind: "loading" }
@@ -30,7 +32,7 @@ function AssetIcon({ asset, overlap = false }: { asset: string; overlap?: boolea
   const logo = tokenLogos[asset];
   const className = `asset-symbol${logo?.tokenizedStock ? " asset-symbol-stock" : ""}${overlap ? " asset-overlap" : ""}`;
   return logo
-    ? <Image className={className} src={logo.src} alt={logo.alt} width={25} height={25} />
+    ? <Image className={className} src={assetPath(logo.src)} alt={logo.alt} width={25} height={25} />
     : <span className={`${className} asset-ticker`} role="img" aria-label={`${asset} token`}>{asset.slice(0, 2)}</span>;
 }
 
@@ -170,7 +172,7 @@ export function MarketsScreen() {
                   <th scope="col">FIXED APR</th>
                   <th scope="col">MATURITY</th>
                   <th scope="col">AVAILABLE</th>
-                  <th scope="col">UTILIZATION</th>
+                  <th scope="col">OPTION VENUE</th>
                   <th scope="col">STRIKE / PAT</th>
                   <th scope="col">STATUS</th>
                   <th scope="col">ACTIONS</th>
@@ -190,7 +192,7 @@ export function MarketsScreen() {
                     <td data-label="Fixed APR"><span className="rate-badge">{formatRateAsPercent(market.fixedApr)}</span></td>
                     <td data-label="Maturity">{market.maturity.slice(0, 10)} UTC</td>
                     <td data-label="Available">{formatDecimal(market.availableLiquidity)} {market.principalAsset}</td>
-                    <td data-label="Utilization">{formatRateAsPercent(market.utilization)}</td>
+                    <td data-label="Option venue"><OptionVenue marketIndex={state.kind === "ready" ? state.markets.findIndex(item => item.id === market.id) : -1} /></td>
                     <td data-label="Strike / PAT"><strong>{formatDecimal(market.strike)} {market.principalAsset}</strong><small className="market-meta compact">{formatRateAsPercent(market.patCoverage)} · PREVIEW PAT</small></td>
                     <td data-label="Status">
                       <span className={`status-badge status-${market.settlementState.toLowerCase()}`}>

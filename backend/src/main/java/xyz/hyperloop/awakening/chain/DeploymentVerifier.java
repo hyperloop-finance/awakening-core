@@ -9,14 +9,14 @@ public class DeploymentVerifier {
     public DeploymentVerifier(ChainGateway rpc, DeploymentManifest manifest) { this.rpc=rpc; this.manifest=manifest; }
     public Result verify() {
         try {
-            if (rpc.chainId()!=97) return new Result(false,false,0,"WRONG_CHAIN");
+            if (rpc.chainId()!=manifest.chainId()) return new Result(false,false,0,"WRONG_CHAIN");
             long block=rpc.blockNumber();
             String core=manifest.address("Awakening");
             for (String name : new String[]{"Awakening","OptionVault","AttestedPAT","AwakeningSettlement"}) {
                 if (!manifest.address(name).matches("0x[0-9a-fA-F]{40}") || rpc.code(manifest.address(name),block).length()<=2)
                     return new Result(false,false,block,"MISSING_CODE");
             }
-            if (!BigInteger.valueOf(97).equals(rpc.uintCall(core,"INITIAL_CHAIN_ID()",block))) return new Result(false,false,block,"WRONG_CORE_CHAIN");
+            if (!BigInteger.valueOf(manifest.chainId()).equals(rpc.uintCall(core,"INITIAL_CHAIN_ID()",block))) return new Result(false,false,block,"WRONG_CORE_CHAIN");
             for (String[] p : new String[][]{{"optionVault","OptionVault"},{"pat","AttestedPAT"},{"settlement","AwakeningSettlement"}})
                 if (!manifest.address(p[1]).equalsIgnoreCase(rpc.addressCall(core,p[0]+"()",block))) return new Result(false,false,block,"WRONG_LINK");
             for (String name : new String[]{"OptionVault","AwakeningSettlement"})

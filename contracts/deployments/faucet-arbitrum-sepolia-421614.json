@@ -1,0 +1,60 @@
+{
+  "chainId": 421614,
+  "tokens": [
+    {
+      "symbol": "BTC",
+      "onchainSymbol": "tBTC",
+      "name": "Bitcoin",
+      "decimals": 8,
+      "logo": "/tokens/btc.svg",
+      "marketEnabled": true,
+      "address": "0xc1790b5495549bff3e4cce51970668ba6061666a",
+      "claimAmount": "1000",
+      "claimTx": "0x965cc314bfced92b3f1922e3d8a5e1ab7ae6b8a528ef551a28b9303ff43678b9"
+    },
+    {
+      "symbol": "USDC",
+      "onchainSymbol": "tUSDC",
+      "name": "USDC",
+      "decimals": 6,
+      "logo": "/tokens/usdc.svg",
+      "marketEnabled": true,
+      "address": "0xa3d01377cd4f3de0ae5fa51b06aba09bfd2c463c",
+      "claimAmount": "1000",
+      "claimTx": "0x8ad90c730f917c89a17433fcef4bf311bb2d42ebe14a3001783fc571ed260c1d"
+    },
+    {
+      "symbol": "USDT",
+      "onchainSymbol": "tUSDT",
+      "name": "USDT",
+      "decimals": 6,
+      "logo": "/tokens/usdt.svg",
+      "marketEnabled": false,
+      "address": "0x16efe1e261576fa05268c8fff74985df50d8f868",
+      "claimAmount": "1000",
+      "claimTx": "0xafa27356aca07143c1aff76f9229f24d666ee11ac9a2d5885a35c2b06359b399"
+    },
+    {
+      "symbol": "bTesla",
+      "onchainSymbol": "bTesla",
+      "name": "bTesla",
+      "decimals": 18,
+      "logo": "/tokens/tesla.svg",
+      "marketEnabled": false,
+      "address": "0x6fbcb9d30c4542fadda839c62def5957fed68927",
+      "claimAmount": "1000",
+      "claimTx": "0xef07dc77f203845ae33d9efbcc28c4647c602e257cbc043a1dbdd90991d9b7ea"
+    },
+    {
+      "symbol": "bNVIDIA",
+      "onchainSymbol": "bNVIDIA",
+      "name": "bNVIDIA",
+      "decimals": 18,
+      "logo": "/tokens/nvidia.svg",
+      "marketEnabled": false,
+      "address": "0xdf7f0a6b6c791e966d8b79b492fb652271503333",
+      "claimAmount": "1000",
+      "claimTx": "0xf361f63a5a889c9a8c26911b945c03a7ac315f4b8960d0cb09195293bd890e2b"
+    }
+  ]
+}

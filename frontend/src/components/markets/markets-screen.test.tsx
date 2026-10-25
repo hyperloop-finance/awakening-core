@@ -62,7 +62,9 @@ describe("MarketsScreen", () => {
     expect(screen.getByText("min(S, K)")).toBeInTheDocument();
     expect(screen.queryByText("DETERMINISTIC PREVIEW · NO LIVE TVL")).not.toBeInTheDocument();
     expect(within(screen.getByRole("table")).getByText("12%")).toBeInTheDocument();
-    expect(within(screen.getByRole("table")).getByText("41.2%")).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "OPTION VENUE" })).toBeInTheDocument();
+    expect(within(screen.getByRole("table")).getByText("Deribit")).toBeInTheDocument();
+    expect(within(screen.getByRole("table")).queryByText("41.2%")).not.toBeInTheDocument();
     expect(
       within(screen.getByRole("table")).getByText("9,007,199,254,740,993 USDC"),
     ).toBeInTheDocument();
@@ -113,6 +115,13 @@ describe("MarketsScreen", () => {
     expect(screen.getByRole("img", { name: "BNCB bStock" })).toBeInTheDocument();
     expect(screen.getAllByRole("img", { name: "Tether" })).toHaveLength(4);
     expect(within(table).getAllByText(/PREVIEW PAT/).length).toBeGreaterThan(0);
+    expect(within(table).getAllByText("Deribit")).toHaveLength(2);
+    expect(within(table).getByText("Derive")).toBeInTheDocument();
+    fireEvent.change(screen.getByRole("textbox", { name: "Filter markets" }), {
+      target: { value: "SPCXB" },
+    });
+    expect(within(table).getByText("Derive")).toBeInTheDocument();
+    expect(within(table).queryByText("Deribit")).not.toBeInTheDocument();
   });
 
   it("derives overview metrics from the full API catalog", async () => {

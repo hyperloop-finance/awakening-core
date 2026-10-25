@@ -29,7 +29,7 @@ public class ChainProjectionService {
         return cursor.block();
     }
     private ObjectNode envelope(long block) {
-        return json.createObjectNode().put("chainId",97).put("dataSource","BSC_TESTNET").put("observedBlock",block);
+        return json.createObjectNode().put("chainId",manifest.chainId()).put("dataSource",manifest.dataSource()).put("observedBlock",block);
     }
     public ObjectNode markets() {
         long block=block();

@@ -1,3 +1,4 @@
+import {assetPath} from '@/lib/networks';
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import '@rainbow-me/rainbowkit/styles.css';
@@ -34,7 +35,7 @@ const directionContractScript = `document.body.insertBefore(document.createComme
 )}), document.body.firstChild);`;
 
 export const metadata: Metadata = {
-  icons: { icon: [{ url: '/icon.svg?v=equal-height-3', type: 'image/svg+xml' }], shortcut: '/icon.svg?v=equal-height-3' },
+  icons: { icon: [{ url: assetPath('/icon.svg?v=black-4'), type: 'image/svg+xml' }], shortcut: assetPath('/icon.svg?v=black-4') },
   title: "Hyperloop Finance - Non-liquidative Lending",
   description: "Fixed-rate credit against BTC and tokenized securities with deterministic preview markets.",
 };

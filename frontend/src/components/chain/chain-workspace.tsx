@@ -1,21 +1,25 @@
 "use client";
+import {ACTIVE_CHAIN_ID, ACTIVE_CHAIN_LABEL} from '@/lib/networks';
 import {useCallback,useEffect,useRef,useState} from 'react';
-import {encodeFunctionData,formatUnits,parseUnits,toHex,zeroAddress,type Hex} from 'viem';
+import {encodeFunctionData,formatUnits,toHex,type Hex} from 'viem';
 import type {RuntimeConfig} from '@/lib/api/types';
 import {chainApi,type ChainMarketRow,type SignedChainOrder,type ChainAccount,type ChainQuote} from '@/lib/api/chain';
-import {deployment,awakeningAbi,awakeningSettlementAbi,ecrecoverRatifierAbi} from '@/lib/contracts/generated';
+import {deployment,awakeningAbi,awakeningSettlementAbi,ecrecoverRatifierAbi} from '@/lib/contracts/selected-deployment';
 import {assertTrustedRuntime,decodeSignedOrder,trustedMarket} from '@/lib/contracts/live-model';
-import {hashOffer,priceToTick,ratifierData,type ChainOffer} from '@/lib/contracts/offer-tree';
-import {parseTokenAmount,repaymentAmount} from '@/lib/contracts/transactions';
+import {hashOffer,ratifierData,type ChainOffer} from '@/lib/contracts/offer-tree';
+import {buildOrderOffer,minimumOrderCollateral} from '@/lib/contracts/order-draft';
+import {parseTokenAmount,repaymentAmount,actionErrorMessage} from '@/lib/contracts/transactions';
 import {useWalletIdentity} from '@/components/shell/wallet';
 import {useChainWallet} from './use-chain-wallet';
 import {ChainMarkets} from './chain-markets';
 import {AccountWorkspace,type OrderDraft} from './account-workspace';
+import {OrderReview} from './order-review';
+import {ActionToast} from './action-toast';
 
 const core=deployment.contracts.Awakening;
 const amount=(value:string,decimals=6)=>formatUnits(BigInt(value),decimals);
 const short=(value:string)=>`${value.slice(0,8)}…${value.slice(-6)}`;
-const errorText=(e:unknown)=>e instanceof Error?e.message:'Unable to complete this action. Please retry.';
+const errorText=actionErrorMessage;
 
 export function ChainWorkspace({pathname,config}:{pathname:string;config:RuntimeConfig}) {
   const page=pathname.split('/')[1]||'markets';
@@ -28,7 +32,8 @@ export function ChainWorkspace({pathname,config}:{pathname:string;config:Runtime
   const lock=useRef(false),mounted=useRef(true);
   const [units,setUnits]=useState('1000'),[collateral,setCollateral]=useState('0.025');
   const [selected,setSelected]=useState<SignedChainOrder>(),[quote,setQuote]=useState<ChainQuote>();
-  const canSign=!!wallet&&chainId===97&&config.transactionsEnabled===true&&config.verificationStatus==='VERIFIED';
+  const [orderReview,setOrderReview]=useState<{marketId:string;offer:ChainOffer}>();
+  const canSign=!!wallet&&chainId===ACTIVE_CHAIN_ID&&config.transactionsEnabled===true&&config.verificationStatus==='VERIFIED';
   useEffect(()=>{mounted.current=true;return()=>{mounted.current=false}},[]);
   useEffect(()=>{
     const controller=new AbortController();setLoading(true);setDataError('');
@@ -41,37 +46,41 @@ export function ChainWorkspace({pathname,config}:{pathname:string;config:Runtime
     return()=>controller.abort();
   },[wallet,page,reload,config]);
   const refresh=useCallback(()=>setReload(n=>n+1),[]);
+  const dismissNotice=useCallback(()=>{setError('');setNotice('');},[]);
   useEffect(()=>{
     if(signing.status?.stage!=='indexing')return;
     let attempts=0;
     const timer=setInterval(()=>{refresh();if(++attempts>=12)clearInterval(timer)},5000);
     return()=>clearInterval(timer);
   },[signing.status,refresh]);
-  async function action(work:()=>Promise<void>) {
+  async function action(work:()=>Promise<void>,refreshAfter=true) {
     if(lock.current)return;lock.current=true;setBusy(true);setError('');setNotice('');signing.clearStatus();
-    try {await work();if(mounted.current)refresh();}catch(e){if(mounted.current)setError(errorText(e));}
+    try {await work();if(mounted.current&&refreshAfter)refresh();}catch(e){if(mounted.current)setError(errorText(e));}
     finally{lock.current=false;if(mounted.current)setBusy(false);}
   }
   async function placeOrder(draft:OrderDraft) {
-    const {marketId,side,units,collateral,apr}=draft;
-    const s=signing.session(),market=trustedMarket(marketId),row=markets.find(m=>m.id===marketId);
+    const s=signing.session(),row=markets.find(m=>m.id===draft.marketId);
     if(!row)throw Error('Select an initialized market.');
-    const face=parseTokenAmount(units,6),locked=parseTokenAmount(collateral,8);
-    const rate=parseUnits(apr,16);if(rate<0n||rate>10n**18n)throw Error('APR must be between 0% and 100%.');
     const block=await s.publicClient.getBlock();s.check();const now=block.timestamp;
-    if(market.maturity<=now+120n)throw Error('This market is too close to maturity. Select another market.');
-    const year=31536000n,price=10n**18n*year/(year+rate*(market.maturity-now)/10n**18n);
-    const tick=priceToTick(price,BigInt(row.tickSpacing));
-    const buy=side==='LEND';
-    if(!buy&&locked*market.maxStrike<face*10n**36n)throw Error('Increase collateral to satisfy this market’s strike limit.');
-    await s.approve(buy?market.loanToken:market.collateralParams[0].token,buy?face:locked);
+    const offer=buildOrderOffer(draft,s.account,BigInt(row.tickSpacing),now,toHex(crypto.getRandomValues(new Uint8Array(32))));
+    setOrderReview({marketId:draft.marketId,offer});
+  }
+  async function confirmOrder() {
+    if(!orderReview)throw Error('Review an order first.');
+    const {offer,marketId}=orderReview;
+    const s=signing.session();
+    if(offer.maker.toLowerCase()!==s.account.toLowerCase())throw Error('Wallet changed. Review the order again.');
+    const assertActive=async()=>{const block=await s.publicClient.getBlock();s.check();if(block.timestamp>offer.expiry||block.timestamp>=offer.market.maturity)throw Error('Order preview expired. Close it and review a new order.');};
+    await assertActive();
+    if(offer.buy)await s.approve(offer.market.loanToken,offer.maxUnits);
+    else await s.approve(offer.market.collateralParams[0].token,minimumOrderCollateral(offer));
     const authorized=await s.publicClient.readContract({address:core,abi:awakeningAbi,functionName:'isAuthorized',args:[s.account,deployment.contracts.EcrecoverRatifier]});s.check();
     if(!authorized)await s.tx(core,encodeFunctionData({abi:awakeningAbi,functionName:'setIsAuthorized',args:[deployment.contracts.EcrecoverRatifier,true,s.account]}));
-    const offer:ChainOffer={market,buy,maker:s.account,start:now-30n,expiry:now+3600n<market.maturity?now+3600n:market.maturity-1n,tick,
-      group:toHex(crypto.getRandomValues(new Uint8Array(32))),callback:zeroAddress,callbackData:'0x',receiverIfMakerIsSeller:s.account,ratifier:deployment.contracts.EcrecoverRatifier,reduceOnly:false,maxUnits:face,maxAssets:0n};
+    await assertActive();
     const signature=await s.sign(offer);s.check();
-    await chainApi.create({chainId:97,awakeningAddress:core,marketId,root:hashOffer(offer),offer,signature});s.check();
-    setNotice('Signed order saved. It expires within one hour; cancellation requires an on-chain transaction.');
+    await chainApi.create({chainId:ACTIVE_CHAIN_ID,awakeningAddress:core,marketId,root:hashOffer(offer),offer,signature});s.check();
+    setOrderReview(undefined);
+    setNotice(`Signed order saved. Expires ${new Date(Number(offer.expiry)*1000).toISOString()}. Cancellation requires an on-chain transaction.`);
   }
   async function cancel(order:SignedChainOrder) {
     const s=signing.session(),offer=decodeSignedOrder(order);
@@ -115,16 +124,23 @@ export function ChainWorkspace({pathname,config}:{pathname:string;config:Runtime
   }
   const title=page==='markets'||page==='borrow'||page==='lend'?'Markets':page==='orders'?'Orders':page==='settlement'?'Settlement':'Positions';
   const personal=title!=='Markets';
-  if(personal)return <AccountWorkspace page={title==='Orders'?'orders':title==='Settlement'?'settlement':'positions'} wallet={wallet} canSign={canSign} busy={busy} loading={loading} error={dataError} markets={markets} orders={orders} account={account} onConnect={openWallet} onRefresh={refresh} onPlace={draft=>void action(()=>placeOrder(draft))} onCancel={order=>void action(()=>cancel(order))} onSettle={(kind,id,value,repayValue)=>void action(()=>settlement(kind,id,value,repayValue))} feedback={<>{error&&<p className="chain-message" role="alert">{error}</p>}{notice&&<p className="chain-message" role="status">{notice}</p>}{signing.status&&<p className="chain-message" role="status">{signing.status.stage.replaceAll('-',' ')}{signing.status.hash&&<> · <a href={`https://testnet.bscscan.com/tx/${signing.status.hash}`} target="_blank" rel="noreferrer">View transaction</a></>}</p>}</>}/>;
+  if(personal)return <AccountWorkspace
+    page={title==='Orders'?'orders':title==='Settlement'?'settlement':'positions'} wallet={wallet}
+    canSign={canSign} busy={busy} loading={loading} error={dataError} markets={markets} orders={orders} account={account}
+    onConnect={openWallet} onRefresh={refresh} onPlace={draft=>void action(()=>placeOrder(draft),false)}
+    onCancel={order=>void action(()=>cancel(order))}
+    onSettle={(kind,id,value,repayValue)=>void action(()=>settlement(kind,id,value,repayValue))}
+    feedback={<>
+      {orderReview&&<OrderReview offer={orderReview.offer} busy={busy} error={error} onConfirm={()=>void action(confirmOrder)} onClose={()=>{setOrderReview(undefined);setError('');}}/>}
+      {!orderReview&&(error||notice)&&<ActionToast message={error||notice} error={!!error} onClose={dismissNotice}/>}
+    </>}/>;
   return <div className="chain-workspace">
     <ChainMarkets markets={markets} loading={loading} error={dataError} observedBlock={observedBlock} busy={busy} canSign={canSign} onRefresh={refresh} onChoose={choose}/>
-    {error&&<p className="chain-message" role="alert">{error}</p>}
-    {notice&&<p className="chain-message" role="status">{notice}</p>}
-    {signing.status&&<p className="chain-message" role="status">{signing.status.stage.replaceAll('-',' ')}{signing.status.hash&&<> · <a href={`https://testnet.bscscan.com/tx/${signing.status.hash}`} target="_blank" rel="noreferrer">View transaction</a></>}</p>}
-      {selected&&<section className="inline-execution" aria-label={`${selected.offer.buy?'Borrow':'Lend'} execution`}><div className="inline-execution-head"><div><span>BNB TESTNET EXECUTION</span><h2>{selected.offer.buy?'Borrow':'Lend'} without leaving the market</h2></div><button className="inline-button" disabled={busy} onClick={()=>{setSelected(undefined);setQuote(undefined)}}>Close</button></div><div className="instrument-panel order-ticket"><h2>{selected.offer.buy?'Borrow':'Lend'} · tBTC / tUSDC</h2><label>Counterparty order<select value={selected.root} onChange={e=>{setSelected(orders.find(o=>o.root===e.target.value));setQuote(undefined)}}>{orders.filter(o=>o.marketId===selected.marketId&&o.offer.buy===selected.offer.buy&&String(o.offer.maker).toLowerCase()!==wallet?.toLowerCase()).map(o=><option key={o.root} value={o.root}>{short(String(o.offer.maker))} · {amount(String(o.offer.maxUnits))} tUSDC · {short(o.root)}</option>)}</select></label><label>Debt / credit units at maturity · tUSDC<input value={units} onChange={e=>{setUnits(e.target.value);setQuote(undefined)}} inputMode="decimal"/></label><label>Collateral escrow · tBTC<input value={collateral} onChange={e=>{setCollateral(e.target.value);setQuote(undefined)}} inputMode="decimal"/></label>
+    {(error||notice)&&<ActionToast message={error||notice} error={!!error} onClose={dismissNotice}/>}
+      {selected&&<section className="inline-execution" aria-label={`${selected.offer.buy?'Borrow':'Lend'} execution`}><div className="inline-execution-head"><div><span>{ACTIVE_CHAIN_LABEL.toUpperCase()} EXECUTION</span><h2>{selected.offer.buy?'Borrow':'Lend'} without leaving the market</h2></div><button className="inline-button" disabled={busy} onClick={()=>{setSelected(undefined);setQuote(undefined)}}>Close</button></div><div className="instrument-panel order-ticket"><h2>{selected.offer.buy?'Borrow':'Lend'} · tBTC / tUSDC</h2><label>Counterparty order<select value={selected.root} onChange={e=>{setSelected(orders.find(o=>o.root===e.target.value));setQuote(undefined)}}>{orders.filter(o=>o.marketId===selected.marketId&&o.offer.buy===selected.offer.buy&&String(o.offer.maker).toLowerCase()!==wallet?.toLowerCase()).map(o=><option key={o.root} value={o.root}>{short(String(o.offer.maker))} · {amount(String(o.offer.maxUnits))} tUSDC · {short(o.root)}</option>)}</select></label><label>Debt / credit units at maturity · tUSDC<input value={units} onChange={e=>{setUnits(e.target.value);setQuote(undefined)}} inputMode="decimal"/></label><label>Collateral escrow · tBTC<input value={collateral} onChange={e=>{setCollateral(e.target.value);setQuote(undefined)}} inputMode="decimal"/></label>
         <button className="secondary-button" disabled={busy||!canSign} onClick={()=>void action(getQuote)}>Get executable quote</button>
         {quote&&<><dl className="wallet-details"><div><dt>Lender supplies</dt><dd>{amount(quote.buyerAssets)} tUSDC</dd></div><div><dt>Borrower receives before protection premium</dt><dd>{amount(quote.sellerAssetsBeforeProtection)} tUSDC</dd></div><div><dt>Debt due at maturity</dt><dd>{amount(quote.units)} tUSDC</dd></div></dl><p className="chain-note">Protection completion is a separate test-operator action. Its premium reduces borrower proceeds. Expired pending takes can be cancelled.</p><button className="primary-button" disabled={busy||!canSign} onClick={()=>void action(take)}>Approve &amp; submit take</button></>}
       </div></section>}
-    {!canSign&&<p className="chain-note">{!wallet?'Connect a wallet on BNB Testnet to transact.':chainId!==97?'Switch to BNB Testnet in the wallet menu.':'Transaction activation is pending end-to-end testnet verification.'}</p>}
+    {!canSign&&<p className="chain-note">{!wallet?`Connect a wallet on ${ACTIVE_CHAIN_LABEL} to transact.`:chainId!==ACTIVE_CHAIN_ID?`Switch to ${ACTIVE_CHAIN_LABEL} in the wallet menu.`:'Transaction activation is pending end-to-end testnet verification.'}</p>}
   </div>;
 }

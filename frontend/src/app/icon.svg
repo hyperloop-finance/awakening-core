@@ -1,7 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
   <title>Hyperloop Tunnel — Equal Height</title>
-  <style>:root { color: #111111; } @media (prefers-color-scheme: dark) { :root { color: #ffffff; } }</style>
-  <g fill="currentColor">
+  <g fill="#000000">
     <rect x="8" y="64" width="40" height="128"/>
     <circle cx="128" cy="128" r="64"/>
     <rect x="208" y="64" width="40" height="128"/>

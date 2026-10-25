@@ -1,0 +1,82 @@
+import {render,screen,fireEvent,waitFor,within} from '@testing-library/react';
+import {beforeEach,it,expect,vi} from 'vitest';
+import {ChainWorkspace} from './chain-workspace';
+import {deployment} from '@/lib/contracts/generated';
+import {hashOffer,type ChainOffer} from '@/lib/contracts/offer-tree';
+import type {RuntimeConfig} from '@/lib/api/types';
+const mocks=vi.hoisted(()=>({markets:vi.fn(),orders:vi.fn(),create:vi.fn(),approve:vi.fn(),sign:vi.fn(),tx:vi.fn(),getBlock:vi.fn(),readContract:vi.fn(),check:vi.fn(),clearStatus:vi.fn()}));
+vi.mock('@/lib/api/chain',()=>({chainApi:mocks}));
+vi.mock('@/components/shell/wallet',()=>({useWalletIdentity:()=>({wallet:deployment.deployer,chainId:97,openWallet:vi.fn()})}));
+vi.mock('./use-chain-wallet',()=>({useChainWallet:()=>({status:{stage:'awaiting-signature'},clearStatus:mocks.clearStatus,session:()=>({account:deployment.deployer,approve:mocks.approve,sign:mocks.sign,tx:mocks.tx,check:mocks.check,publicClient:{getBlock:mocks.getBlock,readContract:mocks.readContract}})})}));
+const config:RuntimeConfig={profile:'bsc-testnet',chainId:97,rpcUrlConfigured:true,contractsReady:true,verificationStatus:'VERIFIED',transactionsEnabled:true,awakeningAddress:deployment.contracts.Awakening,settlementAddress:deployment.contracts.AwakeningSettlement,patAddress:deployment.contracts.AttestedPAT,optionVaultAddress:deployment.contracts.OptionVault,ratifierAddress:deployment.contracts.EcrecoverRatifier};
+beforeEach(()=>{
+  vi.clearAllMocks();
+  mocks.markets.mockResolvedValue({chainId:97,observedBlock:123,markets:[{...deployment.markets[0],totalUnits:'0',withdrawable:'0',tickSpacing:'4'}]});
+  mocks.orders.mockResolvedValue({chainId:97,orders:[]});mocks.create.mockResolvedValue({});
+  mocks.getBlock.mockResolvedValue({timestamp:BigInt(Math.floor(Date.now()/1000))});
+  mocks.readContract.mockResolvedValue(true);mocks.approve.mockResolvedValue(undefined);
+  mocks.sign.mockResolvedValue(`0x${'11'.repeat(65)}`);
+});
+const mount=async()=>{render(<ChainWorkspace pathname="/orders" config={config}/>);await screen.findByRole('heading',{name:'Place an order'});};
+it('reviews the exact Offer before any wallet approval and submits the same signed values',async()=>{
+  await mount();
+  expect(screen.queryByLabelText('Fixed APR')).not.toBeInTheDocument();
+  fireEvent.change(screen.getByRole('textbox',{name:/Maximum debt at maturity/}),{target:{value:'123.456789'}});
+  fireEvent.change(screen.getByRole('textbox',{name:/Price tick/}),{target:{value:'3996'}});
+  fireEvent.change(screen.getByRole('textbox',{name:/Order validity/}),{target:{value:'15'}});
+  fireEvent.click(screen.getByRole('button',{name:'Review order'}));
+  const dialog=await screen.findByRole('dialog',{name:'Review signed order'});
+  const offer=JSON.parse(dialog.querySelector('pre')!.textContent!);
+  expect(offer).toMatchObject({tick:'3996',maxUnits:'123456789',maxAssets:'0',buy:false,maker:deployment.deployer});
+  expect(BigInt(offer.expiry)-BigInt(offer.start)).toBe(900n);
+  expect(mocks.approve).not.toHaveBeenCalled();expect(mocks.sign).not.toHaveBeenCalled();
+  fireEvent.click(within(dialog).getByRole('button',{name:'Confirm & sign order'}));
+  await waitFor(()=>expect(mocks.create).toHaveBeenCalledOnce());
+  const signed=mocks.sign.mock.calls[0][0] as ChainOffer;
+  expect(JSON.stringify(signed,(_,v)=>typeof v==='bigint'?v.toString():v)).toBe(JSON.stringify(offer));
+  expect(mocks.create).toHaveBeenCalledWith(expect.objectContaining({marketId:deployment.markets[0].id,root:hashOffer(signed),offer:signed}));
+  expect(mocks.approve).toHaveBeenCalledWith(deployment.markets[0].market.collateralParams[0].token,308642n);
+  expect(screen.queryByText('awaiting signature')).not.toBeInTheDocument();
+});
+it('approves USDC for a lender and signs buy=true with the reviewed unit cap',async()=>{
+  await mount();fireEvent.click(screen.getByRole('button',{name:'Lend'}));
+  expect(screen.queryByRole('button',{name:'Approve BTC spending'})).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button',{name:'Review order'}));
+  const dialog=await screen.findByRole('dialog',{name:'Review signed order'});
+  fireEvent.click(within(dialog).getByRole('button',{name:'Confirm & sign order'}));
+  await waitFor(()=>expect(mocks.create).toHaveBeenCalledOnce());
+  expect(mocks.approve).toHaveBeenCalledWith(deployment.markets[0].market.loanToken,500000000n);
+  expect(mocks.sign.mock.calls[0][0]).toMatchObject({buy:true,maxUnits:500000000n});
+});
+it('does not expose a separate collateral approval form',async()=>{
+  await mount();
+  expect(screen.queryByRole('button',{name:'Approve BTC spending'})).not.toBeInTheDocument();
+  expect(screen.queryByLabelText(/BTC allowance/)).not.toBeInTheDocument();
+  expect(mocks.sign).not.toHaveBeenCalled();expect(mocks.create).not.toHaveBeenCalled();
+});
+it('rejects a tick outside market spacing without opening a signing preview',async()=>{
+  await mount();fireEvent.change(screen.getByRole('textbox',{name:/Price tick/}),{target:{value:'4001'}});
+  fireEvent.click(screen.getByRole('button',{name:'Review order'}));
+  expect(screen.getByRole('alert')).toHaveTextContent('multiple of 4');
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();expect(mocks.sign).not.toHaveBeenCalled();
+});
+it('rejects a preview that expires while awaiting confirmation',async()=>{
+  await mount();fireEvent.click(screen.getByRole('button',{name:'Review order'}));
+  const dialog=await screen.findByRole('dialog',{name:'Review signed order'});
+  const offer=JSON.parse(dialog.querySelector('pre')!.textContent!);
+  mocks.getBlock.mockResolvedValue({timestamp:BigInt(offer.expiry)+1n});
+  fireEvent.click(within(dialog).getByRole('button',{name:'Confirm & sign order'}));
+  expect(await within(dialog).findByRole('alert')).toHaveTextContent('preview expired');
+  expect(mocks.sign).not.toHaveBeenCalled();expect(mocks.approve).not.toHaveBeenCalled();
+});
+it('does not show raw wallet rejection arguments or internal transaction stages',async()=>{
+  await mount();fireEvent.click(screen.getByRole('button',{name:'Review order'}));
+  const dialog=await screen.findByRole('dialog',{name:'Review signed order'});
+  mocks.readContract.mockResolvedValue(false);
+  mocks.tx.mockRejectedValueOnce(Error('User rejected the request. Request Arguments: chain: BNB Smart Chain Testnet data: 0xbb1f12aa Details: User denied transaction signature. Version: viem@2.55.10'));
+  fireEvent.click(within(dialog).getByRole('button',{name:'Confirm & sign order'}));
+  expect(await within(dialog).findByRole('alert')).toHaveTextContent('Request cancelled in your wallet.');
+  expect(screen.queryByText(/Request Arguments:/)).not.toBeInTheDocument();
+  expect(screen.queryByText('awaiting signature')).not.toBeInTheDocument();
+  expect(mocks.sign).not.toHaveBeenCalled();
+});

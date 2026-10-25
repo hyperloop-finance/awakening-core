@@ -1,0 +1,261 @@
+{
+  "network": "robinhood-testnet",
+  "chainId": 46630,
+  "deploymentDate": "2026-10-25",
+  "sourceCommit": "a6f84fc2aa03d43e12ec513c19873bda03e01da7",
+  "script": "contracts/script/deploy-multichain.mjs",
+  "compiler": "0.8.34",
+  "evmVersion": "cancun",
+  "optimizerRuns": 800,
+  "viaIR": true,
+  "deployer": "0x3b6052002Ab7f2513225f215B0CD42cA08c6a139",
+  "contracts": {
+    "Awakening": "0x73728f7f7b2b8a51f412e8f15b38f8c428e04910",
+    "OptionVault": "0xe37ff209af36b4c3133106b17d0d258f0f7c6ce3",
+    "AttestedPAT": "0xba98a7da9046d6137d06c9dabdb3eb0768356e95",
+    "AwakeningSettlement": "0xf6ae108b77641b0a5fc7eb358446b221b36daf07",
+    "EcrecoverRatifier": "0x5a6ab386f7254f815258bf63c0616d4cbc4a9cd7",
+    "TestBTC": "0xc1790b5495549bff3e4cce51970668ba6061666a",
+    "TestUSDC": "0xa3d01377cd4f3de0ae5fa51b06aba09bfd2c463c",
+    "TestOracle": "0x8dfaae482cab9b07c8d5f4ba29903df9cd42c686",
+    "TestUSDT": "0x16efe1e261576fa05268c8fff74985df50d8f868",
+    "TestTesla": "0x6fbcb9d30c4542fadda839c62def5957fed68927",
+    "TestNVIDIA": "0xdf7f0a6b6c791e966d8b79b492fb652271503333",
+    "AwakeningLoans": "0x747b6Cc5df4cE1e9f223CA10a713139de7aCB52E"
+  },
+  "roles": {
+    "custodian": "0x3b6052002Ab7f2513225f215B0CD42cA08c6a139",
+    "optionKeeper": "0x3b6052002Ab7f2513225f215B0CD42cA08c6a139",
+    "feeSetter": "0x3b6052002Ab7f2513225f215B0CD42cA08c6a139"
+  },
+  "transactions": [
+    {
+      "action": "deploy Awakening",
+      "hash": "0x2478a022a00b29b7e0be9cc3d683d76a1cfebbcaee36e10d0c0e89f652fc7d27",
+      "block": 142169425,
+      "status": "success"
+    },
+    {
+      "action": "deploy OptionVault",
+      "hash": "0xe3c391641f082f08930600cb0b48484c0f9fe8708256d6865ca7e2b82cb7d3c6",
+      "block": 142169442,
+      "status": "success"
+    },
+    {
+      "action": "deploy AttestedPAT",
+      "hash": "0xc39267a69f6ffa7be1c77aa52104f62b8003becd42bc7b67bf4baec5d86a47b6",
+      "block": 142169462,
+      "status": "success"
+    },
+    {
+      "action": "deploy AwakeningSettlement",
+      "hash": "0x0642bf86f305e8927f299df52f10f0a50a646529d8a65a9ef975578ac6a1c5d1",
+      "block": 142169479,
+      "status": "success"
+    },
+    {
+      "action": "deploy EcrecoverRatifier",
+      "hash": "0x5b6ef16bd6ee98e067f91df2e4ae3f4fbb43a5a05904d36893a113b896c9b486",
+      "block": 142169502,
+      "status": "success"
+    },
+    {
+      "action": "setOptionKeeper",
+      "hash": "0x5320a6d92ebecfd28df292f7135d85aa1b4e59ac48db81481974c63718d370d6",
+      "block": 142169525,
+      "status": "success"
+    },
+    {
+      "action": "setOptionVault",
+      "hash": "0x34cfee0ce8dc5cbe1159241e6a7ff93026c90e9bf03a2b935f1da9fb9bdba685",
+      "block": 142169548,
+      "status": "success"
+    },
+    {
+      "action": "setPat",
+      "hash": "0x10410d254fdba004c25b96750b420c2885d811548ff75a6771602be377185232",
+      "block": 142169574,
+      "status": "success"
+    },
+    {
+      "action": "setSettlement",
+      "hash": "0x8af37f8e1b14a0ec9cae4be6c93e8cb7531b710c3f7e33128fc629143518903c",
+      "block": 142169596,
+      "status": "success"
+    },
+    {
+      "action": "setFeeSetter",
+      "hash": "0x29136eef32a6dedbfb78b2b8479ca1451e46b815c2e56fbec77f7b89adf0f60f",
+      "block": 142169617,
+      "status": "success"
+    },
+    {
+      "action": "deploy TestBTC",
+      "hash": "0x99da0517fe37bded64026bfbfaf683c14c46679b37aea996d9dcc9dc6d421b50",
+      "block": 142169635,
+      "status": "success"
+    },
+    {
+      "action": "deploy TestUSDC",
+      "hash": "0x5f5d720fba2f00daaa44e30b6309af2b44fbc7bdb7d2d3302ccb9aa41dac00f8",
+      "block": 142169655,
+      "status": "success"
+    },
+    {
+      "action": "deploy TestOracle",
+      "hash": "0x579d5993d447ac42d791a57d9c8ac88eff3e8005c828fbd61ccf14840cfa79df",
+      "block": 142169676,
+      "status": "success"
+    },
+    {
+      "action": "deploy TestUSDT",
+      "hash": "0x806354dbcacdc3331ba69a35ca1b7eec79f5c6d05f8838c7fa1a307a82dd155d",
+      "block": 142169690,
+      "status": "success"
+    },
+    {
+      "action": "deploy TestTesla",
+      "hash": "0x61ea2d6ae6abe5f79a062722edeb6318a574517ff7a66041421800fc8332b3c5",
+      "block": 142169705,
+      "status": "success"
+    },
+    {
+      "action": "deploy TestNVIDIA",
+      "hash": "0x09f248aabb4f69d54b513ee65c1952d3dc8071d924a88a47eaf9927248aa4819",
+      "block": 142169728,
+      "status": "success"
+    },
+    {
+      "action": "touchMarket normal",
+      "hash": "0xcb8b5c2d4b809276f7485b50a2a3b74428fce07a1d20c1de4d3b71fac87cc32d",
+      "block": 142169755,
+      "status": "success"
+    },
+    {
+      "action": "touchMarket short",
+      "hash": "0xbfc0efb769a344d8f1b3a8b4fd42b172bd764755d6a101a880740d696e68b6c0",
+      "block": 142169778,
+      "status": "success"
+    },
+    {
+      "action": "touchMarket acceptance",
+      "hash": "0xe05a6cc6de41abc58bbad0e7592d2843a05ce03feacdc4659a29de9b8f2721a3",
+      "block": 142169805,
+      "status": "success"
+    },
+    {
+      "action": "faucet TestBTC",
+      "hash": "0x03f29fcba52a32c46944a33e4b65a6601154de1b70437987b05120b7a9311d44",
+      "block": 142169830,
+      "status": "success"
+    },
+    {
+      "action": "faucet TestUSDC",
+      "hash": "0x6819e92275eb1e37e69802685897b1a4d943680315f0561473d72cf0bf105ba9",
+      "block": 142169849,
+      "status": "success"
+    },
+    {
+      "action": "faucet TestUSDT",
+      "hash": "0xaaceba1cdeba156857c9c46e768ffe782d24b047eeecbb82d03672685ee19594",
+      "block": 142169865,
+      "status": "success"
+    },
+    {
+      "action": "faucet TestTesla",
+      "hash": "0xc22cad8252913bcd353d72a0f693e757727e729b3148226e899bb8d2d75bd2ea",
+      "block": 142169887,
+      "status": "success"
+    },
+    {
+      "action": "faucet TestNVIDIA",
+      "hash": "0xdded2a5e2d4e3cad1cf7d617cce68073129b1159bb7e56b72ba64d7a6aa1aa78",
+      "block": 142169911,
+      "status": "success"
+    }
+  ],
+  "markets": [
+    {
+      "id": "0x83de47146aa9158314736e821c6216543b4fe6fbfdc4c0a32a6a18e4c5af5bba",
+      "label": "tBTC / tUSDC",
+      "purpose": "normal",
+      "market": {
+        "loanToken": "0xa3d01377cd4f3de0ae5fa51b06aba09bfd2c463c",
+        "collateralParams": [
+          {
+            "token": "0xc1790b5495549bff3e4cce51970668ba6061666a",
+            "oracle": "0x8dfaae482cab9b07c8d5f4ba29903df9cd42c686"
+          }
+        ],
+        "maturity": "1800670489",
+        "maxStrike": "400000000000000000000000000000000000000",
+        "penaltyPct": "50000000000000000",
+        "enterGate": "0x0000000000000000000000000000000000000000"
+      }
+    },
+    {
+      "id": "0x66dce3a18a1b0357319b491272e6b1910d68f144bed15f2f8c221fecee68021b",
+      "label": "tBTC / tUSDC",
+      "purpose": "short-expiry",
+      "market": {
+        "loanToken": "0xa3d01377cd4f3de0ae5fa51b06aba09bfd2c463c",
+        "collateralParams": [
+          {
+            "token": "0xc1790b5495549bff3e4cce51970668ba6061666a",
+            "oracle": "0x8dfaae482cab9b07c8d5f4ba29903df9cd42c686"
+          }
+        ],
+        "maturity": "1792895689",
+        "maxStrike": "400000000000000000000000000000000000000",
+        "penaltyPct": "50000000000000000",
+        "enterGate": "0x0000000000000000000000000000000000000000"
+      }
+    },
+    {
+      "id": "0x459912404fcf064c1653f0d197ed195e27c5a40a34eeb4f80515e047243b1d01",
+      "label": "tBTC / tUSDC",
+      "purpose": "acceptance-short-expiry",
+      "market": {
+        "loanToken": "0xa3d01377cd4f3de0ae5fa51b06aba09bfd2c463c",
+        "collateralParams": [
+          {
+            "token": "0xc1790b5495549bff3e4cce51970668ba6061666a",
+            "oracle": "0x8dfaae482cab9b07c8d5f4ba29903df9cd42c686"
+          }
+        ],
+        "maturity": "1792894729",
+        "maxStrike": "400000000000000000000000000000000000000",
+        "penaltyPct": "50000000000000000",
+        "enterGate": "0x0000000000000000000000000000000000000000"
+      }
+    }
+  ],
+  "verification": {
+    "complete": true,
+    "topLevelContractCodePresent": true,
+    "rolesAndContractLinksReadBack": true,
+    "explorerSourceVerificationCompleted": false,
+    "frontendBackendIntegrationCompleted": true,
+    "integrationProtection": "SIMULATED_TEST_PROTECTION",
+    "localAcceptanceReport": "contracts/deployments/robinhood-testnet-local-acceptance.json"
+  },
+  "firstBlock": 142169425,
+  "testAssets": {
+    "collateral": {
+      "symbol": "tBTC",
+      "decimals": 8,
+      "address": "0xc1790b5495549bff3e4cce51970668ba6061666a"
+    },
+    "loan": {
+      "symbol": "tUSDC",
+      "decimals": 6,
+      "address": "0xa3d01377cd4f3de0ae5fa51b06aba09bfd2c463c"
+    },
+    "notice": "Permissionless faucet tokens with no monetary value. Protection is simulated; no external option execution."
+  },
+  "marketMaturities": {
+    "normal": "1800670489",
+    "short": "1792895689",
+    "acceptance": "1792894729"
+  }
+}

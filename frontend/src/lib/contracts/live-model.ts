@@ -1,5 +1,6 @@
+import {ACTIVE_CHAIN_ID, ACTIVE_CHAIN_LABEL, ACTIVE_PROFILE} from '@/lib/networks';
 import {isAddress,zeroAddress,type Address,type Hex} from 'viem';
-import {deployment} from './generated';
+import {deployment} from './selected-deployment';
 import {hashOffer,type ChainMarket,type ChainOffer} from './offer-tree';
 import type {RuntimeConfig} from '../api/types';
 
@@ -14,9 +15,9 @@ export function trustedMarket(id:string):ChainMarket {
   return {...item.market,collateralParams:item.market.collateralParams.map(c=>({...c})),maturity:BigInt(item.market.maturity),maxStrike:BigInt(item.market.maxStrike),penaltyPct:BigInt(item.market.penaltyPct)};
 }
 export function assertTrustedRuntime(config:Partial<RuntimeConfig>) {
-  if(config.profile!=='bsc-testnet'||config.chainId!==97||!config.contractsReady||config.verificationStatus!=='VERIFIED')throw Error('Verified BNB Testnet configuration is unavailable.');
+  if(config.profile!==ACTIVE_PROFILE||config.chainId!==ACTIVE_CHAIN_ID||!config.contractsReady||config.verificationStatus!=='VERIFIED')throw Error(`Verified ${ACTIVE_CHAIN_LABEL} configuration is unavailable.`);
   const pairs=[['awakeningAddress','Awakening'],['settlementAddress','AwakeningSettlement'],['patAddress','AttestedPAT'],['optionVaultAddress','OptionVault'],['ratifierAddress','EcrecoverRatifier']] as const;
-  for(const [key,name]of pairs)if(config[key]?.toLowerCase()!==deployment.contracts[name].toLowerCase())throw Error('Unexpected contract deployment.');
+  for(const [key,name]of pairs)if(!isAddress(deployment.contracts[name],{strict:false})||deployment.contracts[name].toLowerCase()===zeroAddress||config[key]?.toLowerCase()!==deployment.contracts[name].toLowerCase())throw Error('Unexpected contract deployment.');
 }
 export function decodeSignedOrder(input:unknown):ChainOffer {
   const signed=record(input),o=record(signed.offer),m=record(o.market);
@@ -27,7 +28,7 @@ export function decodeSignedOrder(input:unknown):ChainOffer {
   const stringify=(x:unknown)=>JSON.stringify(x,(_,v)=>typeof v==='bigint'?v.toString():v).toLowerCase();
   if(stringify(actual)!==stringify(expected))throw Error('Order market does not match trusted deployment');
   const offer:ChainOffer={market:expected,buy:bool(o.buy),maker:addr(o.maker),start:integer(o.start),expiry:integer(o.expiry),tick:integer(o.tick),group:hex(o.group,32),callback:addr(o.callback),callbackData:hex(o.callbackData,0),receiverIfMakerIsSeller:addr(o.receiverIfMakerIsSeller),ratifier:addr(o.ratifier),reduceOnly:bool(o.reduceOnly),maxUnits:integer(o.maxUnits),maxAssets:integer(o.maxAssets)};
-  if(offer.callback!==zeroAddress||offer.reduceOnly||offer.ratifier.toLowerCase()!==deployment.contracts.EcrecoverRatifier||offer.maxAssets!==0n||offer.maxUnits<=0n||offer.receiverIfMakerIsSeller.toLowerCase()!==offer.maker.toLowerCase())throw Error('Unsupported order permissions');
+  if(offer.callback!==zeroAddress||offer.reduceOnly||offer.ratifier.toLowerCase()!==deployment.contracts.EcrecoverRatifier.toLowerCase()||offer.maxAssets!==0n||offer.maxUnits<=0n||offer.receiverIfMakerIsSeller.toLowerCase()!==offer.maker.toLowerCase())throw Error('Unsupported order permissions');
   if(hashOffer(offer).toLowerCase()!==hex(signed.root,32).toLowerCase())throw Error('Order root mismatch');
   hex(signed.signature,65);return offer;
 }

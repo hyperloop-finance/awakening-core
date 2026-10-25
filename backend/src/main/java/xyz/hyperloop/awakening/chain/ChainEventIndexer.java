@@ -12,8 +12,16 @@ public class ChainEventIndexer {
     private final long start;
     private final List<String> addresses;
     private final int confirmations;
+    private final long chainId;
+    private final int blockRange;
     public ChainEventIndexer(ChainGateway rpc, ChainReadRepository repo, TransactionTemplate tx,
                              long start, List<String> addresses, int confirmations) {
+        this(rpc,repo,tx,start,addresses,confirmations,97,50_000);
+    }
+    public ChainEventIndexer(ChainGateway rpc, ChainReadRepository repo, TransactionTemplate tx,
+                             long start, List<String> addresses, int confirmations, long chainId, int blockRange) {
+        if(blockRange<=0 || confirmations<0)throw new IllegalArgumentException("Invalid indexing bounds");
+        this.chainId=chainId;this.blockRange=blockRange;
         this.rpc=rpc; this.repo=repo; this.tx=tx; this.start=start;
         this.addresses=List.copyOf(addresses); this.confirmations=confirmations;
     }
@@ -24,7 +32,7 @@ public class ChainEventIndexer {
         return hash;
     }
     public synchronized void sync() {
-        if (rpc.chainId()!=97) throw new IllegalStateException("Wrong chain");
+        if (rpc.chainId()!=chainId) throw new IllegalStateException("Wrong chain");
         long head=rpc.blockNumber()-confirmations;
         var cursor=repo.cursor();
         if (cursor!=null && (cursor.block()>head || !cursor.hash().equals(blockHash(cursor.block())))) {
@@ -32,12 +40,12 @@ public class ChainEventIndexer {
             cursor=null;
         }
         long from=cursor==null ? start : cursor.block()+1;
-        // Publicnode accepts 50,000-block log ranges. Bound each run to five ranges
+        // Bound each run to five configured ranges (smaller on L2 public RPCs)
         // so an offline restart catches up without skipping events or confirmations.
         for (int batch=0; batch<5 && from<=head; batch++) {
             var checkpoint=repo.cursor();
             verifyCheckpoint(checkpoint);
-            long to=Math.min(from+49_999,head);
+            long to=Math.min(from+blockRange-1,head);
             String hash=blockHash(to);
             var logs=rpc.request("eth_getLogs",List.of(Map.of("fromBlock",ChainGateway.hex(from),"toBlock",ChainGateway.hex(to),"address",addresses)));
             if (!logs.isArray()) throw new IllegalStateException("Malformed log response");

@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
 import java.util.function.Supplier;
 
 @RestController
-@Profile("bsc-testnet")
+@Profile({"bsc-testnet","arbitrum-sepolia","robinhood-testnet"})
 @RequestMapping("/api/v1/chain")
 public class ChainController {
     private final ChainRuntime runtime;

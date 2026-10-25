@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
 import java.util.function.Supplier;
 
 @RestController
-@Profile("bsc-testnet")
+@Profile({"bsc-testnet","arbitrum-sepolia","robinhood-testnet"})
 @RequestMapping("/api/v1/chain/orders")
 public class ChainOrderController {
     private final ChainRuntime runtime;
@@ -17,7 +17,7 @@ public class ChainOrderController {
     private ObjectNode action(Supplier<ObjectNode> supplier) {
         try {runtime.requireReady();return supplier.get();}
         catch(IllegalArgumentException e){throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage());}
-        catch(RuntimeException e){throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,"Unable to verify order against BNB Testnet; retry");}
+        catch(RuntimeException e){throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,"Unable to verify order against the selected testnet; retry");}
     }
     @GetMapping public ObjectNode list(@RequestParam(required=false) String maker){return action(()->orders.list(maker));}
     @PostMapping public ObjectNode create(@RequestBody JsonNode body){return action(()->orders.create(body));}
