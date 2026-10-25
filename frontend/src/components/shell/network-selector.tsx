@@ -31,7 +31,8 @@ export function NetworkSelector() {
     return()=>document.removeEventListener('pointerdown',dismiss);
   },[open]);
   const supported=isSupportedWalletChain(chainId);
-  const label=isConnected&&!supported?'Unsupported network':'BNB Testnet';
+  // Presentation branding only; wallet chain validation still uses ACTIVE_CHAIN_ID.
+  const label=isConnected&&!supported?'Unsupported network':'Arbitrum Testnet';
   const switchNetwork=async()=>{
     if(pending)return;
     setPending(true);setError(undefined);
@@ -44,7 +45,7 @@ export function NetworkSelector() {
     onKeyDown={event=>{if(event.key==='Escape'){event.stopPropagation();close();}}}>
     <button ref={trigger} className="wallet-button wallet-button-muted network-trigger" aria-label={`Select network: ${label}`}
       aria-haspopup="dialog" aria-expanded={open} aria-controls={open?id:undefined} onClick={()=>{setError(undefined);setOpen(!open);}}>
-      <NetworkLogo name="BNB"/>{label}<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.5"/></svg>
+      <NetworkLogo name="Arbitrum"/>{label}<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.5"/></svg>
     </button>
     {open&&<div ref={panel} id={id} className="network-popover" role="dialog" aria-label="Select network" tabIndex={-1}>
       <div className="network-list" role="tabpanel" id={`${id}-panel`} aria-labelledby={`${id}-${environment}`}>
