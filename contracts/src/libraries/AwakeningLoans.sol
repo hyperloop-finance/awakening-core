@@ -163,6 +163,7 @@ contract AwakeningLoans {
         require(offer.maker != taker, IAwakening.SelfTake());
         require(_isAuthorized(offer.maker, offer.ratifier), IAwakening.RatifierUnauthorized());
         require(IRatifier(offer.ratifier).isRatified(offer, ratifierData) == CALLBACK_SUCCESS, IAwakening.RatifierFail());
+        require(!offer.reduceOnly, IAwakening.MakerCreditOrDebtIncreased());
 
         uint256 offerPrice = TickLib.tickToPrice(offer.tick);
         uint256 timeToMaturity = UtilsLib.zeroFloorSub(offer.market.maturity, block.timestamp);

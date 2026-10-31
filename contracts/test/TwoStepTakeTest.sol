@@ -167,6 +167,37 @@ contract TwoStepTakeTest is BaseTest {
         assertEq(awakening.consumed(borrower, offer.group), units, "consumed reserved");
     }
 
+    function testTakeInitRejectsReduceOnlySellOffer() public {
+        offer.reduceOnly = true;
+
+        deal(address(loanToken), lender, _buyerAssets(1e18));
+        deal(address(collateralToken1), borrower, 1e18);
+
+        vm.prank(lender);
+        vm.expectRevert(IAwakening.MakerCreditOrDebtIncreased.selector);
+        awakening.takeInit(offer, hex"", 1e18, 1e18, lender);
+    }
+
+    function testTakeInitRejectsReduceOnlyBuyOffer() public {
+        Offer memory buyOffer;
+        buyOffer.market = market;
+        buyOffer.buy = true;
+        buyOffer.maker = lender;
+        buyOffer.maxUnits = type(uint256).max;
+        buyOffer.ratifier = address(dummyRatifier);
+        buyOffer.reduceOnly = true;
+        buyOffer.start = vm.getBlockTimestamp();
+        buyOffer.expiry = vm.getBlockTimestamp() + 200;
+        buyOffer.tick = MAX_TICK;
+
+        deal(address(loanToken), lender, _buyerAssets(1e18));
+        deal(address(collateralToken1), borrower, 1e18);
+
+        vm.prank(borrower);
+        vm.expectRevert(IAwakening.MakerCreditOrDebtIncreased.selector);
+        awakening.takeInit(buyOffer, hex"", 1e18, 1e18, borrower);
+    }
+
     // --- cancel path ---
 
     function testCancelTake(uint256 units, uint256 collateral) public {
